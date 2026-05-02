@@ -6,36 +6,7 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="1" Fixed="true" Color="Color.Dark">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                       Color="@Color.Tertiary"
-                       Edge="Edge.Start"
-                       OnClick="@ToggleDrawer"
-                       Class="show-mobile"/>
-
-        <MudText Typo="Typo.h6" Class="ml-2">OrdoWiki</MudText>
-
-        <div class="x-stack gap-4 hide-mobile">
-            <MudButton Href="/" Class="btn-nav">Home</MudButton>
-            <MudButton Href="/timeline" Class="btn-nav">Timeline</MudButton>
-            <MudButton Href="/characters" Class="btn-nav">Characters</MudButton>
-        </div>
-
-        <MudSpacer/>
-
-        <MudButton Href="/account/login" Class="btn-nav">Login</MudButton>
-
-    </MudAppBar>
-
-    <MudDrawer @bind-Open="_drawerOpen"
-               Variant="DrawerVariant.Temporary"
-               Breakpoint="Breakpoint.Md">
-        <MudNavMenu>
-            <MudNavLink Href="/" Class="btn-nav" Match="NavLinkMatch.All">Home</MudNavLink>
-            <MudNavLink Href="/timeline" Class="btn-nav">Timeline</MudNavLink>
-            <MudNavLink Href="/characters" Class="btn-nav">Characters</MudNavLink>
-        </MudNavMenu>
-    </MudDrawer>
+    <NavBar />
 
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.Large">
