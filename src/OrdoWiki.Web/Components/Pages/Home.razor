@@ -1,0 +1,25 @@
+@page "/"
+@rendermode InteractiveServer
+
+<PageTitle>OrdoWiki</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudAppBar>
+        <MudText Typo="Typo.h6">OrdoWiki</MudText>
+    </MudAppBar>
+    <MudPaper Class="pa-6" Elevation="2">
+        <MudText Typo="Typo.h3" GutterBottom="true">Hello, Clan Ordo</MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            OrdoWiki — Phase 0 scaffolding verified. MudBlazor is wired up and
+            the app is talking to Postgres.
+        </MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => _count++)">
+            Clicked @_count times
+        </MudButton>
+
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private int _count;
+}

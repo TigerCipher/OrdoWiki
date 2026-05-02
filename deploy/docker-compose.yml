@@ -1,0 +1,56 @@
+services:
+  app:
+    image: ghcr.io/${GHCR_OWNER}/ordowiki:${IMAGE_TAG:-latest}
+    container_name: ordowiki-app
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=ordowiki;Username=ordowiki;Password=${DB_PASSWORD}"
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+
+  postgres:
+    image: postgres:16
+    container_name: ordowiki-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ordowiki
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ordowiki
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ordowiki -d ordowiki"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [internal]
+
+  caddy:
+    image: caddy:2
+    container_name: ordowiki-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [app]
+    networks: [internal]
+
+volumes:
+  pgdata:
+  uploads:
+  caddy_data:
+  caddy_config:
+
+networks:
+  internal:
+    driver: bridge
