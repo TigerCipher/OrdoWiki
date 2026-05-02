@@ -1,5 +1,6 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #1a1a1a;
 }
 
 a, .btn-link {
@@ -57,4 +58,20 @@ h1:focus {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+
+@media (min-width: 769px) {
+    body {
+        background-image: url('/images/After_Party.jpg');
+        background-attachment: fixed;
+        background-position: center top;
+        background-size: cover;
+    }
+}
+
+/* Large desktop — full image */
+@media (min-width: 1280px) {
+    body {
+        background-image: url('/images/After_Party.jpg');
+    }
 }
