@@ -1,11 +1,12 @@
-﻿:root {
-    --color-bg:        #0d0d0d;
-    --color-surface:   #1a1a1a;
-    --color-border:    #2e2e2e;
-    --color-text:      #e8e6e3;
-    --color-muted:     #9a9a9a;
-    --color-accent:    #c8a560;
-    --color-accent-hi: #e6c47e;
+﻿/*noinspection CssUnresolvedCustomProperty*/
+:root {
+    --color-bg:        var(--mud-palette-background);
+    --color-surface:   var(--mud-palette-surface);
+    --color-border:    var(--mud-palette-lines-default);
+    --color-text:      var(--mud-palette-text-primary);
+    --color-muted:     var(--mud-palette-text-secondary);
+    --color-accent:    var(--mud-palette-primary);
+    --color-accent-hi: var(--mud-palette-primary-lighten);
     --color-beskar-gold: var(--color-accent);
 
     --space-1: 0.25rem;
@@ -19,7 +20,7 @@
     --container-max: 1200px;
     --appbar-height: 64px;
 
-    --font-h1: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);   /* fluid: scales with viewport */
+    --font-h1: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
     --font-body: 1rem;
     --line-height-body: 1.55;
 }
