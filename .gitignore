@@ -506,3 +506,4 @@ secrets.json
 
 # Local upload fixtures (production uploads live in a Docker volume)
 src/OrdoWiki.Web/wwwroot/uploads/
+.claude/
