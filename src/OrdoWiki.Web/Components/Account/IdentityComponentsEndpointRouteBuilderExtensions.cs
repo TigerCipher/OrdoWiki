@@ -33,12 +33,34 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
         accountGroup.MapPost("/PasswordLogin", async (
             [FromServices] SignInManager<ApplicationUser> signInManager,
             [FromServices] ILoggerFactory loggerFactory,
-            [FromForm] string username,
-            [FromForm] string password,
+            [FromForm] string? username,
+            [FromForm] string? password,
             [FromForm] bool? rememberMe,
-            [FromForm] string? returnUrl) =>
+            [FromForm] string? returnUrl,
+            [FromForm(Name = "Passkey.CredentialJson")] string? passkeyCredentialJson,
+            [FromForm(Name = "Passkey.Error")] string? passkeyError) =>
         {
-            ILogger logger = loggerFactory.CreateLogger("PasswordLogin");
+            ILogger logger = loggerFactory.CreateLogger("Login");
+
+            if (!string.IsNullOrEmpty(passkeyError))
+                return Results.LocalRedirect(BuildLoginRedirect("invalid", returnUrl));
+
+            if (!string.IsNullOrEmpty(passkeyCredentialJson))
+            {
+                SignInResult passkeyResult = await signInManager.PasskeySignInAsync(passkeyCredentialJson);
+
+                if (passkeyResult.Succeeded)
+                {
+                    logger.LogInformation("Passkey sign-in succeeded.");
+                    return Results.LocalRedirect(string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
+                }
+
+                if (passkeyResult.IsLockedOut)
+                    return Results.LocalRedirect("/Account/Lockout");
+
+                logger.LogWarning("Passkey sign-in failed.");
+                return Results.LocalRedirect(BuildLoginRedirect("invalid", returnUrl));
+            }
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
                 return Results.LocalRedirect(BuildLoginRedirect("missing", returnUrl));
@@ -186,19 +208,19 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
 
             if (newPassword != confirmPassword)
             {
-                SetPasswordChangedSnackbar(context, "Error: Passwords don't match.");
+                SetStatus(context, "Error: Passwords don't match.");
                 return Results.LocalRedirect("/Account/Manage/ChangePassword");
             }
 
             IdentityResult result = await userManager.ChangePasswordAsync(user, oldPassword, newPassword);
             if (!result.Succeeded)
             {
-                SetPasswordChangedSnackbar(context,
-                    "Error: " + string.Join(" ", result.Errors.Select(e => e.Description)));
+                SetStatus(context, "Error: " + string.Join(" ", result.Errors.Select(e => e.Description)));
                 return Results.LocalRedirect("/Account/Manage/ChangePassword");
             }
 
-            if (user.IsPasswordResetRequired)
+            bool wasForcedReset = user.IsPasswordResetRequired;
+            if (wasForcedReset)
             {
                 user.IsPasswordResetRequired = false;
                 await userManager.UpdateAsync(user);
@@ -207,8 +229,15 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             await signInManager.RefreshSignInAsync(user);
             ILogger logger = loggerFactory.CreateLogger("PasswordChange");
             logger.LogInformation("User {Username} changed their password.", user.UserName);
-            SetPasswordChangedSnackbar(context, "Your password has been changed.");
-            return Results.LocalRedirect("/");
+
+            if (wasForcedReset)
+            {
+                SetPasswordChangedSnackbar(context, "Your password has been changed.");
+                return Results.LocalRedirect("/");
+            }
+
+            SetStatus(context, "Your password has been changed.");
+            return Results.LocalRedirect("/Account/Manage/ChangePassword");
         });
 
         manageGroup.MapPost("/ProfileUpdate", async (

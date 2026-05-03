@@ -1,8 +1,26 @@
-﻿@page "/Account/AccessDenied"
+@page "/Account/AccessDenied"
 
 <PageTitle>Access denied</PageTitle>
 
-<header>
-    <h1 class="text-danger">Access denied</h1>
-    <p class="text-danger">You do not have access to this resource.</p>
-</header>
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Class="pa-8 d-flex flex-column align-center" Elevation="2">
+        <MudIcon Icon="@Icons.Material.Filled.Block"
+                 Color="Color.Error"
+                 Size="Size.Large"
+                 Class="mb-4"
+                 Style="font-size: 4rem;"/>
+
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-2">Access denied</MudText>
+
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-6 mud-text-secondary">
+            You don't have permission to view this resource.
+        </MudText>
+
+        <MudButton Href="/"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Home">
+            Back to home
+        </MudButton>
+    </MudPaper>
+</MudContainer>

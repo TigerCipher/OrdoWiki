@@ -46,15 +46,15 @@
                        Size="Size.Large">
                 Sign in
             </MudButton>
+
+            <MudDivider Class="my-4"/>
+
+            <PasskeySubmit Operation="PasskeyOperation.Request"
+                           Name="Passkey"
+                           EmailName="username"
+                           class="mud-button-root mud-button mud-button-text mud-button-text-primary mud-width-full">
+                Sign in with a passkey
+            </PasskeySubmit>
         </form>
-
-        <MudDivider Class="my-4"/>
-
-        <PasskeySubmit Operation="PasskeyOperation.Request"
-                       Name="Input.Passkey"
-                       EmailName="Input.Username"
-                       class="mud-button-root mud-button mud-button-text mud-button-text-primary mud-width-full">
-            Sign in with a passkey
-        </PasskeySubmit>
     </MudPaper>
 </MudContainer>

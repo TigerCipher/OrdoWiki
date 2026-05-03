@@ -1,4 +1,5 @@
 @rendermode InteractiveServer
+@inject AntiforgeryStateProvider Antiforgery
 
 <div class="NavBar">
     <MudAppBar Elevation="1" Fixed="true" Color="Color.Dark">
@@ -18,6 +19,7 @@
 
         <AuthorizeView>
             <Authorized>
+                <MudText Typo="Typo.body1">@context.User.GetDisplayName()</MudText>
                 <MudMenu Icon="@Icons.Material.Filled.AccountCircle"
                          Color="Color.Tertiary"
                          Label="@context.User.GetDisplayName()"
@@ -52,7 +54,7 @@
     <AuthorizeView>
         <Authorized>
             <form id="logout-form" action="/Account/Logout" method="post" style="display:none">
-                <AntiforgeryToken/>
+                <input type="hidden" name="__RequestVerificationToken" value="@Antiforgery.GetAntiforgeryToken()?.Value"/>
                 <input type="hidden" name="returnUrl" value=""/>
             </form>
         </Authorized>

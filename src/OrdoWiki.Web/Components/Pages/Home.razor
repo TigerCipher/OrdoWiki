@@ -1,21 +1,24 @@
 @page "/"
-@using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize]
+@rendermode InteractiveServer
 
 <PageTitle>OrdoWiki</PageTitle>
 
-<MudPaper Class="pa-6" Elevation="2">
-    <MudText Typo="Typo.h3" GutterBottom="true">Clan Ordo</MudText>
-    <MudText Typo="Typo.body1" Class="mb-4">
-        OrdoWiki — Connection to Postgres verified.
-    </MudText>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => _count++)">
-        Clicked @_count times
-    </MudButton>
-
-</MudPaper>
-
-@code {
-    private int _count;
-}
+<div class="Home">
+    <MudPaper Class="pa-6" Elevation="2">
+        <MudText Typo="Typo.h3" GutterBottom="true">Clan Ordo</MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            OrdoWiki — Connection to Postgres verified.
+        </MudText>
+        
+        <div class="y-stack gap-4">
+            @for (int i = 0; i < 25; i++)
+            {
+                <MudText Typo="Typo.body1">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam luctus arcu condimentum eros luctus, vel suscipit est dictum. Duis tristique semper pulvinar. Donec rutrum magna sit amet sollicitudin suscipit. Aliquam scelerisque interdum tempor. Ut augue turpis, tincidunt viverra justo sed, suscipit euismod lacus. Nam sit amet mi nec elit convallis varius. Praesent sit amet tortor ac tellus viverra tincidunt molestie sed odio. Donec nisi nisi, tincidunt ac ipsum eget, molestie venenatis sem.
+                </MudText>
+            }
+        </div>
+        
+    </MudPaper>
+</div>
