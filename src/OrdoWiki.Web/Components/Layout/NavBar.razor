@@ -28,7 +28,7 @@
                     {
                         <MudMenuItem Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudMenuItem>
                     }
-                    <MudDivider />
+                    <MudDivider/>
                     <MudMenuItem OnClick="@SignOutAsync" Icon="@Icons.Material.Filled.Logout">Sign out</MudMenuItem>
                 </MudMenu>
             </Authorized>
@@ -52,8 +52,8 @@
     <AuthorizeView>
         <Authorized>
             <form id="logout-form" action="/Account/Logout" method="post" style="display:none">
-                <AntiforgeryToken />
-                <input type="hidden" name="returnUrl" value="" />
+                <AntiforgeryToken/>
+                <input type="hidden" name="returnUrl" value=""/>
             </form>
         </Authorized>
     </AuthorizeView>

@@ -1,5 +1,4 @@
 @page "/Account/Manage/Passkeys"
-
 @using System.Buffers.Text
 @using Microsoft.AspNetCore.Identity
 
@@ -7,7 +6,7 @@
 
 <MudText Typo="Typo.h5" Class="mb-4">Passkeys</MudText>
 
-<StatusMessage />
+<StatusMessage/>
 
 <MudText Typo="Typo.body2" Class="mb-4 mud-text-secondary">
     Passkeys let you sign in with your fingerprint, face, or device PIN instead of a password.
@@ -23,11 +22,16 @@
                 <MudListItem T="UserPasskeyInfo" Icon="@Icons.Material.Filled.Key">
                     <div class="d-flex align-center" style="width: 100%;">
                         <MudText Class="flex-grow-1">@(passkey.Name ?? "Unnamed passkey")</MudText>
-                        <form @formname="@($"update-passkey-{credentialId}")" @onsubmit="UpdatePasskey" method="post" class="d-flex" style="gap: 8px;">
-                            <AntiforgeryToken />
-                            <input type="hidden" name="CredentialId" value="@credentialId" />
-                            <button type="submit" name="Action" value="rename" class="mud-button mud-button-text mud-button-text-primary">Rename</button>
-                            <button type="submit" name="Action" value="delete" class="mud-button mud-button-text mud-button-text-error">Delete</button>
+                        <form @formname="@($"update-passkey-{credentialId}")" @onsubmit="UpdatePasskey" method="post"
+                              class="d-flex" style="gap: 8px;">
+                            <AntiforgeryToken/>
+                            <input type="hidden" name="CredentialId" value="@credentialId"/>
+                            <button type="submit" name="Action" value="rename"
+                                    class="mud-button mud-button-text mud-button-text-primary">Rename
+                            </button>
+                            <button type="submit" name="Action" value="delete"
+                                    class="mud-button mud-button-text mud-button-text-error">Delete
+                            </button>
                         </form>
                     </div>
                 </MudListItem>
@@ -41,7 +45,7 @@ else
 }
 
 <form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
-    <AntiforgeryToken />
+    <AntiforgeryToken/>
     @if (CurrentPasskeys is { Count: >= MaxPasskeyCount })
     {
         <MudAlert Severity="Severity.Warning">

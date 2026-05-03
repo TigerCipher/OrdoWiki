@@ -1,9 +1,6 @@
 @page "/Account/Manage/RenamePasskey/{Id}"
 @rendermode InteractiveServer
 
-@using System.Buffers.Text
-@using Microsoft.AspNetCore.Identity
-
 <PageTitle>Rename passkey</PageTitle>
 
 <MudText Typo="Typo.h5" Class="mb-4">
@@ -12,11 +9,11 @@
         : "Name your passkey")
 </MudText>
 
-<StatusMessage />
+<StatusMessage/>
 
 <form action="/Account/Manage/PasskeyRename" method="post">
-    <AntiforgeryToken />
-    <input type="hidden" name="id" value="@Id" />
+    <AntiforgeryToken/>
+    <input type="hidden" name="id" value="@Id"/>
 
     <MudTextField T="string"
                   @bind-Value="Name"
@@ -24,7 +21,7 @@
                   Variant="Variant.Outlined"
                   HelperText="Something memorable, like &quot;iPhone&quot; or &quot;Work laptop&quot;."
                   Class="mb-4"
-                  UserAttributes="@(new Dictionary<string, object?> { ["name"] = "name" })" />
+                  UserAttributes="@(new Dictionary<string, object?> { ["name"] = "name" })"/>
 
     <MudButton ButtonType="ButtonType.Submit"
                Variant="Variant.Filled"

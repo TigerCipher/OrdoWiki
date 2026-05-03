@@ -1,6 +1,12 @@
 namespace OrdoWiki.Web.Components.Models;
 
-public enum InviteStatus { Active, Redeemed, Revoked, Expired }
+public enum InviteStatus
+{
+    Active,
+    Redeemed,
+    Revoked,
+    Expired
+}
 
 public record InviteRow(
     int Id,

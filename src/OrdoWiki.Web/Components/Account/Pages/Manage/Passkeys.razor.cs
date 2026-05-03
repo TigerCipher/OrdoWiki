@@ -1,17 +1,22 @@
+namespace OrdoWiki.Web.Components.Account.Pages.Manage;
+
 using System.Buffers.Text;
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
-using OrdoWiki.Data.Entities;
-
-namespace OrdoWiki.Web.Components.Account.Pages.Manage;
 
 public partial class Passkeys
 {
     public const int MaxPasskeyCount = 100;
 
-    [Inject] private UserManager<ApplicationUser> UserManager { get; set; } = default!;
-    [Inject] private SignInManager<ApplicationUser> SignInManager { get; set; } = default!;
-    [Inject] private IdentityRedirectManager RedirectManager { get; set; } = default!;
+    [Inject]
+    private UserManager<ApplicationUser> UserManager { get; set; } = default!;
+
+    [Inject]
+    private SignInManager<ApplicationUser> SignInManager { get; set; } = default!;
+
+    [Inject]
+    private IdentityRedirectManager RedirectManager { get; set; } = default!;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -38,6 +43,7 @@ public partial class Passkeys
             RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
             return;
         }
+
         CurrentPasskeys = await UserManager.GetPasskeysAsync(CurrentUser);
     }
 
@@ -57,7 +63,8 @@ public partial class Passkeys
 
         if (string.IsNullOrEmpty(Input.CredentialJson))
         {
-            RedirectManager.RedirectToCurrentPageWithStatus("Error: The browser did not provide a passkey.", HttpContext);
+            RedirectManager.RedirectToCurrentPageWithStatus("Error: The browser did not provide a passkey.",
+                HttpContext);
             return;
         }
 
@@ -67,7 +74,8 @@ public partial class Passkeys
             return;
         }
 
-        PasskeyAttestationResult attestationResult = await SignInManager.PerformPasskeyAttestationAsync(Input.CredentialJson);
+        PasskeyAttestationResult attestationResult =
+            await SignInManager.PerformPasskeyAttestationAsync(Input.CredentialJson);
         if (!attestationResult.Succeeded)
         {
             RedirectManager.RedirectToCurrentPageWithStatus($"Error: {attestationResult.Failure.Message}", HttpContext);

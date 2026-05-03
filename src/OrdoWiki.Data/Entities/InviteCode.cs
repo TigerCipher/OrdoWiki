@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace OrdoWiki.Data.Entities;
+
+using System.ComponentModel.DataAnnotations;
 
 public class InviteCode
 {

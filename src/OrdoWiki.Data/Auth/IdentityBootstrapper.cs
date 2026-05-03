@@ -1,12 +1,12 @@
+namespace OrdoWiki.Data.Auth;
+
+using Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OrdoWiki.Data.Entities;
-
-namespace OrdoWiki.Data.Auth;
 
 public class IdentityBootstrapper(
     IServiceProvider serviceProvider,
@@ -36,9 +36,7 @@ public class IdentityBootstrapper(
             {
                 IdentityResult result = await roleManager.CreateAsync(new IdentityRole(role));
                 if (result.Succeeded)
-                {
                     logger.LogInformation("Seeded role {Role}.", role);
-                }
                 else
                 {
                     logger.LogError("Failed to seed role {Role}: {Errors}", role,
@@ -50,10 +48,7 @@ public class IdentityBootstrapper(
         UserManager<ApplicationUser> userManager =
             scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        if (userManager.Users.Any())
-        {
-            return;
-        }
+        if (userManager.Users.Any()) return;
 
         string? username = configuration["Admin:Username"];
         string? password = configuration["Admin:InitialPassword"];
@@ -70,7 +65,7 @@ public class IdentityBootstrapper(
         {
             UserName = username,
             DisplayName = username,
-            IsPasswordResetRequired = true,
+            IsPasswordResetRequired = true
         };
 
         IdentityResult createResult = await userManager.CreateAsync(admin, password);
@@ -91,7 +86,8 @@ public class IdentityBootstrapper(
             return;
         }
 
-        logger.LogInformation("Bootstrap admin {Username} created. Password reset is required on first login.", username);
+        logger.LogInformation("Bootstrap admin {Username} created. Password reset is required on first login.",
+            username);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

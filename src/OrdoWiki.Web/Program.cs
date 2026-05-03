@@ -50,14 +50,13 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
-{
     app.UseMigrationsEndPoint();
-}
 else
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseExceptionHandler("/Error", true);
     app.UseHsts();
 }
+
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 

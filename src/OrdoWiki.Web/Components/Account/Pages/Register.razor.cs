@@ -1,14 +1,16 @@
-using Microsoft.AspNetCore.Components;
-using OrdoWiki.Data.Auth;
-using OrdoWiki.Data.Entities;
-
 namespace OrdoWiki.Web.Components.Account.Pages;
+
+using Data.Auth;
+using Data.Entities;
+using Microsoft.AspNetCore.Components;
 
 public partial class Register
 {
-    [Inject] private InviteCodeService InviteCodes { get; set; } = default!;
+    [Inject]
+    private InviteCodeService InviteCodes { get; set; } = default!;
 
-    [SupplyParameterFromQuery(Name = "code")] private string? CodeFromQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "code")]
+    private string? CodeFromQuery { get; set; }
 
     private InviteCode? Invite { get; set; }
 
@@ -19,9 +21,6 @@ public partial class Register
 
     protected override async Task OnInitializedAsync()
     {
-        if (!string.IsNullOrWhiteSpace(CodeFromQuery))
-        {
-            Invite = await InviteCodes.FindUsableAsync(CodeFromQuery);
-        }
+        if (!string.IsNullOrWhiteSpace(CodeFromQuery)) Invite = await InviteCodes.FindUsableAsync(CodeFromQuery);
     }
 }

@@ -1,9 +1,8 @@
 @page "/admin"
-@rendermode InteractiveServer
-@attribute [Authorize(Roles = Roles.Admin)]
-
 @using Microsoft.AspNetCore.Authorization
 @using OrdoWiki.Data.Auth
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = Roles.Admin)]
 
 <PageTitle>Admin</PageTitle>
 
@@ -11,12 +10,12 @@
 
 <MudTabs Outlined="true" Position="Position.Top" Rounded="true" TabPanelsClass="pa-4">
     <MudTabPanel Text="Users" Icon="@Icons.Material.Filled.People">
-        <UsersTab />
+        <UsersTab/>
     </MudTabPanel>
     <MudTabPanel Text="Invites" Icon="@Icons.Material.Filled.Email">
-        <InvitesTab />
+        <InvitesTab/>
     </MudTabPanel>
     <MudTabPanel Text="Settings" Icon="@Icons.Material.Filled.Settings">
-        <SettingsTab />
+        <SettingsTab/>
     </MudTabPanel>
 </MudTabs>

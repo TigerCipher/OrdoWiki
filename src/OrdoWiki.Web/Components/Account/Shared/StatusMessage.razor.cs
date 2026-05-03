@@ -23,24 +23,16 @@ public partial class StatusMessage
         {
             _messageFromCookie = HttpContext.Request.Cookies[IdentityRedirectManager.StatusCookieName];
             if (_messageFromCookie is not null)
-            {
                 HttpContext.Response.Cookies.Delete(IdentityRedirectManager.StatusCookieName);
-            }
         }
         else
         {
-            if (ApplicationState.TryTakeFromJson<string>(StateKey, out string? persisted))
-            {
-                _messageFromCookie = persisted;
-            }
+            if (ApplicationState.TryTakeFromJson(StateKey, out string? persisted)) _messageFromCookie = persisted;
         }
 
         _subscription = ApplicationState.RegisterOnPersisting(() =>
         {
-            if (_messageFromCookie is not null)
-            {
-                ApplicationState.PersistAsJson(StateKey, _messageFromCookie);
-            }
+            if (_messageFromCookie is not null) ApplicationState.PersistAsJson(StateKey, _messageFromCookie);
             return Task.CompletedTask;
         });
     }

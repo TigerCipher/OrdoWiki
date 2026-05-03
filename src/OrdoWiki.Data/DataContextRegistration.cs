@@ -1,8 +1,8 @@
+namespace OrdoWiki.Data;
+
+using Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using OrdoWiki.Data.Auth;
-
-namespace OrdoWiki.Data;
 
 public static class DataContextRegistration
 {
@@ -10,7 +10,7 @@ public static class DataContextRegistration
     {
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString)
-                   .UseSnakeCaseNamingConvention());
+                .UseSnakeCaseNamingConvention());
 
         services.AddScoped<InviteCodeService>();
         services.AddHostedService<IdentityBootstrapper>();

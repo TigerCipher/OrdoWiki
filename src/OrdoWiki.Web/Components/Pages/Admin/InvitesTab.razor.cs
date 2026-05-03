@@ -1,24 +1,37 @@
+namespace OrdoWiki.Web.Components.Pages.Admin;
+
+using Data.Auth;
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
+using Models;
 using MudBlazor;
-using OrdoWiki.Data.Auth;
-using OrdoWiki.Data.Entities;
-using OrdoWiki.Web.Components.Models;
-
-namespace OrdoWiki.Web.Components.Pages.Admin;
 
 public partial class InvitesTab
 {
-    [Inject] private InviteCodeService InviteCodes { get; set; } = default!;
-    [Inject] private UserManager<ApplicationUser> UserManager { get; set; } = default!;
-    [Inject] private IDialogService Dialog { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
-    [Inject] private AuthenticationStateProvider AuthState { get; set; } = default!;
-    [Inject] private NavigationManager Nav { get; set; } = default!;
-    [Inject] private IJSRuntime Js { get; set; } = default!;
+    [Inject]
+    private InviteCodeService InviteCodes { get; set; } = default!;
+
+    [Inject]
+    private UserManager<ApplicationUser> UserManager { get; set; } = default!;
+
+    [Inject]
+    private IDialogService Dialog { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
+
+    [Inject]
+    private AuthenticationStateProvider AuthState { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager Nav { get; set; } = default!;
+
+    [Inject]
+    private IJSRuntime Js { get; set; } = default!;
 
     private bool Loading { get; set; } = true;
     private List<InviteRow> Rows { get; set; } = [];
@@ -45,12 +58,12 @@ public partial class InvitesTab
             .ToDictionaryAsync(u => u.Id, u => u.UserName ?? u.Id);
 
         Rows = invites.Select(i => new InviteRow(
-            Id: i.Id,
-            Code: i.Code,
-            Role: i.AssignedRole,
-            Status: GetStatus(i, now),
-            CreatedBy: creators.GetValueOrDefault(i.CreatedByUserId, i.CreatedByUserId),
-            ExpiresAt: i.ExpiresAt)).ToList();
+            i.Id,
+            i.Code,
+            i.AssignedRole,
+            GetStatus(i, now),
+            creators.GetValueOrDefault(i.CreatedByUserId, i.CreatedByUserId),
+            i.ExpiresAt)).ToList();
 
         Loading = false;
         StateHasChanged();
@@ -89,7 +102,7 @@ public partial class InvitesTab
         bool? confirm = await Dialog.ShowMessageBoxAsync(
             "Revoke invite",
             $"Revoke code {row.Code}? It will stop working immediately.",
-            yesText: "Revoke", cancelText: "Cancel");
+            "Revoke", cancelText: "Cancel");
         if (confirm != true) return;
 
         bool ok = await InviteCodes.RevokeAsync(row.Id, CurrentUserId);
@@ -99,9 +112,7 @@ public partial class InvitesTab
             await Reload();
         }
         else
-        {
             Snackbar.Add("Already redeemed or revoked.", Severity.Warning);
-        }
     }
 
     private static InviteStatus GetStatus(InviteCode i, DateTimeOffset now)

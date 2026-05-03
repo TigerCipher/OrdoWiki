@@ -1,5 +1,3 @@
-@using OrdoWiki.Data.Entities
-
 <div class="d-flex align-center mb-3" style="gap: 8px;">
     <MudButton StartIcon="@Icons.Material.Filled.Add"
                Variant="Variant.Filled"
@@ -7,7 +5,7 @@
                OnClick="Generate">
         Generate invite
     </MudButton>
-    <MudSpacer />
+    <MudSpacer/>
 </div>
 
 <MudPaper Elevation="0" Outlined="true" Class="pa-2">
@@ -19,25 +17,25 @@
                  Hover="true"
                  Dense="true">
         <Columns>
-            <PropertyColumn Property="x => x.Code" Title="Code" />
-            <PropertyColumn Property="x => x.Role" Title="Role" />
+            <PropertyColumn Property="x => x.Code" Title="Code"/>
+            <PropertyColumn Property="x => x.Role" Title="Role"/>
             <TemplateColumn Title="Status" Sortable="false">
                 <CellTemplate>
                     @{
                         (string label, Color color) = context.Item.Status switch
                         {
-                            InviteStatus.Active => ("Active", Color.Success),
+                            InviteStatus.Active   => ("Active", Color.Success),
                             InviteStatus.Redeemed => ("Redeemed", Color.Info),
-                            InviteStatus.Revoked => ("Revoked", Color.Default),
-                            InviteStatus.Expired => ("Expired", Color.Warning),
-                            _ => ("?", Color.Default),
+                            InviteStatus.Revoked  => ("Revoked", Color.Default),
+                            InviteStatus.Expired  => ("Expired", Color.Warning),
+                            _                     => ("?", Color.Default)
                         };
                     }
                     <MudChip T="string" Size="Size.Small" Color="@color">@label</MudChip>
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="x => x.CreatedBy" Title="Created by" />
-            <PropertyColumn Property="x => x.ExpiresAt" Title="Expires" Format="yyyy-MM-dd HH:mm" />
+            <PropertyColumn Property="x => x.CreatedBy" Title="Created by"/>
+            <PropertyColumn Property="x => x.ExpiresAt" Title="Expires" Format="yyyy-MM-dd HH:mm"/>
             <TemplateColumn Title="Actions" Sortable="false" Filterable="false">
                 <CellTemplate>
                     @if (context.Item.Status == InviteStatus.Active)
@@ -51,7 +49,7 @@
             </TemplateColumn>
         </Columns>
         <PagerContent>
-            <MudDataGridPager T="InviteRow" />
+            <MudDataGridPager T="InviteRow"/>
         </PagerContent>
     </MudDataGrid>
 </MudPaper>

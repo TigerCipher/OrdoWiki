@@ -1,14 +1,14 @@
+namespace OrdoWiki.Web.Components.Layout;
+
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
-namespace OrdoWiki.Web.Components.Layout;
-
 public partial class NavBar
 {
+    private bool _drawerOpen;
+
     [Inject]
     private IJSRuntime JS { get; set; } = null!;
-
-    private bool _drawerOpen;
 
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 

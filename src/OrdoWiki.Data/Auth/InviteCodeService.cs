@@ -1,10 +1,12 @@
-using System.Security.Cryptography;
-using Microsoft.EntityFrameworkCore;
-using OrdoWiki.Data.Entities;
-
 namespace OrdoWiki.Data.Auth;
 
-public class InviteCodeService(ApplicationDbContext db, TimeProvider timeProvider)
+using System.Security.Cryptography;
+using Entities;
+using Microsoft.EntityFrameworkCore;
+
+public class InviteCodeService(
+    ApplicationDbContext db,
+    TimeProvider timeProvider)
 {
     private const int CodeBytes = 9; // 9 bytes -> 12 base64url chars
     public const int DefaultExpirationDays = 7;
@@ -16,9 +18,7 @@ public class InviteCodeService(ApplicationDbContext db, TimeProvider timeProvide
         CancellationToken ct = default)
     {
         if (!Roles.All.Contains(assignedRole))
-        {
             throw new ArgumentException($"Unknown role '{assignedRole}'.", nameof(assignedRole));
-        }
 
         DateTimeOffset now = timeProvider.GetUtcNow();
         InviteCode invite = new()
@@ -27,7 +27,7 @@ public class InviteCodeService(ApplicationDbContext db, TimeProvider timeProvide
             AssignedRole = assignedRole,
             CreatedAt = now,
             CreatedByUserId = createdByUserId,
-            ExpiresAt = now.AddDays(expiresInDays),
+            ExpiresAt = now.AddDays(expiresInDays)
         };
 
         db.InviteCodes.Add(invite);
@@ -51,10 +51,7 @@ public class InviteCodeService(ApplicationDbContext db, TimeProvider timeProvide
         InviteCode? invite = await db.InviteCodes
             .SingleOrDefaultAsync(c => c.Code == code, ct);
 
-        if (invite is null || !invite.IsUsable(timeProvider.GetUtcNow()))
-        {
-            return null;
-        }
+        if (invite is null || !invite.IsUsable(timeProvider.GetUtcNow())) return null;
 
         invite.RedeemedAt = timeProvider.GetUtcNow();
         invite.RedeemedByUserId = redeemedByUserId;
@@ -65,10 +62,7 @@ public class InviteCodeService(ApplicationDbContext db, TimeProvider timeProvide
     public async Task<bool> RevokeAsync(int id, string revokedByUserId, CancellationToken ct = default)
     {
         InviteCode? invite = await db.InviteCodes.SingleOrDefaultAsync(c => c.Id == id, ct);
-        if (invite is null || invite.IsRedeemed || invite.IsRevoked)
-        {
-            return false;
-        }
+        if (invite is null || invite.IsRedeemed || invite.IsRevoked) return false;
 
         invite.RevokedAt = timeProvider.GetUtcNow();
         invite.RevokedByUserId = revokedByUserId;

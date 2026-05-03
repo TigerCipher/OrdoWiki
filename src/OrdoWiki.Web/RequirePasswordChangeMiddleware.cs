@@ -1,16 +1,17 @@
-using OrdoWiki.Data.Auth;
-
 namespace OrdoWiki.Web;
 
-public class RequirePasswordChangeMiddleware(RequestDelegate next)
+using Data.Auth;
+
+public class RequirePasswordChangeMiddleware(
+    RequestDelegate next)
 {
     private const string ChangePasswordPath = "/Account/Manage/ChangePassword";
 
     private static readonly string[] AllowedPaths =
     [
         ChangePasswordPath,
-        "/Account/Manage/PasswordChange",   // POST endpoint behind ChangePassword form
-        "/Account/Logout",
+        "/Account/Manage/PasswordChange", // POST endpoint behind ChangePassword form
+        "/Account/Logout"
     ];
 
     public async Task InvokeAsync(HttpContext context)

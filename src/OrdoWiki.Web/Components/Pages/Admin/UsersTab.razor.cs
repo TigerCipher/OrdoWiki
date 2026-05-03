@@ -1,22 +1,31 @@
+namespace OrdoWiki.Web.Components.Pages.Admin;
+
 using System.Security.Cryptography;
+using Data;
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Models;
 using MudBlazor;
-using OrdoWiki.Data;
-using OrdoWiki.Data.Entities;
-using OrdoWiki.Web.Components.Models;
-
-namespace OrdoWiki.Web.Components.Pages.Admin;
 
 public partial class UsersTab
 {
-    [Inject] private UserManager<ApplicationUser> UserManager { get; set; } = default!;
-    [Inject] private ApplicationDbContext Db { get; set; } = default!;
-    [Inject] private IDialogService Dialog { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
-    [Inject] private AuthenticationStateProvider AuthState { get; set; } = default!;
+    [Inject]
+    private UserManager<ApplicationUser> UserManager { get; set; } = default!;
+
+    [Inject]
+    private ApplicationDbContext Db { get; set; } = default!;
+
+    [Inject]
+    private IDialogService Dialog { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
+
+    [Inject]
+    private AuthenticationStateProvider AuthState { get; set; } = default!;
 
     private bool Loading { get; set; } = true;
     private List<UserRow> Users { get; set; } = [];
@@ -40,13 +49,14 @@ public partial class UsersTab
         {
             IList<string> roles = await UserManager.GetRolesAsync(u);
             rows.Add(new UserRow(
-                Id: u.Id,
-                Username: u.UserName ?? "",
-                DisplayName: u.DisplayName ?? "",
-                Roles: roles,
-                IsLocked: u.LockoutEnd is { } end && end > DateTimeOffset.UtcNow,
-                MustResetPassword: u.IsPasswordResetRequired));
+                u.Id,
+                u.UserName ?? "",
+                u.DisplayName ?? "",
+                roles,
+                u.LockoutEnd is { } end && end > DateTimeOffset.UtcNow,
+                u.IsPasswordResetRequired));
         }
+
         Users = rows;
         Loading = false;
         StateHasChanged();
@@ -58,14 +68,11 @@ public partial class UsersTab
         {
             { x => x.UserId, row.Id },
             { x => x.Username, row.Username },
-            { x => x.CurrentRoles, row.Roles.ToList() },
+            { x => x.CurrentRoles, row.Roles.ToList() }
         };
         IDialogReference dialog = await Dialog.ShowAsync<EditRolesDialog>("Edit roles", parameters);
         DialogResult? result = await dialog.Result;
-        if (result is { Canceled: false })
-        {
-            await Reload();
-        }
+        if (result is { Canceled: false }) await Reload();
     }
 
     private async Task Lock(UserRow row)
@@ -96,7 +103,8 @@ public partial class UsersTab
         IdentityResult result = await UserManager.ResetPasswordAsync(u, token, tempPassword);
         if (!result.Succeeded)
         {
-            Snackbar.Add($"Reset failed: {string.Join(", ", result.Errors.Select(e => e.Description))}", Severity.Error);
+            Snackbar.Add($"Reset failed: {string.Join(", ", result.Errors.Select(e => e.Description))}",
+                Severity.Error);
             return;
         }
 
@@ -107,7 +115,7 @@ public partial class UsersTab
         DialogParameters<ShowTempPasswordDialog> parameters = new()
         {
             { x => x.Username, row.Username },
-            { x => x.TempPassword, tempPassword },
+            { x => x.TempPassword, tempPassword }
         };
         await Dialog.ShowAsync<ShowTempPasswordDialog>("Temporary password", parameters);
         await Reload();
@@ -124,7 +132,7 @@ public partial class UsersTab
         bool? confirm = await Dialog.ShowMessageBoxAsync(
             "Delete user",
             $"Permanently delete {row.Username}? This cannot be undone.",
-            yesText: "Delete", cancelText: "Cancel");
+            "Delete", cancelText: "Cancel");
         if (confirm != true) return;
 
         ApplicationUser? u = await UserManager.FindByIdAsync(row.Id);
@@ -132,9 +140,11 @@ public partial class UsersTab
         IdentityResult result = await UserManager.DeleteAsync(u);
         if (!result.Succeeded)
         {
-            Snackbar.Add($"Delete failed: {string.Join(", ", result.Errors.Select(e => e.Description))}", Severity.Error);
+            Snackbar.Add($"Delete failed: {string.Join(", ", result.Errors.Select(e => e.Description))}",
+                Severity.Error);
             return;
         }
+
         Snackbar.Add($"Deleted {row.Username}.", Severity.Success);
         await Reload();
     }
@@ -150,7 +160,8 @@ public partial class UsersTab
         {
             result[i] = chars[bytes[i] % chars.Length];
         }
-        result[12] = (char)('0' + (bytes[0] % 10));
+
+        result[12] = (char)('0' + bytes[0] % 10);
         result[13] = symbols[bytes[1] % symbols.Length];
         return new string(result);
     }

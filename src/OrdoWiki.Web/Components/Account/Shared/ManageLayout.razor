@@ -1,17 +1,17 @@
 @inherits LayoutComponentBase
-@layout OrdoWiki.Web.Components.Layout.MainLayout
+@layout MainLayout
 
 <MudText Typo="Typo.h4" Class="mb-4" Color="Color.Dark">Manage your account</MudText>
 
 <MudPaper Elevation="5" Class="pa-2">
-<MudGrid>
-    <MudItem xs="12" md="3">
-        <MudPaper Elevation="0" Class="pa-2">
-            <ManageNavMenu/>
-        </MudPaper>
-    </MudItem>
-    <MudItem xs="12" md="9">
-        @Body
-    </MudItem>
-</MudGrid>
+    <MudGrid>
+        <MudItem xs="12" md="3">
+            <MudPaper Elevation="0" Class="pa-2">
+                <ManageNavMenu/>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="9">
+            @Body
+        </MudItem>
+    </MudGrid>
 </MudPaper>

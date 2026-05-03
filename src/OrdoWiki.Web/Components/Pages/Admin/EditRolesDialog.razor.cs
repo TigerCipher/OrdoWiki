@@ -1,20 +1,32 @@
+namespace OrdoWiki.Web.Components.Pages.Admin;
+
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using MudBlazor;
-using OrdoWiki.Data.Entities;
-
-namespace OrdoWiki.Web.Components.Pages.Admin;
 
 public partial class EditRolesDialog
 {
-    [Inject] private UserManager<ApplicationUser> UserManager { get; set; } = default!;
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Parameter]
+    [EditorRequired]
+    public string UserId { get; set; } = "";
 
-    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter]
+    [EditorRequired]
+    public string Username { get; set; } = "";
 
-    [Parameter, EditorRequired] public string UserId { get; set; } = "";
-    [Parameter, EditorRequired] public string Username { get; set; } = "";
-    [Parameter, EditorRequired] public List<string> CurrentRoles { get; set; } = [];
+    [Parameter]
+    [EditorRequired]
+    public List<string> CurrentRoles { get; set; } = [];
+
+    [Inject]
+    private UserManager<ApplicationUser> UserManager { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
 
     private HashSet<string> SelectedRoles { get; set; } = [];
 
@@ -46,13 +58,16 @@ public partial class EditRolesDialog
         IdentityResult addResult = await UserManager.AddToRolesAsync(user, toAdd);
         if (!addResult.Succeeded)
         {
-            Snackbar.Add($"Add failed: {string.Join(", ", addResult.Errors.Select(e => e.Description))}", Severity.Error);
+            Snackbar.Add($"Add failed: {string.Join(", ", addResult.Errors.Select(e => e.Description))}",
+                Severity.Error);
             return;
         }
+
         IdentityResult removeResult = await UserManager.RemoveFromRolesAsync(user, toRemove);
         if (!removeResult.Succeeded)
         {
-            Snackbar.Add($"Remove failed: {string.Join(", ", removeResult.Errors.Select(e => e.Description))}", Severity.Error);
+            Snackbar.Add($"Remove failed: {string.Join(", ", removeResult.Errors.Select(e => e.Description))}",
+                Severity.Error);
             return;
         }
 

@@ -6,7 +6,7 @@
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
     <MudPaper Class="pa-6" Elevation="2">
 
-        <StatusMessage />
+        <StatusMessage/>
 
         @if (Invite is null)
         {
@@ -24,8 +24,8 @@
             </MudText>
 
             <form action="/Account/PasswordRegister" method="post">
-                <AntiforgeryToken />
-                <input type="hidden" name="code" value="@Invite.Code" />
+                <AntiforgeryToken/>
+                <input type="hidden" name="code" value="@Invite.Code"/>
 
                 <MudTextField T="string"
                               @bind-Value="Username"
@@ -33,7 +33,7 @@
                               Variant="Variant.Outlined"
                               HelperText="Used to sign in. Letters, numbers, dashes."
                               Class="mb-3"
-                              UserAttributes="@(new Dictionary<string, object?> { ["name"] = "username", ["autocomplete"] = "username" })" />
+                              UserAttributes="@(new Dictionary<string, object?> { ["name"] = "username", ["autocomplete"] = "username" })"/>
 
                 <MudTextField T="string"
                               @bind-Value="DisplayName"
@@ -41,7 +41,7 @@
                               Variant="Variant.Outlined"
                               HelperText="What others will see. Defaults to your username."
                               Class="mb-3"
-                              UserAttributes="@(new Dictionary<string, object?> { ["name"] = "displayName" })" />
+                              UserAttributes="@(new Dictionary<string, object?> { ["name"] = "displayName" })"/>
 
                 <MudTextField T="string"
                               @bind-Value="Password"
@@ -50,7 +50,7 @@
                               Variant="Variant.Outlined"
                               HelperText="At least 8 characters."
                               Class="mb-3"
-                              UserAttributes="@(new Dictionary<string, object?> { ["name"] = "password", ["autocomplete"] = "new-password" })" />
+                              UserAttributes="@(new Dictionary<string, object?> { ["name"] = "password", ["autocomplete"] = "new-password" })"/>
 
                 <MudTextField T="string"
                               @bind-Value="ConfirmPassword"
@@ -58,7 +58,7 @@
                               InputType="InputType.Password"
                               Variant="Variant.Outlined"
                               Class="mb-4"
-                              UserAttributes="@(new Dictionary<string, object?> { ["name"] = "confirmPassword", ["autocomplete"] = "new-password" })" />
+                              UserAttributes="@(new Dictionary<string, object?> { ["name"] = "confirmPassword", ["autocomplete"] = "new-password" })"/>
 
                 <MudButton ButtonType="ButtonType.Submit"
                            Variant="Variant.Filled"

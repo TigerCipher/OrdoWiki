@@ -1,10 +1,8 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Identity;
-using OrdoWiki.Data.Entities;
-
 namespace OrdoWiki.Web.Components.Account.Pages.Manage;
 
-using MudBlazor;
+using Data.Entities;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Identity;
 
 public partial class ChangePassword
 {

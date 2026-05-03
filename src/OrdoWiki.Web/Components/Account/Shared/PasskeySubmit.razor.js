@@ -25,7 +25,7 @@ async function createCredential(headers, signal) {
     });
     const optionsJson = await optionsResponse.json();
     const options = PublicKeyCredential.parseCreationOptionsFromJSON(optionsJson);
-    return await navigator.credentials.create({ publicKey: options, signal });
+    return await navigator.credentials.create({publicKey: options, signal});
 }
 
 async function requestCredential(email, mediation, headers, signal) {
@@ -36,7 +36,7 @@ async function requestCredential(email, mediation, headers, signal) {
     });
     const optionsJson = await optionsResponse.json();
     const options = PublicKeyCredential.parseRequestOptionsFromJSON(optionsJson);
-    return await navigator.credentials.get({ publicKey: options, mediation, signal });
+    return await navigator.credentials.get({publicKey: options, mediation, signal});
 }
 
 customElements.define('passkey-submit', class extends HTMLElement {

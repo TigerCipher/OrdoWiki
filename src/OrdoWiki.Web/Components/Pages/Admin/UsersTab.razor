@@ -7,8 +7,8 @@
                  Hover="true"
                  Dense="true">
         <Columns>
-            <PropertyColumn Property="x => x.Username" Title="Username" />
-            <PropertyColumn Property="x => x.DisplayName" Title="Display name" />
+            <PropertyColumn Property="x => x.Username" Title="Username"/>
+            <PropertyColumn Property="x => x.DisplayName" Title="Display name"/>
             <TemplateColumn Title="Roles" Sortable="false" Filterable="false">
                 <CellTemplate>
                     @foreach (string role in context.Item.Roles)
@@ -52,7 +52,7 @@
             </TemplateColumn>
         </Columns>
         <PagerContent>
-            <MudDataGridPager T="UserRow" />
+            <MudDataGridPager T="UserRow"/>
         </PagerContent>
     </MudDataGrid>
 </MudPaper>

@@ -1,11 +1,14 @@
-using Microsoft.AspNetCore.Components;
-
 namespace OrdoWiki.Web.Components.Account.Pages;
+
+using Microsoft.AspNetCore.Components;
 
 public partial class Login
 {
-    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
-    [SupplyParameterFromQuery] private string? Error { get; set; }
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
 
     private string Username { get; set; } = "";
     private string Password { get; set; } = "";
@@ -15,7 +18,7 @@ public partial class Login
     {
         "invalid" => "Invalid sign-in attempt.",
         "missing" => "Username and password are required.",
-        _ => null,
+        _         => null
     };
 
     private void Test()

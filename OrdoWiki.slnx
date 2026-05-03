@@ -1,9 +1,9 @@
 <Solution>
-  <Folder Name="/src/">
-    <Project Path="src/OrdoWiki.Data/OrdoWiki.Data.csproj" />
-    <Project Path="src/OrdoWiki.Web/OrdoWiki.Web.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/OrdoWiki.Tests/OrdoWiki.Tests.csproj" />
-  </Folder>
+    <Folder Name="/src/">
+        <Project Path="src/OrdoWiki.Data/OrdoWiki.Data.csproj"/>
+        <Project Path="src/OrdoWiki.Web/OrdoWiki.Web.csproj"/>
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/OrdoWiki.Tests/OrdoWiki.Tests.csproj"/>
+    </Folder>
 </Solution>

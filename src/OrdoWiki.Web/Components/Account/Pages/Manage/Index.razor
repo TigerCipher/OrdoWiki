@@ -5,10 +5,10 @@
 
 <MudText Typo="Typo.h5" Class="mb-4">Profile</MudText>
 
-<StatusMessage />
+<StatusMessage/>
 
 <form action="/Account/Manage/ProfileUpdate" method="post">
-    <AntiforgeryToken />
+    <AntiforgeryToken/>
 
     <MudTextField T="string"
                   Value="@Username"
@@ -16,7 +16,7 @@
                   Variant="Variant.Outlined"
                   ReadOnly="true"
                   HelperText="Usernames are managed by an administrator."
-                  Class="mb-3" />
+                  Class="mb-3"/>
 
     <MudTextField T="string"
                   @bind-Value="DisplayName"
@@ -24,7 +24,7 @@
                   Variant="Variant.Outlined"
                   HelperText="Shown alongside your contributions."
                   Class="mb-4"
-                  UserAttributes="@(new Dictionary<string, object?> { ["name"] = "displayName" })" />
+                  UserAttributes="@(new Dictionary<string, object?> { ["name"] = "displayName" })"/>
 
     <MudButton ButtonType="ButtonType.Submit"
                Variant="Variant.Filled"

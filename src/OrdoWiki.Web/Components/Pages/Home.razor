@@ -5,16 +5,16 @@
 
 <PageTitle>OrdoWiki</PageTitle>
 
-    <MudPaper Class="pa-6" Elevation="2">
-        <MudText Typo="Typo.h3" GutterBottom="true">Clan Ordo</MudText>
-        <MudText Typo="Typo.body1" Class="mb-4">
-            OrdoWiki — Connection to Postgres verified.
-        </MudText>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => _count++)">
-            Clicked @_count times
-        </MudButton>
+<MudPaper Class="pa-6" Elevation="2">
+    <MudText Typo="Typo.h3" GutterBottom="true">Clan Ordo</MudText>
+    <MudText Typo="Typo.body1" Class="mb-4">
+        OrdoWiki — Connection to Postgres verified.
+    </MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => _count++)">
+        Clicked @_count times
+    </MudButton>
 
-    </MudPaper>
+</MudPaper>
 
 @code {
     private int _count;

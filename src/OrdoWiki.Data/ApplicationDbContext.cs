@@ -1,11 +1,12 @@
+namespace OrdoWiki.Data;
+
+using Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using OrdoWiki.Data.Entities;
 
-namespace OrdoWiki.Data;
-
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+public class ApplicationDbContext(
+    DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
@@ -36,9 +37,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasIndex(u => u.NormalizedEmail)
             .HasDatabaseName("ix_users_normalized_email");
 
-        builder.Entity<InviteCode>(b =>
-        {
-            b.HasIndex(c => c.Code).IsUnique();
-        });
+        builder.Entity<InviteCode>(b => { b.HasIndex(c => c.Code).IsUnique(); });
     }
 }

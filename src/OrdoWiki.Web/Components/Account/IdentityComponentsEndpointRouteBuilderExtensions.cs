@@ -1,14 +1,17 @@
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
+
+namespace Microsoft.AspNetCore.Routing;
+
+using System.Buffers.Text;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+using Antiforgery;
+using Identity;
+using Mvc;
 using OrdoWiki.Data.Auth;
 using OrdoWiki.Data.Entities;
 using OrdoWiki.Web.Components.Account;
 using OrdoWiki.Web.Components.Account.Shared;
-using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
-
-namespace Microsoft.AspNetCore.Routing;
+using SignInResult = Identity.SignInResult;
 
 internal static class IdentityComponentsEndpointRouteBuilderExtensions
 {
@@ -38,18 +41,17 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             ILogger logger = loggerFactory.CreateLogger("PasswordLogin");
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            {
                 return Results.LocalRedirect(BuildLoginRedirect("missing", returnUrl));
-            }
 
             SignInResult result = await signInManager.PasswordSignInAsync(
-                username, password, rememberMe ?? false, lockoutOnFailure: false);
+                username, password, rememberMe ?? false, false);
 
             if (result.Succeeded)
             {
                 logger.LogInformation("User {Username} signed in.", username);
                 return Results.LocalRedirect(string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
             }
+
             if (result.IsLockedOut)
             {
                 logger.LogWarning("User {Username} locked out.", username);
@@ -83,6 +85,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
                 SetStatus(context, "Error: Missing invitation code.");
                 return Results.LocalRedirect(registerBack);
             }
+
             if (password != confirmPassword)
             {
                 SetStatus(context, "Error: Passwords don't match.");
@@ -99,7 +102,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             ApplicationUser user = new()
             {
                 UserName = username,
-                DisplayName = string.IsNullOrWhiteSpace(displayName) ? username : displayName,
+                DisplayName = string.IsNullOrWhiteSpace(displayName) ? username : displayName
             };
             await userStore.SetUserNameAsync(user, username, CancellationToken.None);
 
@@ -126,7 +129,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             }
 
             logger.LogInformation("User {Username} registered as {Role} via invite.", username, redeemed.AssignedRole);
-            await signInManager.SignInAsync(user, isPersistent: false);
+            await signInManager.SignInAsync(user, false);
             return Results.LocalRedirect("/");
         });
 
@@ -140,19 +143,17 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
 
             ApplicationUser? user = await userManager.GetUserAsync(context.User);
             if (user is null)
-            {
                 return Results.NotFound($"Unable to load user with ID '{userManager.GetUserId(context.User)}'.");
-            }
 
             string userId = await userManager.GetUserIdAsync(user);
             string userName = await userManager.GetUserNameAsync(user) ?? "User";
-            string optionsJson = await signInManager.MakePasskeyCreationOptionsAsync(new()
+            string optionsJson = await signInManager.MakePasskeyCreationOptionsAsync(new PasskeyUserEntity
             {
                 Id = userId,
                 Name = userName,
-                DisplayName = user.DisplayName ?? userName,
+                DisplayName = user.DisplayName ?? userName
             });
-            return TypedResults.Content(optionsJson, contentType: "application/json");
+            return TypedResults.Content(optionsJson, "application/json");
         });
 
         accountGroup.MapPost("/PasskeyRequestOptions", async (
@@ -166,7 +167,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
 
             ApplicationUser? user = string.IsNullOrEmpty(username) ? null : await userManager.FindByNameAsync(username);
             string optionsJson = await signInManager.MakePasskeyRequestOptionsAsync(user);
-            return TypedResults.Content(optionsJson, contentType: "application/json");
+            return TypedResults.Content(optionsJson, "application/json");
         });
 
         RouteGroupBuilder manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
@@ -181,10 +182,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             [FromForm] string confirmPassword) =>
         {
             ApplicationUser? user = await userManager.GetUserAsync(context.User);
-            if (user is null)
-            {
-                return Results.LocalRedirect("/Account/Login");
-            }
+            if (user is null) return Results.LocalRedirect("/Account/Login");
 
             if (newPassword != confirmPassword)
             {
@@ -195,7 +193,8 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             IdentityResult result = await userManager.ChangePasswordAsync(user, oldPassword, newPassword);
             if (!result.Succeeded)
             {
-                SetPasswordChangedSnackbar(context, "Error: " + string.Join(" ", result.Errors.Select(e => e.Description)));
+                SetPasswordChangedSnackbar(context,
+                    "Error: " + string.Join(" ", result.Errors.Select(e => e.Description)));
                 return Results.LocalRedirect("/Account/Manage/ChangePassword");
             }
 
@@ -219,10 +218,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             [FromForm] string? displayName) =>
         {
             ApplicationUser? user = await userManager.GetUserAsync(context.User);
-            if (user is null)
-            {
-                return Results.LocalRedirect("/Account/Login");
-            }
+            if (user is null) return Results.LocalRedirect("/Account/Login");
 
             string? newDisplayName = string.IsNullOrWhiteSpace(displayName) ? null : displayName.Trim();
             if (newDisplayName != user.DisplayName)
@@ -248,15 +244,12 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             [FromForm] string name) =>
         {
             ApplicationUser? user = await userManager.GetUserAsync(context.User);
-            if (user is null)
-            {
-                return Results.LocalRedirect("/Account/Login");
-            }
+            if (user is null) return Results.LocalRedirect("/Account/Login");
 
             byte[] credentialId;
             try
             {
-                credentialId = System.Buffers.Text.Base64Url.DecodeFromChars(id);
+                credentialId = Base64Url.DecodeFromChars(id);
             }
             catch (FormatException)
             {
@@ -289,10 +282,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
     private static string BuildLoginRedirect(string error, string? returnUrl)
     {
         string url = $"/Account/Login?error={Uri.EscapeDataString(error)}";
-        if (!string.IsNullOrEmpty(returnUrl))
-        {
-            url += $"&ReturnUrl={Uri.EscapeDataString(returnUrl)}";
-        }
+        if (!string.IsNullOrEmpty(returnUrl)) url += $"&ReturnUrl={Uri.EscapeDataString(returnUrl)}";
         return url;
     }
 
@@ -303,7 +293,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             SameSite = SameSiteMode.Strict,
             HttpOnly = true,
             IsEssential = true,
-            MaxAge = TimeSpan.FromSeconds(5),
+            MaxAge = TimeSpan.FromSeconds(5)
         });
     }
 
@@ -314,7 +304,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             SameSite = SameSiteMode.Strict,
             HttpOnly = true,
             IsEssential = true,
-            MaxAge = TimeSpan.FromSeconds(5),
+            MaxAge = TimeSpan.FromSeconds(5)
         });
     }
 }
