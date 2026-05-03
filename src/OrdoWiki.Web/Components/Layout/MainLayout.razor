@@ -10,8 +10,15 @@
     <NavBar/>
 
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large">
-            @Body
+        <MudContainer MaxWidth="MaxWidth.Large" Class="page-container">
+            <div class="main-container">
+                <header class="page-header">
+                    <SectionOutlet SectionName="page-header"/>
+                </header>
+                <div class="page-body">
+                    @Body
+                </div>
+            </div>
         </MudContainer>
     </MudMainContent>
 </MudLayout>

@@ -151,6 +151,23 @@ public class PageService(
         }
     }
 
+    public async Task<ApiResponse<List<WikiPageDto>>> GetPagesAsync()
+    {
+        List<WikiPage> pages = await context.WikiPages
+            .AsNoTracking()
+            .Include(x => x.CurrentRevision)
+            .ThenInclude(r => r!.Editor)
+            .Include(x => x.Creator)
+            .ToListAsync();
+
+        List<WikiPageDto> dtos = pages
+            .Where(p => p.CurrentRevision != null)
+            .Select(p => MapToDto(p, p.CurrentRevision!))
+            .ToList();
+
+        return Ok(dtos);
+    }
+
     private async Task<string> EnsureUniqueSlugAsync(string baseSlug)
     {
         HashSet<string> taken = await context.WikiPages

@@ -1,0 +1,14 @@
+﻿<MudDialog Class="ErrorAlert">
+    <TitleContent>
+        <MudText Typo="Typo.h6" Color="Color.Error">
+            <MudIcon Icon="@Icons.Material.Filled.Error" Class="mr-2"/>
+            Error Alert
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>@ErrorMessage</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Confirm" Color="Color.Error" Variant="Variant.Filled">OKAY</MudButton>
+    </DialogActions>
+</MudDialog>

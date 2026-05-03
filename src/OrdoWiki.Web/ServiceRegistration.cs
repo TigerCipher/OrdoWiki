@@ -1,5 +1,6 @@
 ﻿namespace OrdoWiki.Web;
 
+using Components.Shared.Dialogs;
 using Services;
 
 public static class ServiceRegistration
@@ -8,6 +9,7 @@ public static class ServiceRegistration
     {
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IPageService, PageService>();
+        services.AddScoped<IOrdoDialogs, OrdoDialogs>();
         
         return services;
     }
