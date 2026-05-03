@@ -4,6 +4,7 @@ using MudBlazor.Services;
 using OrdoWiki.Data;
 using OrdoWiki.Data.Auth;
 using OrdoWiki.Data.Entities;
+using OrdoWiki.Web;
 using OrdoWiki.Web.Components;
 using OrdoWiki.Web.Components.Account;
 
@@ -43,9 +44,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
-    .AddDefaultTokenProviders();
-
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+    .AddDefaultTokenProviders()
+    .AddClaimsPrincipalFactory<OrdoWikiUserClaimsPrincipalFactory>();
 
 WebApplication app = builder.Build();
 
@@ -62,6 +62,7 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();
+app.UseMiddleware<RequirePasswordChangeMiddleware>();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

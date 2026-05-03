@@ -1,20 +1,24 @@
-﻿@using Microsoft.AspNetCore.Antiforgery
+@using Microsoft.AspNetCore.Antiforgery
+@implements IDisposable
 @inject IServiceProvider Services
+@inject PersistentComponentState ApplicationState
 
 <button type="submit" name="__passkeySubmit" @attributes="AdditionalAttributes">@ChildContent</button>
 <passkey-submit
     operation="@Operation"
     name="@Name"
     email-name="@EmailName"
-    request-token-name="@tokens?.HeaderName"
-    request-token-value="@tokens?.RequestToken">
+    request-token-name="@_headerName"
+    request-token-value="@_requestToken">
 </passkey-submit>
 
 @code {
-    private AntiforgeryTokenSet? tokens;
+    private string? _headerName;
+    private string? _requestToken;
+    private PersistingComponentStateSubscription _subscription;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext? HttpContext { get; set; }
 
     [Parameter]
     [EditorRequired]
@@ -35,6 +39,36 @@
 
     protected override void OnInitialized()
     {
-        tokens = Services.GetService<IAntiforgery>()?.GetTokens(HttpContext);
+        if (HttpContext is not null)
+        {
+            // SSR pass: get fresh tokens directly from IAntiforgery
+            AntiforgeryTokenSet? tokens = Services.GetService<IAntiforgery>()?.GetTokens(HttpContext);
+            _headerName = tokens?.HeaderName;
+            _requestToken = tokens?.RequestToken;
+        }
+        else
+        {
+            // Interactive pass after SSR: restore the token snapshot persisted during prerender
+            if (ApplicationState.TryTakeFromJson<TokenSnapshot>(StateKey, out TokenSnapshot? snapshot) && snapshot is not null)
+            {
+                _headerName = snapshot.HeaderName;
+                _requestToken = snapshot.RequestToken;
+            }
+        }
+
+        _subscription = ApplicationState.RegisterOnPersisting(() =>
+        {
+            if (_requestToken is not null)
+            {
+                ApplicationState.PersistAsJson(StateKey, new TokenSnapshot(_headerName, _requestToken));
+            }
+            return Task.CompletedTask;
+        });
     }
+
+    public void Dispose() => _subscription.Dispose();
+
+    private string StateKey => $"passkey-submit:{Name}";
+
+    private record TokenSnapshot(string? HeaderName, string RequestToken);
 }

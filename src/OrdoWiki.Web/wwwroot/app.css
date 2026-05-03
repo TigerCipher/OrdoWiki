@@ -18,3 +18,12 @@ html, body {
         background-image: url('./images/After_Party.jpg');
     }
 }
+
+
+.alert-danger {
+    color: var(--color-danger);
+}
+
+.alert-success {
+    color: var(--color-success);
+}

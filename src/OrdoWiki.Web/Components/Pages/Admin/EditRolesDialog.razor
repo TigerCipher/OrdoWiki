@@ -1,0 +1,22 @@
+@using OrdoWiki.Data.Auth
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Class="mb-3 mud-text-secondary">
+            Editing roles for <strong>@Username</strong>
+        </MudText>
+
+        @foreach (string role in Roles.All)
+        {
+            <MudCheckBox T="bool"
+                         Value="@SelectedRoles.Contains(role)"
+                         ValueChanged="@(v => Toggle(role, v))"
+                         Label="@role"
+                         Color="Color.Primary" />
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>

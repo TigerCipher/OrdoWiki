@@ -1,4 +1,6 @@
-﻿<div class="NavBar">
+@rendermode InteractiveServer
+
+<div class="NavBar">
     <MudAppBar Elevation="1" Fixed="true" Color="Color.Dark">
         <MudIconButton Icon="@Icons.Material.Filled.Menu"
                        Color="@Color.Tertiary"
@@ -14,7 +16,26 @@
             <MudButton Href="/characters" Class="btn-nav">Characters</MudButton>
         </div>
 
-        <MudButton Href="/account/login" Class="btn-nav">Login</MudButton>
+        <AuthorizeView>
+            <Authorized>
+                <MudMenu Icon="@Icons.Material.Filled.AccountCircle"
+                         Color="Color.Tertiary"
+                         Label="@context.User.GetDisplayName()"
+                         AnchorOrigin="Origin.BottomRight"
+                         TransformOrigin="Origin.TopRight">
+                    <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Filled.Person">Profile</MudMenuItem>
+                    @if (context.User.IsAdmin())
+                    {
+                        <MudMenuItem Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudMenuItem>
+                    }
+                    <MudDivider />
+                    <MudMenuItem OnClick="@SignOutAsync" Icon="@Icons.Material.Filled.Logout">Sign out</MudMenuItem>
+                </MudMenu>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Href="/account/login" Class="btn-nav">Login</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
 
     </MudAppBar>
 
@@ -27,5 +48,13 @@
             <MudNavLink Href="/characters" Class="btn-nav">Characters</MudNavLink>
         </MudNavMenu>
     </MudDrawer>
-</div>
 
+    <AuthorizeView>
+        <Authorized>
+            <form id="logout-form" action="/Account/Logout" method="post" style="display:none">
+                <AntiforgeryToken />
+                <input type="hidden" name="returnUrl" value="" />
+            </form>
+        </Authorized>
+    </AuthorizeView>
+</div>

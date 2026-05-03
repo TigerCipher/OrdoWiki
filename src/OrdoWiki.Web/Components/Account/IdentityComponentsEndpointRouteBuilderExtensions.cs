@@ -1,48 +1,22 @@
 using System.Security.Claims;
-using System.Text.Json;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
-using OrdoWiki.Web.Components.Account.Pages;
-using OrdoWiki.Web.Components.Account.Pages.Manage;
-using OrdoWiki.Data;
+using OrdoWiki.Data.Auth;
 using OrdoWiki.Data.Entities;
+using OrdoWiki.Web.Components.Account;
+using OrdoWiki.Web.Components.Account.Shared;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace Microsoft.AspNetCore.Routing;
 
-using System.Reflection;
-
 internal static class IdentityComponentsEndpointRouteBuilderExtensions
 {
-    // These endpoints are required by the Identity Razor components defined in the /Components/Account/Pages directory of this project.
     public static IEndpointConventionBuilder MapAdditionalIdentityEndpoints(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
         RouteGroupBuilder accountGroup = endpoints.MapGroup("/Account");
-
-        accountGroup.MapPost("/PerformExternalLogin", (
-            HttpContext context,
-            [FromServices] SignInManager<ApplicationUser> signInManager,
-            [FromForm] string provider,
-            [FromForm] string returnUrl) =>
-        {
-            IEnumerable<KeyValuePair<string, StringValues>> query = [
-                new("ReturnUrl", returnUrl),
-                new("Action", ExternalLogin.LoginCallbackAction)];
-
-            string redirectUrl = UriHelper.BuildRelative(
-                context.Request.PathBase,
-                "/Account/ExternalLogin",
-                QueryString.Create(query));
-
-            AuthenticationProperties properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-            return TypedResults.Challenge(properties, [provider]);
-        });
 
         accountGroup.MapPost("/Logout", async (
             ClaimsPrincipal user,
@@ -51,6 +25,109 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
         {
             await signInManager.SignOutAsync();
             return TypedResults.LocalRedirect($"~/{returnUrl}");
+        });
+
+        accountGroup.MapPost("/PasswordLogin", async (
+            [FromServices] SignInManager<ApplicationUser> signInManager,
+            [FromServices] ILoggerFactory loggerFactory,
+            [FromForm] string username,
+            [FromForm] string password,
+            [FromForm] bool? rememberMe,
+            [FromForm] string? returnUrl) =>
+        {
+            ILogger logger = loggerFactory.CreateLogger("PasswordLogin");
+
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                return Results.LocalRedirect(BuildLoginRedirect("missing", returnUrl));
+            }
+
+            SignInResult result = await signInManager.PasswordSignInAsync(
+                username, password, rememberMe ?? false, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                logger.LogInformation("User {Username} signed in.", username);
+                return Results.LocalRedirect(string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
+            }
+            if (result.IsLockedOut)
+            {
+                logger.LogWarning("User {Username} locked out.", username);
+                return Results.LocalRedirect("/Account/Lockout");
+            }
+
+            return Results.LocalRedirect(BuildLoginRedirect("invalid", returnUrl));
+        });
+
+        accountGroup.MapPost("/PasswordRegister", async (
+            HttpContext context,
+            [FromServices] UserManager<ApplicationUser> userManager,
+            [FromServices] IUserStore<ApplicationUser> userStore,
+            [FromServices] SignInManager<ApplicationUser> signInManager,
+            [FromServices] InviteCodeService inviteCodes,
+            [FromServices] ILoggerFactory loggerFactory,
+            [FromForm] string code,
+            [FromForm] string username,
+            [FromForm] string? displayName,
+            [FromForm] string password,
+            [FromForm] string confirmPassword) =>
+        {
+            ILogger logger = loggerFactory.CreateLogger("PasswordRegister");
+
+            string registerBack = string.IsNullOrEmpty(code)
+                ? "/Account/Register"
+                : $"/Account/Register?code={Uri.EscapeDataString(code)}";
+
+            if (string.IsNullOrEmpty(code))
+            {
+                SetStatus(context, "Error: Missing invitation code.");
+                return Results.LocalRedirect(registerBack);
+            }
+            if (password != confirmPassword)
+            {
+                SetStatus(context, "Error: Passwords don't match.");
+                return Results.LocalRedirect(registerBack);
+            }
+
+            InviteCode? invite = await inviteCodes.FindUsableAsync(code);
+            if (invite is null)
+            {
+                SetStatus(context, "Error: That invitation has expired or already been used.");
+                return Results.LocalRedirect("/Account/Register");
+            }
+
+            ApplicationUser user = new()
+            {
+                UserName = username,
+                DisplayName = string.IsNullOrWhiteSpace(displayName) ? username : displayName,
+            };
+            await userStore.SetUserNameAsync(user, username, CancellationToken.None);
+
+            IdentityResult createResult = await userManager.CreateAsync(user, password);
+            if (!createResult.Succeeded)
+            {
+                SetStatus(context, "Error: " + string.Join(" ", createResult.Errors.Select(e => e.Description)));
+                return Results.LocalRedirect(registerBack);
+            }
+
+            InviteCode? redeemed = await inviteCodes.RedeemAsync(code, await userManager.GetUserIdAsync(user));
+            if (redeemed is null)
+            {
+                await userManager.DeleteAsync(user);
+                SetStatus(context, "Error: That invitation expired or was used by someone else just now.");
+                return Results.LocalRedirect("/Account/Register");
+            }
+
+            IdentityResult roleResult = await userManager.AddToRoleAsync(user, redeemed.AssignedRole);
+            if (!roleResult.Succeeded)
+            {
+                SetStatus(context, "Error: " + string.Join(" ", roleResult.Errors.Select(e => e.Description)));
+                return Results.LocalRedirect(registerBack);
+            }
+
+            logger.LogInformation("User {Username} registered as {Role} via invite.", username, redeemed.AssignedRole);
+            await signInManager.SignInAsync(user, isPersistent: false);
+            return Results.LocalRedirect("/");
         });
 
         accountGroup.MapPost("/PasskeyCreationOptions", async (
@@ -73,7 +150,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             {
                 Id = userId,
                 Name = userName,
-                DisplayName = userName
+                DisplayName = user.DisplayName ?? userName,
             });
             return TypedResults.Content(optionsJson, contentType: "application/json");
         });
@@ -94,62 +171,150 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
 
         RouteGroupBuilder manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
 
-        manageGroup.MapPost("/LinkExternalLogin", async (
-            HttpContext context,
-            [FromServices] SignInManager<ApplicationUser> signInManager,
-            [FromForm] string provider) =>
-        {
-            // Clear the existing external cookie to ensure a clean login process
-            await context.SignOutAsync(IdentityConstants.ExternalScheme);
-
-            string redirectUrl = UriHelper.BuildRelative(
-                context.Request.PathBase,
-                "/Account/Manage/ExternalLogins",
-                QueryString.Create("Action", ExternalLogins.LinkLoginCallbackAction));
-
-            AuthenticationProperties properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl, signInManager.UserManager.GetUserId(context.User));
-            return TypedResults.Challenge(properties, [provider]);
-        });
-
-        ILoggerFactory loggerFactory = endpoints.ServiceProvider.GetRequiredService<ILoggerFactory>();
-        ILogger downloadLogger = loggerFactory.CreateLogger("DownloadPersonalData");
-
-        manageGroup.MapPost("/DownloadPersonalData", async (
+        manageGroup.MapPost("/PasswordChange", async (
             HttpContext context,
             [FromServices] UserManager<ApplicationUser> userManager,
-            [FromServices] AuthenticationStateProvider authenticationStateProvider) =>
+            [FromServices] SignInManager<ApplicationUser> signInManager,
+            [FromServices] ILoggerFactory loggerFactory,
+            [FromForm] string oldPassword,
+            [FromForm] string newPassword,
+            [FromForm] string confirmPassword) =>
         {
             ApplicationUser? user = await userManager.GetUserAsync(context.User);
             if (user is null)
             {
-                return Results.NotFound($"Unable to load user with ID '{userManager.GetUserId(context.User)}'.");
+                return Results.LocalRedirect("/Account/Login");
             }
 
-            string userId = await userManager.GetUserIdAsync(user);
-            downloadLogger.LogInformation("User with ID '{UserId}' asked for their personal data.", userId);
-
-            // Only include personal data for download
-            Dictionary<string, string> personalData = new Dictionary<string, string>();
-            IEnumerable<PropertyInfo> personalDataProps = typeof(ApplicationUser).GetProperties().Where(
-                prop => Attribute.IsDefined(prop, typeof(PersonalDataAttribute)));
-            foreach (PropertyInfo p in personalDataProps)
+            if (newPassword != confirmPassword)
             {
-                personalData.Add(p.Name, p.GetValue(user)?.ToString() ?? "null");
+                SetPasswordChangedSnackbar(context, "Error: Passwords don't match.");
+                return Results.LocalRedirect("/Account/Manage/ChangePassword");
             }
 
-            IList<UserLoginInfo> logins = await userManager.GetLoginsAsync(user);
-            foreach (UserLoginInfo l in logins)
+            IdentityResult result = await userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+            if (!result.Succeeded)
             {
-                personalData.Add($"{l.LoginProvider} external login provider key", l.ProviderKey);
+                SetPasswordChangedSnackbar(context, "Error: " + string.Join(" ", result.Errors.Select(e => e.Description)));
+                return Results.LocalRedirect("/Account/Manage/ChangePassword");
             }
 
-            personalData.Add("Authenticator Key", (await userManager.GetAuthenticatorKeyAsync(user))!);
-            byte[] fileBytes = JsonSerializer.SerializeToUtf8Bytes(personalData);
+            if (user.IsPasswordResetRequired)
+            {
+                user.IsPasswordResetRequired = false;
+                await userManager.UpdateAsync(user);
+            }
 
-            context.Response.Headers.TryAdd("Content-Disposition", "attachment; filename=PersonalData.json");
-            return TypedResults.File(fileBytes, contentType: "application/json", fileDownloadName: "PersonalData.json");
+            await signInManager.RefreshSignInAsync(user);
+            ILogger logger = loggerFactory.CreateLogger("PasswordChange");
+            logger.LogInformation("User {Username} changed their password.", user.UserName);
+            SetPasswordChangedSnackbar(context, "Your password has been changed.");
+            return Results.LocalRedirect("/");
+        });
+
+        manageGroup.MapPost("/ProfileUpdate", async (
+            HttpContext context,
+            [FromServices] UserManager<ApplicationUser> userManager,
+            [FromServices] SignInManager<ApplicationUser> signInManager,
+            [FromForm] string? displayName) =>
+        {
+            ApplicationUser? user = await userManager.GetUserAsync(context.User);
+            if (user is null)
+            {
+                return Results.LocalRedirect("/Account/Login");
+            }
+
+            string? newDisplayName = string.IsNullOrWhiteSpace(displayName) ? null : displayName.Trim();
+            if (newDisplayName != user.DisplayName)
+            {
+                user.DisplayName = newDisplayName;
+                IdentityResult update = await userManager.UpdateAsync(user);
+                if (!update.Succeeded)
+                {
+                    SetStatus(context, "Error: " + string.Join(" ", update.Errors.Select(e => e.Description)));
+                    return Results.LocalRedirect("/Account/Manage");
+                }
+            }
+
+            await signInManager.RefreshSignInAsync(user);
+            SetStatus(context, "Your profile has been updated.");
+            return Results.LocalRedirect("/Account/Manage");
+        });
+
+        manageGroup.MapPost("/PasskeyRename", async (
+            HttpContext context,
+            [FromServices] UserManager<ApplicationUser> userManager,
+            [FromForm] string id,
+            [FromForm] string name) =>
+        {
+            ApplicationUser? user = await userManager.GetUserAsync(context.User);
+            if (user is null)
+            {
+                return Results.LocalRedirect("/Account/Login");
+            }
+
+            byte[] credentialId;
+            try
+            {
+                credentialId = System.Buffers.Text.Base64Url.DecodeFromChars(id);
+            }
+            catch (FormatException)
+            {
+                SetStatus(context, "Error: Invalid passkey ID.");
+                return Results.LocalRedirect("/Account/Manage/Passkeys");
+            }
+
+            UserPasskeyInfo? passkey = await userManager.GetPasskeyAsync(user, credentialId);
+            if (passkey is null)
+            {
+                SetStatus(context, "Error: Passkey not found.");
+                return Results.LocalRedirect("/Account/Manage/Passkeys");
+            }
+
+            passkey.Name = name;
+            IdentityResult result = await userManager.AddOrUpdatePasskeyAsync(user, passkey);
+            if (!result.Succeeded)
+            {
+                SetStatus(context, "Error: Could not rename passkey.");
+                return Results.LocalRedirect("/Account/Manage/Passkeys");
+            }
+
+            SetStatus(context, "Passkey renamed.");
+            return Results.LocalRedirect("/Account/Manage/Passkeys");
         });
 
         return accountGroup;
+    }
+
+    private static string BuildLoginRedirect(string error, string? returnUrl)
+    {
+        string url = $"/Account/Login?error={Uri.EscapeDataString(error)}";
+        if (!string.IsNullOrEmpty(returnUrl))
+        {
+            url += $"&ReturnUrl={Uri.EscapeDataString(returnUrl)}";
+        }
+        return url;
+    }
+
+    private static void SetStatus(HttpContext context, string message)
+    {
+        context.Response.Cookies.Append(IdentityRedirectManager.StatusCookieName, message, new CookieOptions
+        {
+            SameSite = SameSiteMode.Strict,
+            HttpOnly = true,
+            IsEssential = true,
+            MaxAge = TimeSpan.FromSeconds(5),
+        });
+    }
+
+    private static void SetPasswordChangedSnackbar(HttpContext context, string message)
+    {
+        context.Response.Cookies.Append(StatusSnackbar.CookieName, message, new CookieOptions
+        {
+            SameSite = SameSiteMode.Strict,
+            HttpOnly = true,
+            IsEssential = true,
+            MaxAge = TimeSpan.FromSeconds(5),
+        });
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -15,6 +16,16 @@ public class IdentityBootstrapper(
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
+
+#if DEBUG
+        ApplicationDbContext db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        IEnumerable<string> pending = await db.Database.GetPendingMigrationsAsync(cancellationToken);
+        if (pending.Any())
+        {
+            logger.LogInformation("Applying pending migrations: {Migrations}", string.Join(", ", pending));
+            await db.Database.MigrateAsync(cancellationToken);
+        }
+#endif
 
         RoleManager<IdentityRole> roleManager =
             scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();

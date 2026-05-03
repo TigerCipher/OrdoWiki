@@ -1,13 +1,15 @@
 ﻿/*noinspection CssUnresolvedCustomProperty*/
 :root {
-    --color-bg:        var(--mud-palette-background);
-    --color-surface:   var(--mud-palette-surface);
-    --color-border:    var(--mud-palette-lines-default);
-    --color-text:      var(--mud-palette-text-primary);
-    --color-muted:     var(--mud-palette-text-secondary);
-    --color-accent:    var(--mud-palette-primary);
+    --color-bg: var(--mud-palette-background);
+    --color-surface: var(--mud-palette-surface);
+    --color-border: var(--mud-palette-lines-default);
+    --color-text: var(--mud-palette-text-primary);
+    --color-muted: var(--mud-palette-text-secondary);
+    --color-accent: var(--mud-palette-primary);
     --color-accent-hi: var(--mud-palette-primary-lighten);
     --color-beskar-gold: var(--color-accent);
+    --color-danger: var(--mud-palette-error);
+    --color-success: var(--mud-palette-success);
 
     --space-1: 0.25rem;
     --space-2: 0.5rem;

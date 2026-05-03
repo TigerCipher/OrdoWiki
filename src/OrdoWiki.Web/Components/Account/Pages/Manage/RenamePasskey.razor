@@ -1,96 +1,34 @@
-﻿@page "/Account/Manage/RenamePasskey/{Id}"
+@page "/Account/Manage/RenamePasskey/{Id}"
+@rendermode InteractiveServer
 
-@using OrdoWiki.Data
-@using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Identity
 @using System.Buffers.Text
-@using OrdoWiki.Data.Entities
+@using Microsoft.AspNetCore.Identity
 
-@inject UserManager<ApplicationUser> UserManager
-@inject IdentityRedirectManager RedirectManager
+<PageTitle>Rename passkey</PageTitle>
 
-<EditForm Model="Input" OnValidSubmit="Rename" FormName="rename-passkey" method="post">
-    <DataAnnotationsValidator />
-    @if (passkey?.Name is { } name)
-    {
-        <h4>Enter a new name for your "@name" passkey</h4>
-    }
-    else
-    {
-        <h4>Enter a name for your passkey</h4>
-    }
-    <hr />
-    <ValidationSummary class="text-danger" role="alert" />
-    <div class="form-floating mb-3">
-        <InputText @bind-Value="Input.Name" id="Input.Name" class="form-control" aria-required="true" placeholder="My passkey" />
-        <label for="Input.Name" class="form-label">Passkey name</label>
-        <ValidationMessage For="() => Input.Name" class="text-danger" />
-    </div>
-    <div>
-        <button type="submit" class="w-100 btn btn-lg btn-primary">Continue</button>
-    </div>
-</EditForm>
+<MudText Typo="Typo.h5" Class="mb-4">
+    @(CurrentPasskey?.Name is { } name
+        ? $"Rename \"{name}\""
+        : "Name your passkey")
+</MudText>
 
-@code {
-    private ApplicationUser? user;
-    private UserPasskeyInfo? passkey;
+<StatusMessage />
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+<form action="/Account/Manage/PasskeyRename" method="post">
+    <AntiforgeryToken />
+    <input type="hidden" name="id" value="@Id" />
 
-    [Parameter]
-    public string? Id { get; set; }
+    <MudTextField T="string"
+                  @bind-Value="Name"
+                  Label="Passkey name"
+                  Variant="Variant.Outlined"
+                  HelperText="Something memorable, like &quot;iPhone&quot; or &quot;Work laptop&quot;."
+                  Class="mb-4"
+                  UserAttributes="@(new Dictionary<string, object?> { ["name"] = "name" })" />
 
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
-
-    protected override async Task OnInitializedAsync()
-    {
-        Input ??= new();
-
-        user = (await UserManager.GetUserAsync(HttpContext.User))!;
-        if (user is null)
-        {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
-            return;
-        }
-
-        byte[] credentialId;
-        try
-        {
-            credentialId = Base64Url.DecodeFromChars(Id);
-        }
-        catch (FormatException)
-        {
-            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: The specified passkey ID had an invalid format.", HttpContext);
-            return;
-        }
-
-        passkey = await UserManager.GetPasskeyAsync(user, credentialId);
-        if (passkey is null)
-        {
-            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: The specified passkey could not be found.", HttpContext);
-            return;
-        }
-    }
-
-    private async Task Rename()
-    {
-        passkey!.Name = Input.Name;
-        IdentityResult result = await UserManager.AddOrUpdatePasskeyAsync(user!, passkey);
-        if (!result.Succeeded)
-        {
-            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: The passkey could not be updated.", HttpContext);
-            return;
-        }
-
-        RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Passkey updated successfully.", HttpContext);
-    }
-
-    private sealed class InputModel
-    {
-        [Required]
-        [StringLength(200, ErrorMessage = "Passkey names must be no longer than {1} characters.")]
-        public string Name { get; set; } = "";
-    }
-}
+    <MudButton ButtonType="ButtonType.Submit"
+               Variant="Variant.Filled"
+               Color="Color.Primary">
+        Save
+    </MudButton>
+</form>

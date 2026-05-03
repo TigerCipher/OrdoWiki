@@ -1,0 +1,57 @@
+@using OrdoWiki.Data.Entities
+
+<div class="d-flex align-center mb-3" style="gap: 8px;">
+    <MudButton StartIcon="@Icons.Material.Filled.Add"
+               Variant="Variant.Filled"
+               Color="Color.Primary"
+               OnClick="Generate">
+        Generate invite
+    </MudButton>
+    <MudSpacer />
+</div>
+
+<MudPaper Elevation="0" Outlined="true" Class="pa-2">
+    <MudDataGrid T="InviteRow"
+                 Items="@Rows"
+                 Loading="@Loading"
+                 Filterable="true"
+                 SortMode="SortMode.Multiple"
+                 Hover="true"
+                 Dense="true">
+        <Columns>
+            <PropertyColumn Property="x => x.Code" Title="Code" />
+            <PropertyColumn Property="x => x.Role" Title="Role" />
+            <TemplateColumn Title="Status" Sortable="false">
+                <CellTemplate>
+                    @{
+                        (string label, Color color) = context.Item.Status switch
+                        {
+                            InviteStatus.Active => ("Active", Color.Success),
+                            InviteStatus.Redeemed => ("Redeemed", Color.Info),
+                            InviteStatus.Revoked => ("Revoked", Color.Default),
+                            InviteStatus.Expired => ("Expired", Color.Warning),
+                            _ => ("?", Color.Default),
+                        };
+                    }
+                    <MudChip T="string" Size="Size.Small" Color="@color">@label</MudChip>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.CreatedBy" Title="Created by" />
+            <PropertyColumn Property="x => x.ExpiresAt" Title="Expires" Format="yyyy-MM-dd HH:mm" />
+            <TemplateColumn Title="Actions" Sortable="false" Filterable="false">
+                <CellTemplate>
+                    @if (context.Item.Status == InviteStatus.Active)
+                    {
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.BottomLeft">
+                            <MudMenuItem OnClick="@(() => CopyLink(context.Item))">Copy invite link</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => Revoke(context.Item))">Revoke</MudMenuItem>
+                        </MudMenu>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="InviteRow" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

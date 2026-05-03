@@ -1,183 +1,59 @@
-﻿@page "/Account/Manage/Passkeys"
+@page "/Account/Manage/Passkeys"
 
-@using OrdoWiki.Data
-@using Microsoft.AspNetCore.Identity
-@using System.ComponentModel.DataAnnotations
 @using System.Buffers.Text
-@using OrdoWiki.Data.Entities
+@using Microsoft.AspNetCore.Identity
 
-@inject UserManager<ApplicationUser> UserManager
-@inject SignInManager<ApplicationUser> SignInManager
-@inject IdentityRedirectManager RedirectManager
+<PageTitle>Passkeys</PageTitle>
 
-<PageTitle>Manage your passkeys</PageTitle>
-
-<h3>Manage your passkeys</h3>
+<MudText Typo="Typo.h5" Class="mb-4">Passkeys</MudText>
 
 <StatusMessage />
 
-@if (currentPasskeys is { Count: > 0 })
+<MudText Typo="Typo.body2" Class="mb-4 mud-text-secondary">
+    Passkeys let you sign in with your fingerprint, face, or device PIN instead of a password.
+</MudText>
+
+@if (CurrentPasskeys is { Count: > 0 })
 {
-    <table class="table">
-        <tbody>
-            @foreach (UserPasskeyInfo passkey in currentPasskeys)
+    <MudPaper Elevation="0" Class="mb-4" Outlined="true">
+        <MudList T="UserPasskeyInfo">
+            @foreach (UserPasskeyInfo passkey in CurrentPasskeys)
             {
-                <tr>
-                    <td>@(passkey.Name ?? "Unnamed passkey")</td>
-                    <td>
-                        @{
-                            string credentialId = Base64Url.EncodeToString(passkey.CredentialId);
-                        }
-                        <form @formname="@($"update-passkey-{credentialId}")" @onsubmit="UpdatePasskey" method="post">
+                string credentialId = Base64Url.EncodeToString(passkey.CredentialId);
+                <MudListItem T="UserPasskeyInfo" Icon="@Icons.Material.Filled.Key">
+                    <div class="d-flex align-center" style="width: 100%;">
+                        <MudText Class="flex-grow-1">@(passkey.Name ?? "Unnamed passkey")</MudText>
+                        <form @formname="@($"update-passkey-{credentialId}")" @onsubmit="UpdatePasskey" method="post" class="d-flex" style="gap: 8px;">
                             <AntiforgeryToken />
-                            <div>
-                                <input type="hidden" name="CredentialId" value="@credentialId" />
-                                <button type="submit" name="Action" value="rename" class="btn btn-primary" title="Rename this passkey">Rename</button>
-                                <button type="submit" name="Action" value="delete" class="btn btn-danger" title="Remove this passkey from your account">Delete</button>
-                            </div>
+                            <input type="hidden" name="CredentialId" value="@credentialId" />
+                            <button type="submit" name="Action" value="rename" class="mud-button mud-button-text mud-button-text-primary">Rename</button>
+                            <button type="submit" name="Action" value="delete" class="mud-button mud-button-text mud-button-text-error">Delete</button>
                         </form>
-                    </td>
-                </tr>
+                    </div>
+                </MudListItem>
             }
-        </tbody>
-    </table>
+        </MudList>
+    </MudPaper>
 }
 else
 {
-    <p>No passkeys are registered.</p>
+    <MudAlert Severity="Severity.Info" Class="mb-4">No passkeys registered.</MudAlert>
 }
 
 <form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
     <AntiforgeryToken />
-    @if (currentPasskeys is { Count: >= MaxPasskeyCount })
+    @if (CurrentPasskeys is { Count: >= MaxPasskeyCount })
     {
-        <p class="text-danger">You have reached the maximum number of allowed passkeys. Please delete one before adding a new one.</p>
+        <MudAlert Severity="Severity.Warning">
+            You've reached the maximum of @MaxPasskeyCount passkeys. Delete one before adding another.
+        </MudAlert>
     }
     else
     {
-        <PasskeySubmit Operation="PasskeyOperation.Create" Name="Input" class="btn btn-primary">Add a new passkey</PasskeySubmit>
+        <PasskeySubmit Operation="PasskeyOperation.Create"
+                       Name="Input"
+                       class="mud-button-root mud-button mud-button-filled mud-button-filled-primary">
+            Add a new passkey
+        </PasskeySubmit>
     }
-
 </form>
-
-@code {
-    private const int MaxPasskeyCount = 100;
-
-    private ApplicationUser? user;
-    private IList<UserPasskeyInfo>? currentPasskeys;
-
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
-    [SupplyParameterFromForm]
-    private string? Action { get; set; }
-
-    [SupplyParameterFromForm]
-    private string? CredentialId { get; set; }
-
-    [SupplyParameterFromForm(FormName = "add-passkey")]
-    private PasskeyInputModel Input { get; set; } = default!;
-
-    protected override async Task OnInitializedAsync()
-    {
-        Input ??= new();
-
-        user = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null)
-        {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
-            return;
-        }
-        currentPasskeys = await UserManager.GetPasskeysAsync(user);
-    }
-
-    private async Task AddPasskey()
-    {
-        if (user is null)
-        {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
-            return;
-        }
-
-        if (!string.IsNullOrEmpty(Input.Error))
-        {
-            RedirectManager.RedirectToCurrentPageWithStatus($"Error: {Input.Error}", HttpContext);
-            return;
-        }
-
-        if (string.IsNullOrEmpty(Input.CredentialJson))
-        {
-            RedirectManager.RedirectToCurrentPageWithStatus("Error: The browser did not provide a passkey.", HttpContext);
-            return;
-        }
-
-        if (currentPasskeys!.Count >= MaxPasskeyCount)
-        {
-            RedirectManager.RedirectToCurrentPageWithStatus($"Error: You have reached the maximum number of allowed passkeys.", HttpContext);
-            return;
-        }
-
-        PasskeyAttestationResult attestationResult = await SignInManager.PerformPasskeyAttestationAsync(Input.CredentialJson);
-        if (!attestationResult.Succeeded)
-        {
-            RedirectManager.RedirectToCurrentPageWithStatus($"Error: Could not add the passkey: {attestationResult.Failure.Message}", HttpContext);
-            return;
-        }
-
-        IdentityResult addPasskeyResult = await UserManager.AddOrUpdatePasskeyAsync(user, attestationResult.Passkey);
-        if (!addPasskeyResult.Succeeded)
-        {
-            RedirectManager.RedirectToCurrentPageWithStatus("Error: The passkey could not be added to your account.", HttpContext);
-            return;
-        }
-
-        // Immediately prompt the user to enter a name for the credential
-        string credentialIdBase64Url = Base64Url.EncodeToString(attestationResult.Passkey.CredentialId);
-        RedirectManager.RedirectTo($"Account/Manage/RenamePasskey/{credentialIdBase64Url}");
-    }
-
-    private async Task UpdatePasskey()
-    {
-        switch (Action)
-        {
-            case "rename":
-                RedirectManager.RedirectTo($"Account/Manage/RenamePasskey/{CredentialId}");
-                break;
-            case "delete":
-                await DeletePasskey();
-                break;
-            default:
-                RedirectManager.RedirectToCurrentPageWithStatus($"Error: Unknown action '{Action}'.", HttpContext);
-                break;
-        }
-    }
-
-    private async Task DeletePasskey()
-    {
-        if (user is null)
-        {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
-            return;
-        }
-
-        byte[] credentialId;
-        try
-        {
-            credentialId = Base64Url.DecodeFromChars(CredentialId);
-        }
-        catch (FormatException)
-        {
-            RedirectManager.RedirectToCurrentPageWithStatus("Error: The specified passkey ID had an invalid format.", HttpContext);
-            return;
-        }
-
-        IdentityResult result = await UserManager.RemovePasskeyAsync(user, credentialId);
-        if (!result.Succeeded)
-        {
-            RedirectManager.RedirectToCurrentPageWithStatus("Error: The passkey could not be deleted.", HttpContext);
-            return;
-        }
-
-        RedirectManager.RedirectToCurrentPageWithStatus("Passkey deleted successfully.", HttpContext);
-    }
-}

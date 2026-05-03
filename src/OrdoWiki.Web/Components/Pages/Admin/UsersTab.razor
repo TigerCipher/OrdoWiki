@@ -1,0 +1,58 @@
+<MudPaper Elevation="0" Outlined="true" Class="pa-2">
+    <MudDataGrid T="UserRow"
+                 Items="@Users"
+                 Loading="@Loading"
+                 Filterable="true"
+                 SortMode="SortMode.Multiple"
+                 Hover="true"
+                 Dense="true">
+        <Columns>
+            <PropertyColumn Property="x => x.Username" Title="Username" />
+            <PropertyColumn Property="x => x.DisplayName" Title="Display name" />
+            <TemplateColumn Title="Roles" Sortable="false" Filterable="false">
+                <CellTemplate>
+                    @foreach (string role in context.Item.Roles)
+                    {
+                        <MudChip T="string" Size="Size.Small" Class="mr-1">@role</MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Status" Sortable="false">
+                <CellTemplate>
+                    @if (context.Item.IsLocked)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Error">Locked</MudChip>
+                    }
+                    @if (context.Item.MustResetPassword)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Warning">Reset required</MudChip>
+                    }
+                    @if (!context.Item.IsLocked && !context.Item.MustResetPassword)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success">Active</MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Actions" Sortable="false" Filterable="false">
+                <CellTemplate>
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.BottomLeft">
+                        <MudMenuItem OnClick="@(() => EditRoles(context.Item))">Edit roles</MudMenuItem>
+                        @if (context.Item.IsLocked)
+                        {
+                            <MudMenuItem OnClick="@(() => Unlock(context.Item))">Unlock</MudMenuItem>
+                        }
+                        else
+                        {
+                            <MudMenuItem OnClick="@(() => Lock(context.Item))">Lock</MudMenuItem>
+                        }
+                        <MudMenuItem OnClick="@(() => ResetPassword(context.Item))">Reset password</MudMenuItem>
+                        <MudMenuItem OnClick="@(() => Delete(context.Item))">Delete</MudMenuItem>
+                    </MudMenu>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="UserRow" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>
