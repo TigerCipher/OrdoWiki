@@ -10,6 +10,8 @@ public class ApplicationDbContext(
     : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
+    public DbSet<WikiPage> WikiPages => Set<WikiPage>();
+    public DbSet<PageRevision> PageRevisions => Set<PageRevision>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -38,5 +40,7 @@ public class ApplicationDbContext(
             .HasDatabaseName("ix_users_normalized_email");
 
         builder.Entity<InviteCode>(b => { b.HasIndex(c => c.Code).IsUnique(); });
+
+        builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }
