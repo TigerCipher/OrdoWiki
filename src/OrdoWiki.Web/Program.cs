@@ -32,10 +32,12 @@ builder.Services.AddAuthorizationBuilder()
 
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddOrdoWikiData(connectionString);
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddIdentityCore<ApplicationUser>(options =>
+builder.Services
+    .AddOrdoWikiData(connectionString)
+    .AddDatabaseDeveloperPageExceptionFilter()
+    .RegisterOrdoServices()
+    .AddIdentityCore<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;

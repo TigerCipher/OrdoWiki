@@ -1,6 +1,6 @@
-﻿namespace OrdoWiki.Data.Entities;
+﻿namespace OrdoWiki.Web.Models;
 
-public class WikiPage
+public class WikiPageDto
 {
     public Guid Id { get; set; }
     public string Slug { get; set; } = string.Empty;
@@ -9,11 +9,11 @@ public class WikiPage
     public string? Summary { get; set; }
     
     public Guid? CurrentRevisionId { get; set; }
-    public PageRevision? CurrentRevision { get; set; }
+    public PageRevisionDto? CurrentRevision { get; set; }
     
     public DateTime CreatedAt { get; set; }
     
     public string CreatedById { get; set; } = string.Empty;
-    public ApplicationUser Creator { get; set; } = null!;
-    public ICollection<PageRevision> Revisions { get; set; } = [];
+    public UserDto? Creator { get; set; }
+    public List<PageRevisionDto> Revisions { get; set; } = [];
 }
