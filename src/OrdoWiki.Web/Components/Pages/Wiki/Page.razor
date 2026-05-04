@@ -1,9 +1,72 @@
-﻿@page "/wiki"
+﻿@page "/logs"
+@using OrdoWiki.Data.Auth
+@using OrdoWiki.Web.Components.Shared
 
 @rendermode InteractiveServer
 
+<PageTitle>OrdoWiki | Logs</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <MudText Typo="Typo.h4">Roleplay Logs & Wiki</MudText>
+</SectionContent>
+
 <div class="Page">
-    <p>
-        This is the wiki page. It will be used to display the content of the wiki, including articles, categories, and other related information.
-    </p>
+    
+    <MudDataGrid T="WikiPageDto"
+                 Items="_pages"
+                 @bind-RowsPerPage="_rowsPerPage"
+                 Height="60vh"
+                 Filterable="true"
+                 FilterMode="DataGridFilterMode.ColumnFilterMenu"
+                 Loading="_loading"
+                 RowClick="OpenPage" Hover="true">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Posts</MudText>
+            <MudSpacer />
+            <AuthorizeView Policy="@Policies.CanEdit">
+                <Authorized>
+                    <MudButtonGroup Class="ma-0 pa-0" Color="Color.Secondary" Variant="Variant.Filled">
+                        <MudButton OnClick="@CreatePage">
+                            Add Log
+                        </MudButton>
+                    </MudButtonGroup>
+                </Authorized>
+            </AuthorizeView>
+
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.Title" Title="Title"/>
+            <PropertyColumn Property="x => x.CreatorName" Title="Creator"/>
+            <PropertyColumn Property="x => x.Summary" Title="Summary"/>
+            <PropertyColumn Property="x => x.CreatedAt" Title="Created On">
+                <CellTemplate>
+                    <LocalTime DateTime="@context.Item.CreatedAt"/>
+                </CellTemplate>
+            </PropertyColumn>
+            <TemplateColumn>
+                <CellTemplate>
+                    @{
+                        WikiPageDto? item = context.Item;
+                    }
+                    <AuthorizeView Policy="@Policies.CanEdit" Context="authContext">
+                        
+                        <Authorized>
+                            @if (item is not null && (item.CreatedById == authContext.User.GetUserId() || authContext.User.IsInRole(Roles.Admin)))
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                               Color="@Color.Primary"
+                                               UserAttributes=@(new Dictionary<string, object?>() { { "aria-label", $"Edit {item?.Title}" } })
+                                               OnClick="@(() => EditPage(item!))"/>   
+                            }
+                        </Authorized>
+                    </AuthorizeView>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="WikiPageDto" PageSizeOptions="[10, 25, 50, 100]"/>
+        </PagerContent>
+    </MudDataGrid>
+    
 </div>

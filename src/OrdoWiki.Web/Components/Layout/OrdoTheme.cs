@@ -29,7 +29,8 @@ public static class OrdoTheme
             ActionDefault = "#c8a560",
             LinesDefault = "#2e2e2e",
             TableLines = "#2e2e2e",
-            Divider = "#2e2e2e"
+            Divider = "#2e2e2e",
+            TableHover = "#ffffff55"
         },
         Typography = new Typography
         {

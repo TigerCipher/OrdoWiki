@@ -13,32 +13,36 @@
 
         <div class="x-stack gap-4 hide-mobile fill-space justify-center">
             <MudButton Href="/" Class="btn-nav">Home</MudButton>
-            <MudButton Href="/wiki" Class="btn-nav">Wiki</MudButton>
+            <MudButton Href="/logs" Class="btn-nav">Logs</MudButton>
             <MudButton Href="/timeline" Class="btn-nav">Timeline</MudButton>
             <MudButton Href="/characters" Class="btn-nav">Characters</MudButton>
         </div>
 
-        <AuthorizeView>
-            <Authorized>
-                <MudText Typo="Typo.body1">@context.User.GetDisplayName()</MudText>
-                <MudMenu Icon="@Icons.Material.Filled.AccountCircle"
-                         Color="Color.Tertiary"
-                         Label="@context.User.GetDisplayName()"
-                         AnchorOrigin="Origin.BottomRight"
-                         TransformOrigin="Origin.TopRight">
-                    <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Filled.Person">Profile</MudMenuItem>
-                    @if (context.User.IsAdmin())
-                    {
-                        <MudMenuItem Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudMenuItem>
-                    }
-                    <MudDivider/>
-                    <MudMenuItem OnClick="@SignOutAsync" Icon="@Icons.Material.Filled.Logout">Sign out</MudMenuItem>
-                </MudMenu>
-            </Authorized>
-            <NotAuthorized>
-                <MudButton Href="/account/login" Class="btn-nav">Login</MudButton>
-            </NotAuthorized>
-        </AuthorizeView>
+        <div class="hide-mobile">
+            <AuthorizeView>
+                <Authorized>
+                    <div class="x-stack">
+                        <MudText Typo="Typo.body1">@context.User.GetDisplayName()</MudText>
+                        <MudMenu Icon="@Icons.Material.Filled.AccountCircle"
+                                 Color="Color.Tertiary"
+                                 Label="@context.User.GetDisplayName()"
+                                 AnchorOrigin="Origin.BottomRight"
+                                 TransformOrigin="Origin.TopRight">
+                            <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Filled.Person">Profile</MudMenuItem>
+                            @if (context.User.IsAdmin())
+                            {
+                                <MudMenuItem Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudMenuItem>
+                            }
+                            <MudDivider/>
+                            <MudMenuItem OnClick="@SignOutAsync" Icon="@Icons.Material.Filled.Logout">Sign out</MudMenuItem>
+                        </MudMenu>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <MudButton Href="/account/login" Class="btn-nav">Login</MudButton>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
 
     </MudAppBar>
 
@@ -46,8 +50,31 @@
                Variant="DrawerVariant.Temporary"
                Breakpoint="Breakpoint.Md">
         <MudNavMenu>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="x-stack">
+                        <MudText Typo="Typo.body1">@context.User.GetDisplayName()</MudText>
+                        <MudMenu Icon="@Icons.Material.Filled.AccountCircle"
+                                 Color="Color.Tertiary"
+                                 Label="@context.User.GetDisplayName()"
+                                 AnchorOrigin="Origin.BottomRight"
+                                 TransformOrigin="Origin.TopRight">
+                            <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Filled.Person">Profile</MudMenuItem>
+                            @if (context.User.IsAdmin())
+                            {
+                                <MudMenuItem Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudMenuItem>
+                            }
+                            <MudDivider/>
+                            <MudMenuItem OnClick="@SignOutAsync" Icon="@Icons.Material.Filled.Logout">Sign out</MudMenuItem>
+                        </MudMenu>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <MudButton Href="/account/login" Class="btn-nav">Login</MudButton>
+                </NotAuthorized>
+            </AuthorizeView>
             <MudNavLink Href="/" Class="btn-nav" Match="NavLinkMatch.All">Home</MudNavLink>
-            <MudNavLink Href="/wiki" Class="btn-nav">Wiki</MudNavLink>
+            <MudNavLink Href="/logs" Class="btn-nav">Logs</MudNavLink>
             <MudNavLink Href="/timeline" Class="btn-nav">Timeline</MudNavLink>
             <MudNavLink Href="/characters" Class="btn-nav">Characters</MudNavLink>
         </MudNavMenu>

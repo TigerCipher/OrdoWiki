@@ -8,6 +8,8 @@ public partial class Page
 {
 
     private List<WikiPageDto> _pages = [];
+    private int _rowsPerPage = 10;
+    private bool _loading = true;
     
     [Inject]
     private IPageService PageService { get; set; } = null!;
@@ -23,6 +25,7 @@ public partial class Page
         if (!RendererInfo.IsInteractive) return;
         
         ApiResponse<List<WikiPageDto>> response = await PageService.GetPagesAsync();
+        _loading = false;
 
         if (!response)
         {
@@ -33,5 +36,20 @@ public partial class Page
         }
         
         _pages = response;
+    }
+
+    private void OpenPage(DataGridRowClickEventArgs<WikiPageDto> args)
+    {
+        Navigation.NavigateTo($"/logs/{args.Item.Slug}");
+    }
+
+    private void CreatePage()
+    {
+        Navigation.NavigateTo("/logs/new");
+    }
+
+    private void EditPage(WikiPageDto item)
+    {
+        Navigation.NavigateTo($"/logs/{item.Slug}/edit");
     }
 }

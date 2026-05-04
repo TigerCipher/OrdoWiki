@@ -1,0 +1,14 @@
+﻿@page "/logs/{Slug}"
+
+<PageTitle>OrdoWiki | Logs | @_page.Title</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <MudText Typo="Typo.h4">@_page.Title</MudText>
+</SectionContent>
+
+<div class="LogViewer">
+    @if (!string.IsNullOrWhiteSpace(_revision.MarkdownBody))
+    {
+        <p>@_revision.MarkdownBody</p>
+    }
+</div>
