@@ -8,5 +8,6 @@
                 .format(Math.round((d - new Date()) / 60000), "minute");
             default: return d.toLocaleString();
         }
-    }
+    },
+    getTimeZone: () => Intl.DateTimeFormat().resolvedOptions().timeZone
 };

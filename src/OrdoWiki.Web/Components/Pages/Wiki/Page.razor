@@ -38,11 +38,7 @@
             <PropertyColumn Property="x => x.Title" Title="Title"/>
             <PropertyColumn Property="x => x.CreatorName" Title="Creator"/>
             <PropertyColumn Property="x => x.Summary" Title="Summary"/>
-            <PropertyColumn Property="x => x.CreatedAt" Title="Created On">
-                <CellTemplate>
-                    <LocalTime DateTime="@context.Item.CreatedAt"/>
-                </CellTemplate>
-            </PropertyColumn>
+            <PropertyColumn Property="x => x.CreatedAt" Title="Created" Format="g" />
             <TemplateColumn>
                 <CellTemplate>
                     @{
