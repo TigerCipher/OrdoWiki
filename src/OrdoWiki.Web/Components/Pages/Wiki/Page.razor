@@ -10,7 +10,7 @@
 </SectionContent>
 
 <div class="Page">
-    
+
     <MudDataGrid T="WikiPageDto"
                  Items="_pages"
                  @bind-RowsPerPage="_rowsPerPage"
@@ -18,13 +18,16 @@
                  Filterable="true"
                  FilterMode="DataGridFilterMode.ColumnFilterMenu"
                  Loading="_loading"
-                 RowClick="OpenPage" Hover="true">
+                 Hideable="true"
+                 ShowMenuIcon="true"
+                 RowClick="OpenPage" 
+                 Hover="true">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Posts</MudText>
-            <MudSpacer />
+            <MudSpacer/>
             <AuthorizeView Policy="@Policies.CanEdit">
                 <Authorized>
-                    <MudButtonGroup Class="ma-0 pa-0" Color="Color.Secondary" Variant="Variant.Filled">
+                    <MudButtonGroup Class="ma-0 pa-0 mr-2" Color="Color.Secondary" Variant="Variant.Filled">
                         <MudButton OnClick="@CreatePage">
                             Add Log
                         </MudButton>
@@ -37,7 +40,9 @@
             <PropertyColumn Property="x => x.Title" Title="Title"/>
             <PropertyColumn Property="x => x.CreatorName" Title="Creator"/>
             <PropertyColumn Property="x => x.Summary" Title="Summary"/>
-            <PropertyColumn Property="x => x.CreatedAt" Title="Created" Format="g" />
+            <PropertyColumn Property="x => x.CreatedAt" Title="Created" Format="g"/>
+            <PropertyColumn Property="x => x.CurrentRevision!.EditedAt" Title="Last Modified" Format="g" Hidden="true"/>
+            <PropertyColumn Property="x => x.CurrentRevision!.Editor!.DisplayName" Title="Last Author" Hidden="true"/>
             <TemplateColumn>
                 <CellTemplate>
                     @{
@@ -50,7 +55,7 @@
                                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                                Color="@Color.Primary"
                                                UserAttributes=@(new Dictionary<string, object?>() { { "aria-label", $"Edit {item?.Title}" } })
-                                               OnClick="@(() => EditPage(item!))"/>   
+                                               OnClick="@(() => EditPage(item!))"/>
                             }
                         </Authorized>
                     </AuthorizeView>
@@ -62,5 +67,5 @@
             <MudDataGridPager T="WikiPageDto" PageSizeOptions="[10, 25, 50, 100]"/>
         </PagerContent>
     </MudDataGrid>
-    
+
 </div>

@@ -44,8 +44,12 @@ public partial class Page
             page.CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(
                 DateTime.SpecifyKind(page.CreatedAt, DateTimeKind.Utc),
                 userTz);
+
+            page.CurrentRevision?.EditedAt = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.SpecifyKind(page.CurrentRevision.EditedAt, DateTimeKind.Utc),
+                userTz);
         }
-        
+
         _pages = response;
     }
 
