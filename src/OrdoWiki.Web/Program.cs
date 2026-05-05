@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.FileProviders;
 using MudBlazor.Services;
 using OrdoWiki.Data;
 using OrdoWiki.Data.Auth;
@@ -66,6 +67,24 @@ app.UseAntiforgery();
 app.UseMiddleware<RequirePasswordChangeMiddleware>();
 
 app.MapStaticAssets();
+
+// Serve user-uploaded media. The folder is created on first upload, but make sure it
+// exists at startup so the file provider doesn't throw on a missing directory.
+string uploadsRoot = builder.Configuration["UploadsRoot"]
+    ?? Path.Combine(builder.Environment.WebRootPath, "uploads");
+Directory.CreateDirectory(uploadsRoot);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsRoot),
+    RequestPath = "/uploads",
+    OnPrepareResponse = ctx =>
+    {
+        // Filenames are content-addressed (random IDs) so they never change.
+        ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+    }
+});
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

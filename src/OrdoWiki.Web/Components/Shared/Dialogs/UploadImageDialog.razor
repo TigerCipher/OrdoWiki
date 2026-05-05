@@ -1,0 +1,57 @@
+<MudDialog Class="UploadImageDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Insert image</MudText>
+    </TitleContent>
+    <DialogContent>
+        <div class="y-stack gap-3">
+            <div>
+                <InputFile id="@_inputId"
+                           style="display:none"
+                           accept=".jpg,.jpeg,.png,.webp,.gif"
+                           OnChange="@OnFilePicked"/>
+                <MudButton HtmlTag="label"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.CloudUpload"
+                           UserAttributes="@(new Dictionary<string, object?> { { "for", _inputId } })">
+                    Choose image
+                </MudButton>
+            </div>
+
+            @if (_file is not null)
+            {
+                <MudPaper Outlined="true" Class="pa-2 file-info">
+                    <MudText Typo="Typo.body2"><strong>@_file.Name</strong></MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary">
+                        @FormatBytes(_file.Size) — @_file.ContentType
+                    </MudText>
+                </MudPaper>
+            }
+
+            <MudTextField T="string"
+                          @bind-Value="_altText"
+                          Label="Alt text (optional)"
+                          Variant="Variant.Outlined"
+                          Placeholder="Describe the image for screen readers"/>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Dense="true">@_error</MudAlert>
+            }
+
+            @if (_uploading)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+            }
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel" Disabled="@_uploading">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="@UploadAsync"
+                   Disabled="@(_uploading || _file is null)">
+            Upload &amp; insert
+        </MudButton>
+    </DialogActions>
+</MudDialog>

@@ -12,6 +12,7 @@ public class ApplicationDbContext(
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<WikiPage> WikiPages => Set<WikiPage>();
     public DbSet<PageRevision> PageRevisions => Set<PageRevision>();
+    public DbSet<MediaAsset> MediaAssets => Set<MediaAsset>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

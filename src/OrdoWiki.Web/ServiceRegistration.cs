@@ -9,6 +9,7 @@ public static class ServiceRegistration
     {
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IPageService, PageService>();
+        services.AddScoped<IMediaService, MediaService>();
         services.AddScoped<IOrdoDialogs, OrdoDialogs>();
         services.AddScoped<ITimeZoneService, TimeZoneService>();
         services.AddSingleton<IMarkdownService, MarkdownService>();

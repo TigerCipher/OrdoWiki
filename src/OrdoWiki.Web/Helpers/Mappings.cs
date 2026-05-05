@@ -51,6 +51,20 @@ public static class Mappings
         };
     }
 
+    public static MediaAssetDto MapToDto(MediaAsset asset) =>
+        new()
+        {
+            Id = asset.Id,
+            StoragePath = asset.StoragePath,
+            OriginalName = asset.OriginalName,
+            ContentType = asset.ContentType,
+            SizeBytes = asset.SizeBytes,
+            Width = asset.Width,
+            Height = asset.Height,
+            UploadedById = asset.UploadedById,
+            UploadedAt = AsUtc(asset.UploadedAt)
+        };
+
     // Npgsql returns timestamps with Kind=Unspecified; the wire value is UTC.
     // Tag it so downstream code (JS interop, TimeZoneInfo.ConvertTimeFromUtc) doesn't misinterpret.
     private static DateTime AsUtc(DateTime value) =>

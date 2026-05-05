@@ -1,6 +1,14 @@
 <div class="MarkdownEditor y-stack gap-2">
     <div class="x-stack toolbar align-center">
         <MudText Typo="Typo.subtitle2" Class="grow">@Label</MudText>
+        @if (_uploading)
+        {
+            <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary"/>
+        }
+        <MudIconButton Icon="@Icons.Material.Filled.Image"
+                       Size="Size.Small"
+                       OnClick="@OpenImageUploadAsync"
+                       UserAttributes="@(new Dictionary<string, object?> { { "aria-label", "Insert image" }, { "title", "Insert image" } })"/>
         <MudIconButton Icon="@Icons.Material.Filled.Fullscreen"
                        Size="Size.Small"
                        OnClick="@OpenFullscreenAsync"
@@ -18,7 +26,8 @@
                       Immediate="true"
                       DebounceInterval="250"
                       Placeholder="@Placeholder"
-                      Class="editor-pane"/>
+                      Class="editor-pane"
+                      UserAttributes="@(new Dictionary<string, object?> { { "id", _editorId } })"/>
 
         <MudPaper Outlined="true" Class="preview-pane pa-3">
             @if (string.IsNullOrWhiteSpace(_renderedHtml))
@@ -31,4 +40,9 @@
             }
         </MudPaper>
     </div>
+
+    <InputFile id="@_dropInputId"
+               style="display:none"
+               accept=".jpg,.jpeg,.png,.webp,.gif"
+               OnChange="@OnDroppedFileAsync"/>
 </div>
