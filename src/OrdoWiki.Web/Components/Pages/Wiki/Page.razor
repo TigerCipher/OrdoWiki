@@ -1,6 +1,5 @@
 ﻿@page "/logs"
 @using OrdoWiki.Data.Auth
-@using OrdoWiki.Web.Components.Shared
 
 @rendermode InteractiveServer
 
@@ -45,9 +44,8 @@
                         WikiPageDto? item = context.Item;
                     }
                     <AuthorizeView Policy="@Policies.CanEdit" Context="authContext">
-                        
                         <Authorized>
-                            @if (item is not null && (item.CreatedById == authContext.User.GetUserId() || authContext.User.IsInRole(Roles.Admin)))
+                            @if (item is not null)
                             {
                                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                                Color="@Color.Primary"

@@ -1,0 +1,71 @@
+﻿@page "/logs/{Slug}/edit"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Auth
+
+@rendermode InteractiveServer
+
+@attribute [Authorize(Policies.CanEdit)]
+
+<PageTitle>OrdoWiki | Logs | @_originalTitle</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <MudText Typo="Typo.h4">Edit @_originalTitle</MudText>
+</SectionContent>
+
+<div class="CreateLog y-stack gap-4">
+
+    @if (_loading)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="metadata x-stack gap-2">
+            <MudTextField T="string"
+                          @bind-Value="@_page.Title"
+                          Label="Title"
+                          InputType="InputType.Text"
+                          MaxLength="200"
+                          Variant="Variant.Outlined"/>
+
+            <MudTextField T="string"
+                          @bind-Value="@_page.Slug"
+                          Label="Slug"
+                          InputType="InputType.Text"
+                          MaxLength="200"
+                          Variant="Variant.Outlined"/>
+        </div>
+        
+        <MudTextField T="string"
+                      @bind-Value="@_page.Summary"
+                      Label="Summary"
+                      Variant="Variant.Outlined"
+                      Lines="3"
+                      MaxLines="6"
+                      MaxLength="500"
+                      Sizing="InputSizing.Auto"
+                      Placeholder="Summary for this log" />
+        
+        <MudTextField T="string"
+                      @bind-Value="@_markdownBody"
+                      Label="Contents"
+                      Variant="Variant.Outlined"
+                      Lines="10"
+                      MaxLines="50"
+                      Sizing="InputSizing.Auto"
+                      Placeholder="The log contents" />
+        
+        <MudTextField T="string"
+                      @bind-Value="@_editSummary"
+                      Label="Summary"
+                      Variant="Variant.Outlined"
+                      Lines="3"
+                      MaxLines="6"
+                      MaxLength="500"
+                      Sizing="InputSizing.Auto"
+                      Placeholder="Summary for this edit" />
+        
+        <MudButton Class="push-right" Color="Color.Primary" OnClick="@SaveEditAsync">Save</MudButton>
+    }
+
+</div>
