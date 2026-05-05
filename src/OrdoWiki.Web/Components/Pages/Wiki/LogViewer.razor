@@ -1,14 +1,67 @@
-﻿@page "/logs/{Slug}"
+@page "/logs/{Slug}"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Auth
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
 
 <PageTitle>OrdoWiki | Logs | @_page.Title</PageTitle>
 
 <SectionContent SectionName="page-header">
-    <MudText Typo="Typo.h4">@_page.Title</MudText>
+    <div class="LogViewerHeader x-stack gap-2">
+        <MudText Typo="Typo.h4" Class="fill-space">@_page.Title</MudText>
+        <AuthorizeView Policy="@Policies.CanEdit">
+            <MudButton Href="@($"/logs/{_page.Slug}/edit")"
+                       StartIcon="@Icons.Material.Filled.Edit"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled">
+                Edit
+            </MudButton>
+        </AuthorizeView>
+    </div>
 </SectionContent>
 
-<div class="LogViewer">
-    @if (!string.IsNullOrWhiteSpace(_renderedHtml))
+<div class="LogViewer y-stack gap-4">
+
+    @if (_loading)
     {
-        <div class="markdown-body">@((MarkupString)_renderedHtml)</div>
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else
+    {
+        <div class="meta y-stack gap-1">
+            <div class="meta-row x-stack gap-2">
+                <MudText Typo="Typo.caption" Color="Color.Tertiary">Created by</MudText>
+                <AuthorName User="_page.Creator"/>
+                <MudText Typo="Typo.caption" Color="Color.Tertiary">on</MudText>
+                <LocalTime DateTime="_page.CreatedAt"/>
+            </div>
+
+            @if (_showEditedRow)
+            {
+                <div class="meta-row x-stack gap-2">
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary">Last edited by</MudText>
+                    <AuthorName User="_revision.Editor"/>
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary">on</MudText>
+                    <LocalTime DateTime="_revision.EditedAt"/>
+                </div>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_page.Summary))
+        {
+            <MudPaper Outlined="true" Class="summary pa-3">
+                <MudText Typo="Typo.body1">@_page.Summary</MudText>
+            </MudPaper>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_renderedHtml))
+        {
+            <div class="markdown-body">@((MarkupString)_renderedHtml)</div>
+        }
+        else
+        {
+            <MudText Typo="Typo.body2" Color="Color.Tertiary">No content yet.</MudText>
+        }
     }
 </div>

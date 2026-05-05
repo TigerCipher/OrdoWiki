@@ -1,0 +1,12 @@
+﻿.InteractiveCarousel ::deep .banner {
+    width: 100%;
+    aspect-ratio: 64 / 15;
+    overflow: hidden;
+}
+
+.InteractiveCarousel ::deep .banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}

@@ -22,7 +22,8 @@ public class PageService(
         if (page?.CurrentRevision is null)
             return NotFound<WikiPageDto>();
 
-        return Ok(MapToDto(page, page.CurrentRevision));
+        Dictionary<string, string?> roles = await LoadRolesForPageAsync(page);
+        return Ok(MapToDto(page, page.CurrentRevision, roles));
     }
 
     public async Task<ApiResponse<WikiPageDto>> GetPageBySlugAsync(string slug)
@@ -35,7 +36,8 @@ public class PageService(
         if (page?.CurrentRevision is null)
             return NotFound<WikiPageDto>();
 
-        return Ok(MapToDto(page, page.CurrentRevision));
+        Dictionary<string, string?> roles = await LoadRolesForPageAsync(page);
+        return Ok(MapToDto(page, page.CurrentRevision, roles));
     }
 
     public async Task<ApiResponse<WikiPageDto>> CreatePageAsync(CreatePageRequest request)
@@ -165,12 +167,28 @@ public class PageService(
             .Include(x => x.Creator)
             .ToListAsync();
 
+        IEnumerable<string> userIds = pages
+            .SelectMany(p => new[] { p.CreatedById, p.CurrentRevision?.EditedById })
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Select(id => id!);
+
+        Dictionary<string, string?> roles = await userService.GetHighestRolesAsync(userIds);
+
         List<WikiPageDto> dtos = pages
             .Where(p => p.CurrentRevision != null)
-            .Select(p => MapToDto(p, p.CurrentRevision!))
+            .Select(p => MapToDto(p, p.CurrentRevision!, roles))
             .ToList();
 
         return Ok(dtos);
+    }
+
+    private Task<Dictionary<string, string?>> LoadRolesForPageAsync(WikiPage page)
+    {
+        List<string> ids = [page.CreatedById];
+        if (page.CurrentRevision?.EditedById is { } editedById)
+            ids.Add(editedById);
+
+        return userService.GetHighestRolesAsync(ids);
     }
 
     private async Task<string> EnsureUniqueSlugAsync(string baseSlug)

@@ -3,6 +3,7 @@
 using System.Security.Claims;
 using Contract;
 using Data;
+using Data.Auth;
 using Data.Entities;
 using Helpers;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -33,8 +34,33 @@ public class UserService(
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userId);
 
-        return user is null
-            ? NotFound<UserDto>()
-            : Ok(MapToDto(user));
+        if (user is null) return NotFound<UserDto>();
+
+        Dictionary<string, string?> roles = await GetHighestRolesAsync([userId]);
+        roles.TryGetValue(userId, out string? role);
+
+        return Ok(MapToDto(user, role));
     }
+
+    public async Task<Dictionary<string, string?>> GetHighestRolesAsync(IEnumerable<string> userIds)
+    {
+        HashSet<string> ids = [..userIds];
+        if (ids.Count == 0) return new Dictionary<string, string?>();
+
+        List<UserRoleRow> rows = await context.UserRoles
+            .Where(ur => ids.Contains(ur.UserId))
+            .Join(context.Roles,
+                ur => ur.RoleId,
+                r => r.Id,
+                (ur, r) => new UserRoleRow(ur.UserId, r.Name))
+            .ToListAsync();
+
+        return rows
+            .GroupBy(x => x.UserId)
+            .ToDictionary(
+                g => g.Key,
+                g => Roles.PickHighest(g.Select(x => x.RoleName)));
+    }
+
+    private record UserRoleRow(string UserId, string? RoleName);
 }

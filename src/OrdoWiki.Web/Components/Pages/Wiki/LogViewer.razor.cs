@@ -9,6 +9,8 @@ public partial class LogViewer
     private WikiPageDto _page = new();
     private PageRevisionDto _revision = new();
     private string _renderedHtml = string.Empty;
+    private bool _showEditedRow;
+    private bool _loading = true;
 
     [Parameter, EditorRequired]
     public required string Slug { get; set; }
@@ -42,5 +44,11 @@ public partial class LogViewer
         _page = response;
         _revision = _page.CurrentRevision ?? new PageRevisionDto();
         _renderedHtml = Markdown.Render(_revision.MarkdownBody);
+
+        // Created+initial-revision are written within milliseconds of each other; only
+        // show the "last edited" row when the page has been edited after creation.
+        _showEditedRow = _revision.EditedAt - _page.CreatedAt > TimeSpan.FromSeconds(5);
+
+        _loading = false;
     }
 }

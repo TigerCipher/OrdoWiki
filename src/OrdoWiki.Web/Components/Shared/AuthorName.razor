@@ -1,0 +1,12 @@
+@using OrdoWiki.Data.Auth
+
+<span class="AuthorName x-stack align-center gap-1">
+    <MudAvatar Size="@AvatarSize" Class="author-avatar">@_initials</MudAvatar>
+    <span class="author-name">@_displayName</span>
+    @if (_showRole)
+    {
+        <MudChip T="string" Variant="Variant.Filled" Size="@ChipSize" Color="@_roleColor" Class="role-chip">
+            @User!.Role
+        </MudChip>
+    }
+</span>

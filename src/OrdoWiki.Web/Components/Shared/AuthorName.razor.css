@@ -1,0 +1,20 @@
+.AuthorName {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    min-width: 0;
+    vertical-align: middle;
+}
+
+.AuthorName .author-avatar {
+    flex-shrink: 0;
+}
+
+.AuthorName .author-name {
+    font-weight: 500;
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.AuthorName .role-chip {
+    margin: 0 0 0 var(--space-1);
+}

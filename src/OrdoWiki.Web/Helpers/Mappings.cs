@@ -4,17 +4,27 @@ using Data.Entities;
 
 public static class Mappings
 {
-    public static UserDto MapToDto(ApplicationUser user) =>
+    public static UserDto MapToDto(ApplicationUser user, string? role = null) =>
         new()
         {
             Id = user.Id,
             Username = user.UserName ?? string.Empty,
             DisplayName = user.DisplayName,
+            Role = role,
             IsPasswordResetRequired = user.IsPasswordResetRequired
         };
 
-    public static WikiPageDto MapToDto(WikiPage page, PageRevision currentRevision) =>
-        new()
+    public static WikiPageDto MapToDto(
+        WikiPage page,
+        PageRevision currentRevision,
+        IReadOnlyDictionary<string, string?>? rolesByUserId = null)
+    {
+        string? RoleFor(string? userId) =>
+            userId is not null && rolesByUserId is not null && rolesByUserId.TryGetValue(userId, out string? r)
+                ? r
+                : null;
+
+        return new WikiPageDto
         {
             Id = page.Id,
             Slug = page.Slug,
@@ -27,12 +37,22 @@ public static class Mappings
                 PageId = page.Id,
                 MarkdownBody = currentRevision.MarkdownBody,
                 EditSummary = currentRevision.EditSummary,
-                EditedAt = currentRevision.EditedAt,
+                EditedAt = AsUtc(currentRevision.EditedAt),
                 EditedById = currentRevision.EditedById,
-                Editor = currentRevision.Editor is null ? null : MapToDto(currentRevision.Editor)
+                Editor = currentRevision.Editor is null
+                    ? null
+                    : MapToDto(currentRevision.Editor, RoleFor(currentRevision.Editor.Id))
             },
-            CreatedAt = page.CreatedAt,
+            CreatedAt = AsUtc(page.CreatedAt),
             CreatedById = page.CreatedById,
-            Creator = page.Creator is null ? null : MapToDto(page.Creator)
+            Creator = page.Creator is null
+                ? null
+                : MapToDto(page.Creator, RoleFor(page.Creator.Id))
         };
+    }
+
+    // Npgsql returns timestamps with Kind=Unspecified; the wire value is UTC.
+    // Tag it so downstream code (JS interop, TimeZoneInfo.ConvertTimeFromUtc) doesn't misinterpret.
+    private static DateTime AsUtc(DateTime value) =>
+        value.Kind == DateTimeKind.Utc ? value : DateTime.SpecifyKind(value, DateTimeKind.Utc);
 }

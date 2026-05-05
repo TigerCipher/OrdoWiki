@@ -12,7 +12,7 @@ html {
 
 @media (min-width: 769px) {
     html {
-        background-image: url('./images/After_Party.jpg');
+        background-image: url('./img/After_Party.jpg');
         background-attachment: fixed;
         background-position: center top;
         background-size: cover;
@@ -22,7 +22,7 @@ html {
 /* Large desktop — full image */
 @media (min-width: 1280px) {
     html {
-        background-image: url('./images/After_Party.jpg');
+        background-image: url('./img/After_Party.jpg');
     }
 }
 
