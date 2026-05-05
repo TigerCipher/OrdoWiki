@@ -1,0 +1,23 @@
+.MarkdownEditorDialog .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    align-items: stretch;
+    min-height: 70vh;
+}
+
+.MarkdownEditorDialog .editor-pane {
+    min-width: 0;
+}
+
+.MarkdownEditorDialog .preview-pane {
+    min-width: 0;
+    overflow: auto;
+    background-color: var(--color-surface);
+}
+
+@media (max-width: 768px) {
+    .MarkdownEditorDialog .split {
+        grid-template-columns: 1fr;
+    }
+}

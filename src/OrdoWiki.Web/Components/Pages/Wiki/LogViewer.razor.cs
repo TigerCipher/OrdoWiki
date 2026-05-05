@@ -8,7 +8,8 @@ public partial class LogViewer
 {
     private WikiPageDto _page = new();
     private PageRevisionDto _revision = new();
-    
+    private string _renderedHtml = string.Empty;
+
     [Parameter, EditorRequired]
     public required string Slug { get; set; }
 
@@ -23,7 +24,10 @@ public partial class LogViewer
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
-    
+
+    [Inject]
+    private IMarkdownService Markdown { get; set; } = null!;
+
     protected override async Task OnParametersSetAsync()
     {
         ApiResponse<WikiPageDto> response = await PageService.GetPageBySlugAsync(Slug);
@@ -34,8 +38,9 @@ public partial class LogViewer
             Navigation.NavigateTo("/not-found");
             return;
         }
-        
+
         _page = response;
         _revision = _page.CurrentRevision ?? new PageRevisionDto();
+        _renderedHtml = Markdown.Render(_revision.MarkdownBody);
     }
 }

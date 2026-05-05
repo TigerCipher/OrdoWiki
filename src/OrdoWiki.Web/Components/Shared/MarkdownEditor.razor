@@ -1,0 +1,34 @@
+<div class="MarkdownEditor y-stack gap-2">
+    <div class="x-stack toolbar align-center">
+        <MudText Typo="Typo.subtitle2" Class="grow">@Label</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Fullscreen"
+                       Size="Size.Small"
+                       OnClick="@OpenFullscreenAsync"
+                       UserAttributes="@(new Dictionary<string, object?> { { "aria-label", "Expand editor" }, { "title", "Expand editor" } })"/>
+    </div>
+
+    <div class="split">
+        <MudTextField T="string"
+                      Value="@_value"
+                      ValueChanged="@OnEditorChangedAsync"
+                      Variant="Variant.Outlined"
+                      Lines="@Lines"
+                      MaxLines="@MaxLines"
+                      Sizing="InputSizing.Auto"
+                      Immediate="true"
+                      DebounceInterval="250"
+                      Placeholder="@Placeholder"
+                      Class="editor-pane"/>
+
+        <MudPaper Outlined="true" Class="preview-pane pa-3">
+            @if (string.IsNullOrWhiteSpace(_renderedHtml))
+            {
+                <MudText Typo="Typo.body2" Color="Color.Tertiary">Preview will appear here</MudText>
+            }
+            else
+            {
+                <div class="markdown-body">@((MarkupString)_renderedHtml)</div>
+            }
+        </MudPaper>
+    </div>
+</div>

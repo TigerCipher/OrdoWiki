@@ -1,6 +1,7 @@
 ﻿@page "/logs/{Slug}/edit"
 @using Microsoft.AspNetCore.Authorization
 @using OrdoWiki.Data.Auth
+@using OrdoWiki.Web.Components.Shared
 
 @rendermode InteractiveServer
 
@@ -46,18 +47,13 @@
                       Sizing="InputSizing.Auto"
                       Placeholder="Summary for this log" />
         
-        <MudTextField T="string"
-                      @bind-Value="@_markdownBody"
-                      Label="Contents"
-                      Variant="Variant.Outlined"
-                      Lines="10"
-                      MaxLines="50"
-                      Sizing="InputSizing.Auto"
-                      Placeholder="The log contents" />
-        
+        <MarkdownEditor @bind-Value="@_markdownBody"
+                        Label="Contents"
+                        Placeholder="The log contents (markdown supported)"/>
+
         <MudTextField T="string"
                       @bind-Value="@_editSummary"
-                      Label="Summary"
+                      Label="Edit Summary"
                       Variant="Variant.Outlined"
                       Lines="3"
                       MaxLines="6"

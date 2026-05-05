@@ -7,8 +7,8 @@
 </SectionContent>
 
 <div class="LogViewer">
-    @if (!string.IsNullOrWhiteSpace(_revision.MarkdownBody))
+    @if (!string.IsNullOrWhiteSpace(_renderedHtml))
     {
-        <p>@_revision.MarkdownBody</p>
+        <div class="markdown-body">@((MarkupString)_renderedHtml)</div>
     }
 </div>

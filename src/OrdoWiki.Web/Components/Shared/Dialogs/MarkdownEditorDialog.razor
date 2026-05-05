@@ -1,0 +1,35 @@
+<MudDialog Class="MarkdownEditorDialog" DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Label</MudText>
+    </TitleContent>
+    <DialogContent>
+        <div class="split">
+            <MudTextField T="string"
+                          Value="@_value"
+                          ValueChanged="@OnEditorChanged"
+                          Variant="Variant.Outlined"
+                          Lines="20"
+                          MaxLines="100"
+                          Sizing="InputSizing.Auto"
+                          Immediate="true"
+                          DebounceInterval="250"
+                          Placeholder="@Placeholder"
+                          Class="editor-pane"/>
+
+            <MudPaper Outlined="true" Class="preview-pane pa-3">
+                @if (string.IsNullOrWhiteSpace(_renderedHtml))
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Tertiary">Preview will appear here</MudText>
+                }
+                else
+                {
+                    <div class="markdown-body">@((MarkupString)_renderedHtml)</div>
+                }
+            </MudPaper>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@Apply">Apply</MudButton>
+    </DialogActions>
+</MudDialog>

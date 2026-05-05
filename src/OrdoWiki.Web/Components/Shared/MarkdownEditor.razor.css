@@ -1,0 +1,33 @@
+.MarkdownEditor {
+}
+
+.MarkdownEditor .toolbar {
+    align-items: center;
+}
+
+.MarkdownEditor .grow {
+    flex: 1 1 auto;
+}
+
+.MarkdownEditor .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    align-items: stretch;
+}
+
+.MarkdownEditor .editor-pane {
+    min-width: 0;
+}
+
+.MarkdownEditor .preview-pane {
+    min-width: 0;
+    overflow: auto;
+    background-color: var(--color-surface);
+}
+
+@media (max-width: 768px) {
+    .MarkdownEditor .split {
+        grid-template-columns: 1fr;
+    }
+}
