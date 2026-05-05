@@ -1,6 +1,7 @@
 ﻿.InteractiveCarousel ::deep .banner {
     width: 100%;
-    aspect-ratio: 64 / 15;
+    aspect-ratio: auto;
+    height: 300px;
     overflow: hidden;
 }
 
