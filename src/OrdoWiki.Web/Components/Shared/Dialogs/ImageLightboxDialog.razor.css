@@ -1,0 +1,22 @@
+.ImageLightboxDialog .image-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+}
+
+.ImageLightboxDialog .lightbox-image {
+    display: block;
+    max-width: min(90vw, 1800px);
+    max-height: 85vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.ImageLightboxDialog .caption {
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-muted);
+    text-align: center;
+}

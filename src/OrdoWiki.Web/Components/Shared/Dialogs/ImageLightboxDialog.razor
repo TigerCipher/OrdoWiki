@@ -1,0 +1,11 @@
+<MudDialog Class="ImageLightboxDialog" DefaultFocus="DefaultFocus.None">
+    <DialogContent>
+        <div class="image-wrap">
+            <img src="@Src" alt="@Alt" class="lightbox-image" />
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Alt))
+        {
+            <MudText Typo="Typo.caption" Class="caption">@Alt</MudText>
+        }
+    </DialogContent>
+</MudDialog>
