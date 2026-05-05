@@ -1,0 +1,56 @@
+﻿@page "/logs/new"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Auth
+
+@rendermode InteractiveServer
+
+@attribute [Authorize(Policies.CanEdit)]
+
+<PageTitle>OrdoWiki | Create Log</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <MudText Typo="Typo.h4">Create New Log</MudText>
+</SectionContent>
+
+<div class="CreateLog y-stack gap-4">
+    <div class="metadata x-stack gap-2">
+        <MudTextField T="string"
+                      @bind-Value="@_title"
+                      Label="Title"
+                      InputType="InputType.Text"
+                      Required="true"
+                      RequiredError="Title is required"
+                      MaxLength="200"
+                      Variant="Variant.Outlined"/>
+
+        <MudTextField T="string"
+                      @bind-Value="@_slug"
+                      Label="Slug"
+                      InputType="InputType.Text"
+                      Placeholder="Optional URL slug (auto-generated from title if left blank)"
+                      MaxLength="200"
+                      Variant="Variant.Outlined"/>
+    </div>
+        
+    <MudTextField T="string"
+                  @bind-Value="@_summary"
+                  Label="Summary"
+                  Variant="Variant.Outlined"
+                  Lines="3"
+                  MaxLines="6"
+                  MaxLength="500"
+                  Sizing="InputSizing.Auto"
+                  Placeholder="Summary for this log" />
+        
+    <MudTextField T="string"
+                  @bind-Value="@_content"
+                  Label="Contents"
+                  Variant="Variant.Outlined"
+                  Lines="10"
+                  MaxLines="50"
+                  Sizing="InputSizing.Auto"
+                  Placeholder="The log contents" />
+
+        
+    <MudButton Class="push-right" Color="Color.Primary" OnClick="@SaveEditAsync">Save</MudButton>
+</div>

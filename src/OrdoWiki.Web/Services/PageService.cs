@@ -5,6 +5,7 @@ using Data.Entities;
 using Exceptions;
 using Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Models.Requests;
 
 public class PageService(
@@ -83,12 +84,16 @@ public class PageService(
                 EditedById = user.Id
             };
 
-            page.CurrentRevisionId = revision.Id;
+            await using IDbContextTransaction tx = await context.Database.BeginTransactionAsync();
 
             context.WikiPages.Add(page);
             context.PageRevisions.Add(revision);
-
             await context.SaveChangesAsync();
+
+            page.CurrentRevisionId = revision.Id;
+            await context.SaveChangesAsync();
+
+            await tx.CommitAsync();
 
             return Ok(MapToDto(page, revision));
         }
