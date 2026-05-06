@@ -32,6 +32,32 @@ public static class OrdoTheme
             Divider = "#2e2e2e",
             TableHover = "#ffffff55"
         },
+        PaletteLight =
+        {
+            Primary = "#576A56",
+            Secondary = "#294832",
+            Tertiary = "#78A178",
+            Info = "#3D6C3C",
+            Success = "#63BE61",
+            Warning = "#ECBC56",
+            Error = "#CC553D",
+            Surface = "#F4F9F3",
+            Background = "f0eee9",
+            Black = "#0a0a0a",
+            White = "#f0eee9",
+            DrawerBackground = "#E7DFDB",
+            AppbarBackground = "#184F16",
+            AppbarText = "#F4F9F3",
+            DrawerText = "#1C3A1B",
+            TextPrimary = "#101C13",
+            TextSecondary = "#294832",
+            ActionDefault = "#576A56",
+            LinesDefault = "#E7DFDB",
+            TableLines = "#E7DFDB",
+            Divider = "#E7DFDB",
+            TableHover = "#ffffff55",
+            
+        },
         Typography = new Typography
         {
             Default = new DefaultTypography

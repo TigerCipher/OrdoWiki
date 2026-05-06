@@ -1,8 +1,5 @@
-﻿namespace OrdoWiki.Web.Components.Layout;
-
-using MudBlazor;
+namespace OrdoWiki.Web.Components.Layout;
 
 public partial class MainLayout
 {
-    private readonly MudTheme _theme = OrdoTheme.Build();
 }

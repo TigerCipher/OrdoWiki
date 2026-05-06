@@ -18,7 +18,12 @@
             <MudButton Href="/characters" Class="btn-nav">Characters</MudButton>
         </div>
 
-        <div class="hide-mobile">
+        <MudIconButton Icon="@(ThemeState.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                       Color="Color.Tertiary"
+                       Edge="Edge.End"
+                       OnClick="@ToggleTheme"/>
+        
+        <div class="hide-mobile ml-2">
             <AuthorizeView>
                 <Authorized>
                     <div class="x-stack">

@@ -12,6 +12,7 @@ public static class ServiceRegistration
         services.AddScoped<IMediaService, MediaService>();
         services.AddScoped<IOrdoDialogs, OrdoDialogs>();
         services.AddScoped<ITimeZoneService, TimeZoneService>();
+        services.AddScoped<ThemeState>();
         services.AddSingleton<IMarkdownService, MarkdownService>();
         
         return services;
