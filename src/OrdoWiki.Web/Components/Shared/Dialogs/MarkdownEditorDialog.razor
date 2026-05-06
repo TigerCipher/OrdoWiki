@@ -1,6 +1,12 @@
 <MudDialog Class="MarkdownEditorDialog" DefaultFocus="DefaultFocus.FirstChild">
     <TitleContent>
-        <MudText Typo="Typo.h6">@Label</MudText>
+        <div class="x-stack align-center gap-2">
+            <MudText Typo="Typo.h6" Class="grow">@Label</MudText>
+            @if (_uploading)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary"/>
+            }
+        </div>
     </TitleContent>
     <DialogContent>
         <div class="split">
@@ -14,7 +20,8 @@
                           Immediate="true"
                           DebounceInterval="250"
                           Placeholder="@Placeholder"
-                          Class="editor-pane"/>
+                          Class="editor-pane"
+                          UserAttributes="@(new Dictionary<string, object?> { { "id", _editorId } })"/>
 
             <MudPaper Outlined="true" Class="preview-pane pa-3">
                 @if (string.IsNullOrWhiteSpace(_renderedHtml))
@@ -27,6 +34,11 @@
                 }
             </MudPaper>
         </div>
+
+        <InputFile id="@_dropInputId"
+                   style="display:none"
+                   accept=".jpg,.jpeg,.png,.webp,.gif"
+                   OnChange="@OnDroppedFileAsync"/>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="@Cancel">Cancel</MudButton>
