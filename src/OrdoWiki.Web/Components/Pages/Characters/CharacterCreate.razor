@@ -1,0 +1,71 @@
+@page "/characters/new"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>OrdoWiki | New Character</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <MudText Typo="Typo.h4">Create Character</MudText>
+</SectionContent>
+
+<div class="CharacterCreate y-stack gap-4">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (!_canCreate)
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled">
+            You have reached the limit on the number of characters you can create.
+            Delete an existing one or ask an admin if you need more.
+        </MudAlert>
+        <MudButton Href="/characters/mine" Variant="Variant.Outlined">Back to my characters</MudButton>
+    }
+    else
+    {
+        <div class="metadata x-stack gap-2">
+            <MudTextField T="string"
+                          @bind-Value="@_name"
+                          Label="Name"
+                          InputType="InputType.Text"
+                          Required="true"
+                          RequiredError="Name is required"
+                          MaxLength="120"
+                          Variant="Variant.Outlined"/>
+
+            <MudTextField T="string"
+                          @bind-Value="@_slug"
+                          Label="Slug"
+                          InputType="InputType.Text"
+                          Placeholder="Optional URL slug (auto-generated from name)"
+                          MaxLength="160"
+                          Variant="Variant.Outlined"/>
+        </div>
+
+        <MudTextField T="string"
+                      @bind-Value="@_summary"
+                      Label="Summary"
+                      Variant="Variant.Outlined"
+                      Lines="2"
+                      MaxLines="4"
+                      MaxLength="500"
+                      Sizing="InputSizing.Auto"
+                      Placeholder="One-line tagline (optional)"/>
+
+        <MarkdownEditor @bind-Value="@_body"
+                        Label="Backstory"
+                        Placeholder="Tell us about this character (markdown supported)"/>
+
+        <MudButton Class="push-right"
+                   Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   Disabled="@_saving"
+                   OnClick="@SaveAsync">
+            @(_saving ? "Saving..." : "Create")
+        </MudButton>
+    }
+</div>

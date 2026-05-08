@@ -1,0 +1,75 @@
+<div class="CharacterGalleryEditor y-stack gap-3">
+    <div class="x-stack gap-2 align-center">
+        <MudText Typo="Typo.subtitle1" Class="fill-space">Gallery (@Images.Count@(MaxImages.HasValue ? $" / {MaxImages.Value}" : ""))</MudText>
+        @if (_uploading)
+        {
+            <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary"/>
+        }
+        <InputFile id="@_inputId"
+                   style="display:none"
+                   accept=".jpg,.jpeg,.png,.webp,.gif"
+                   multiple
+                   OnChange="@OnFilesPickedAsync"/>
+        <MudButton HtmlTag="label"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.AddPhotoAlternate"
+                   Disabled="@(_uploading || _atCap)"
+                   UserAttributes="@(new Dictionary<string, object?> { { "for", _inputId } })">
+            Add image@(MaxImages.HasValue ? "" : "s")
+        </MudButton>
+    </div>
+
+    @if (_atCap)
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
+            This character has reached the @MaxImages.GetValueOrDefault() image limit.
+        </MudAlert>
+    }
+
+    @if (Images.Count == 0)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Tertiary">No images yet.</MudText>
+    }
+    else
+    {
+        <div class="gallery-grid">
+            @for (int i = 0; i < Images.Count; i++)
+            {
+                int idx = i;
+                CharacterImageDto image = Images[idx];
+                <div class="tile @(_dragOverIndex == idx ? "drag-over" : "")"
+                     draggable="true"
+                     @ondragstart="@(() => OnDragStart(idx))"
+                     @ondragover:preventDefault="true"
+                     @ondragenter="@(() => OnDragEnter(idx))"
+                     @ondragleave="@OnDragLeave"
+                     @ondrop="@(() => OnDropAsync(idx))">
+                    @if (image.MediaAsset is not null)
+                    {
+                        <img src="@image.MediaAsset.StoragePath" alt="@(image.Caption ?? string.Empty)"/>
+                    }
+
+                    <div class="tile-overlay">
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       Variant="Variant.Filled"
+                                       OnClick="@(() => DeleteAsync(image))"
+                                       UserAttributes="@(new Dictionary<string, object?> { { "title", "Delete image" } })"/>
+                    </div>
+
+                    <MudTextField T="string"
+                                  Value="@(image.Caption ?? string.Empty)"
+                                  ValueChanged="@(v => OnCaptionChangedAsync(image, v))"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Placeholder="Caption (optional)"
+                                  DebounceInterval="600"
+                                  MaxLength="300"
+                                  Class="caption-input"/>
+                </div>
+            }
+        </div>
+    }
+</div>

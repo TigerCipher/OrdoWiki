@@ -41,5 +41,21 @@ window.ordoEditor = {
             fi.files = dt.files;
             fi.dispatchEvent(new Event("change", { bubbles: true }));
         });
+
+        // Tab inserts a tab character instead of moving focus out of the textarea.
+        // Shift+Tab is left alone so users can still tab backwards out of the field.
+        ta.addEventListener("keydown", (e) => {
+            if (e.key !== "Tab" || e.shiftKey) return;
+            e.preventDefault();
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            const before = ta.value.substring(0, start);
+            const after = ta.value.substring(end);
+            ta.value = before + "\t" + after;
+            ta.selectionStart = ta.selectionEnd = start + 1;
+            // MudTextField binds via the input event with debounce; dispatching it
+            // here keeps the C# side in sync.
+            ta.dispatchEvent(new Event("input", { bubbles: true }));
+        });
     }
 };

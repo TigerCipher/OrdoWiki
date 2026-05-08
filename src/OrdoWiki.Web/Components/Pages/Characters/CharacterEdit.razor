@@ -1,0 +1,79 @@
+@page "/characters/{Slug}/edit"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>OrdoWiki | Edit @_originalName</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <MudText Typo="Typo.h4">Edit @_originalName</MudText>
+</SectionContent>
+
+<div class="CharacterEdit y-stack gap-4">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (!_canEdit)
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
+            You don't have permission to edit this character.
+        </MudAlert>
+        <MudButton Href="@($"/characters/{_character.Slug}")" Variant="Variant.Outlined">View character</MudButton>
+    }
+    else
+    {
+        <div class="metadata x-stack gap-2">
+            <MudTextField T="string"
+                          @bind-Value="@_character.Name"
+                          Label="Name"
+                          MaxLength="120"
+                          Variant="Variant.Outlined"/>
+
+            <MudTextField T="string"
+                          @bind-Value="@_character.Slug"
+                          Label="Slug"
+                          MaxLength="160"
+                          Variant="Variant.Outlined"/>
+        </div>
+
+        <MudTextField T="string"
+                      @bind-Value="@_character.Summary"
+                      Label="Summary"
+                      Variant="Variant.Outlined"
+                      Lines="2"
+                      MaxLines="4"
+                      MaxLength="500"
+                      Sizing="InputSizing.Auto"/>
+
+        <MarkdownEditor @bind-Value="@_character.MarkdownBody"
+                        Label="Backstory"
+                        Placeholder="Tell us about this character (markdown supported)"/>
+
+        <div class="x-stack gap-2">
+            <MudButton Color="Color.Error"
+                       Variant="Variant.Outlined"
+                       OnClick="@DeleteAsync"
+                       StartIcon="@Icons.Material.Filled.Delete">
+                Delete character
+            </MudButton>
+
+            <MudButton Class="push-right"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Disabled="@_saving"
+                       OnClick="@SaveAsync">
+                @(_saving ? "Saving..." : "Save")
+            </MudButton>
+        </div>
+
+        <MudDivider/>
+
+        <CharacterGalleryEditor CharacterId="_character.Id"
+                                Images="_character.Images"
+                                MaxImages="@_imageCap"/>
+    }
+</div>

@@ -1,0 +1,63 @@
+@page "/characters/{Slug}"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>OrdoWiki | @_character.Name</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <div class="CharacterViewHeader x-stack gap-2 align-center">
+        <MudText Typo="Typo.h4" Class="fill-space">@_character.Name</MudText>
+        @if (_canEdit)
+        {
+            <MudButton Href="@($"/characters/{_character.Slug}/edit")"
+                       StartIcon="@Icons.Material.Filled.Edit"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled">
+                Edit
+            </MudButton>
+        }
+    </div>
+</SectionContent>
+
+<div class="CharacterView y-stack gap-4">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else
+    {
+        <div class="meta y-stack gap-1">
+            <div class="meta-row x-stack gap-2">
+                <MudText Typo="Typo.caption" Color="Color.Tertiary">Owned by</MudText>
+                <AuthorName User="_character.Owner"/>
+                <MudText Typo="Typo.caption" Color="Color.Tertiary">— created</MudText>
+                <LocalTime DateTime="_character.CreatedAt"/>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_character.Summary))
+        {
+            <MudPaper Outlined="true" Class="summary pa-3">
+                <MudText Typo="Typo.body1">@_character.Summary</MudText>
+            </MudPaper>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_renderedHtml))
+        {
+            <div class="markdown-body">@((MarkupString)_renderedHtml)</div>
+        }
+        else
+        {
+            <MudText Typo="Typo.body2" Color="Color.Tertiary">No backstory yet.</MudText>
+        }
+
+        <MudDivider/>
+
+        <MudText Typo="Typo.h6">Gallery</MudText>
+        <CharacterGallery Images="_character.Images"/>
+    }
+</div>

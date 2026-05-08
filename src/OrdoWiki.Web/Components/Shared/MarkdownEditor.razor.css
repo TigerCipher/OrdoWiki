@@ -9,25 +9,59 @@
     flex: 1 1 auto;
 }
 
+/* Fixed-size split. Both `minmax(0, 1fr)` axes (rows AND columns) are critical:
+     - columns: bare `1fr` lets a wide preview track steal width and collapse
+       the editor's textarea to ~1 char.
+     - rows: bare implicit row sizes to `auto`, so tall preview content pushes
+       the row past the container's `height: 60vh`.
+   Both panes get `min-width/min-height: 0` so they can shrink inside the
+   tracks; preview gets `overflow: auto` to scroll internally. */
 .MarkdownEditor .split {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     gap: var(--space-4);
-    align-items: stretch;
+    height: 60vh;
 }
 
-.MarkdownEditor .editor-pane {
+/* `.editor-pane` is the Class on a <MudTextField>, `.preview-pane` is the
+   Class on a <MudPaper>. Component roots do NOT inherit the parent's scoped
+   `[b-xxx]` attribute, so any selector that targets these classes must go
+   through `::deep` or it silently won't match. */
+.MarkdownEditor .split ::deep .editor-pane,
+.MarkdownEditor .split ::deep .preview-pane {
     min-width: 0;
+    min-height: 0;
 }
 
-.MarkdownEditor .preview-pane {
-    min-width: 0;
+.MarkdownEditor .split ::deep .editor-pane {
+    overflow: hidden;
+}
+
+.MarkdownEditor .split ::deep .preview-pane {
     overflow: auto;
     background-color: var(--color-surface);
+}
+
+/* Force the MudTextField wrapper chain to fill the grid cell so the textarea
+   can have height: 100% and scroll internally instead of growing past it. */
+.MarkdownEditor .split ::deep .editor-pane,
+.MarkdownEditor .split ::deep .editor-pane > div,
+.MarkdownEditor .split ::deep .editor-pane .mud-input {
+    height: 100%;
+}
+
+.MarkdownEditor .split ::deep textarea {
+    height: 100% !important;
+    max-height: none !important;
+    overflow: auto !important;
+    box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
     .MarkdownEditor .split {
         grid-template-columns: 1fr;
+        grid-template-rows: 50vh 50vh;
+        height: auto;
     }
 }

@@ -1,0 +1,27 @@
+<div class="CharacterGallery">
+    @if (Images.Count == 0)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Tertiary">No images yet.</MudText>
+    }
+    else
+    {
+        <div class="gallery-grid">
+            @foreach (CharacterImageDto image in Images)
+            {
+                <button type="button"
+                        class="tile"
+                        @onclick="@(() => OpenLightboxAsync(image))"
+                        aria-label="@(image.Caption ?? "Open image")">
+                    @if (image.MediaAsset is not null)
+                    {
+                        <img src="@image.MediaAsset.StoragePath" alt="@(image.Caption ?? string.Empty)"/>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(image.Caption))
+                    {
+                        <span class="caption">@image.Caption</span>
+                    }
+                </button>
+            }
+        </div>
+    }
+</div>
