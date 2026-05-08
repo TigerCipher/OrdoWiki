@@ -151,7 +151,7 @@ public class MediaService(
         get
         {
             string root = configuration["UploadsRoot"]
-                ?? Path.Combine(environment.WebRootPath, "uploads");
+                ?? Path.Combine(environment.ContentRootPath, "App_Data", "uploads");
             Directory.CreateDirectory(root);
             return root;
         }

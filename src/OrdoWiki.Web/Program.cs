@@ -71,7 +71,7 @@ app.MapStaticAssets();
 // Serve user-uploaded media. The folder is created on first upload, but make sure it
 // exists at startup so the file provider doesn't throw on a missing directory.
 string uploadsRoot = builder.Configuration["UploadsRoot"]
-    ?? Path.Combine(builder.Environment.WebRootPath, "uploads");
+    ?? Path.Combine(builder.Environment.ContentRootPath, "App_Data", "uploads");
 Directory.CreateDirectory(uploadsRoot);
 
 app.UseStaticFiles(new StaticFileOptions

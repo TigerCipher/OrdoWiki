@@ -20,17 +20,29 @@
 </SectionContent>
 
 <div class="CharacterList y-stack gap-6">
+    <MudTextField @bind-Value="_search"
+                  @bind-Value:after="OnSearchChanged"
+                  Placeholder="Search by user or character name…"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  DebounceInterval="200"
+                  Clearable="true"/>
+
     @if (_loading)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
     }
-    else if (_groups.Count == 0)
+    else if (_filteredGroups.Count == 0)
     {
-        <MudText Typo="Typo.body1" Color="Color.Tertiary">No characters yet.</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Tertiary">
+            @(string.IsNullOrWhiteSpace(_search) ? "No characters yet." : "No matches.")
+        </MudText>
     }
     else
     {
-        @foreach (CharacterGroup group in _groups)
+        @foreach (CharacterGroup group in _pageGroups)
         {
             <section class="owner-group y-stack gap-3">
                 <div class="x-stack gap-2 align-center">
@@ -38,7 +50,7 @@
                     <MudText Typo="Typo.caption" Color="Color.Tertiary">@group.Characters.Count character@(group.Characters.Count == 1 ? "" : "s")</MudText>
                 </div>
 
-                <div class="card-grid">
+                <div class="character-row">
                     @foreach (CharacterDto character in group.Characters)
                     {
                         <a class="character-card" href="@($"/characters/{character.Slug}")">
@@ -68,6 +80,13 @@
                     }
                 </div>
             </section>
+        }
+
+        @if (_pageCount > 1)
+        {
+            <div class="x-stack justify-center">
+                <MudPagination Count="_pageCount" Selected="_page" SelectedChanged="OnPageChanged"/>
+            </div>
         }
     }
 </div>
