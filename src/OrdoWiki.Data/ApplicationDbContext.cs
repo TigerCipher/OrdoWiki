@@ -13,6 +13,8 @@ public class ApplicationDbContext(
     public DbSet<WikiPage> WikiPages => Set<WikiPage>();
     public DbSet<PageRevision> PageRevisions => Set<PageRevision>();
     public DbSet<MediaAsset> MediaAssets => Set<MediaAsset>();
+    public DbSet<Character> Characters => Set<Character>();
+    public DbSet<CharacterImage> CharacterImages => Set<CharacterImage>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
