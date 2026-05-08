@@ -2,7 +2,7 @@
 @inject AntiforgeryStateProvider Antiforgery
 
 <div class="NavBar">
-    <MudAppBar Elevation="1" Fixed="true" Color="Color.Dark">
+    <MudAppBar Elevation="1" Fixed="true" Color="Color.Default">
         <MudIconButton Icon="@Icons.Material.Filled.Menu"
                        Color="@Color.Tertiary"
                        Edge="Edge.Start"
@@ -26,22 +26,28 @@
         <div class="hide-mobile ml-2">
             <AuthorizeView>
                 <Authorized>
-                    <div class="x-stack">
-                        <MudText Typo="Typo.body1">@context.User.GetDisplayName()</MudText>
-                        <MudMenu Icon="@Icons.Material.Filled.AccountCircle"
-                                 Color="Color.Tertiary"
-                                 Label="@context.User.GetDisplayName()"
-                                 AnchorOrigin="Origin.BottomRight"
-                                 TransformOrigin="Origin.TopRight">
+                    @{
+                        UserDto desktopUser = context.User.ToUserDto();
+                        bool desktopIsAdmin = context.User.IsAdmin();
+                    }
+                    <MudMenu @ref="_desktopMenu"
+                             AnchorOrigin="Origin.BottomRight"
+                             TransformOrigin="Origin.TopRight">
+                        <ActivatorContent Context="menu">
+                            <div @onclick="ToggleDesktopMenuAsync" style="cursor:pointer; display:inline-flex">
+                                <AuthorName Class="navbar-avatar" User="desktopUser" AvatarSize="Size.Medium"/>
+                            </div>
+                        </ActivatorContent>
+                        <ChildContent>
                             <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Filled.Person">Profile</MudMenuItem>
-                            @if (context.User.IsAdmin())
+                            @if (desktopIsAdmin)
                             {
                                 <MudMenuItem Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudMenuItem>
                             }
                             <MudDivider/>
                             <MudMenuItem OnClick="@SignOutAsync" Icon="@Icons.Material.Filled.Logout">Sign out</MudMenuItem>
-                        </MudMenu>
-                    </div>
+                        </ChildContent>
+                    </MudMenu>
                 </Authorized>
                 <NotAuthorized>
                     <MudButton Href="/account/login" Class="btn-nav">Login</MudButton>
@@ -57,22 +63,28 @@
         <MudNavMenu>
             <AuthorizeView>
                 <Authorized>
-                    <div class="x-stack">
-                        <MudText Typo="Typo.body1">@context.User.GetDisplayName()</MudText>
-                        <MudMenu Icon="@Icons.Material.Filled.AccountCircle"
-                                 Color="Color.Tertiary"
-                                 Label="@context.User.GetDisplayName()"
-                                 AnchorOrigin="Origin.BottomRight"
-                                 TransformOrigin="Origin.TopRight">
+                    @{
+                        UserDto mobileUser = context.User.ToUserDto();
+                        bool mobileIsAdmin = context.User.IsAdmin();
+                    }
+                    <MudMenu @ref="_mobileMenu"
+                             AnchorOrigin="Origin.BottomRight"
+                             TransformOrigin="Origin.TopRight">
+                        <ActivatorContent Context="menu">
+                            <div @onclick="ToggleMobileMenuAsync" style="cursor:pointer; display:inline-flex">
+                                <AuthorName Class="navbar-avatar" User="mobileUser" AvatarSize="Size.Medium"/>
+                            </div>
+                        </ActivatorContent>
+                        <ChildContent>
                             <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Filled.Person">Profile</MudMenuItem>
-                            @if (context.User.IsAdmin())
+                            @if (mobileIsAdmin)
                             {
                                 <MudMenuItem Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudMenuItem>
                             }
                             <MudDivider/>
                             <MudMenuItem OnClick="@SignOutAsync" Icon="@Icons.Material.Filled.Logout">Sign out</MudMenuItem>
-                        </MudMenu>
-                    </div>
+                        </ChildContent>
+                    </MudMenu>
                 </Authorized>
                 <NotAuthorized>
                     <MudButton Href="/account/login" Class="btn-nav">Login</MudButton>

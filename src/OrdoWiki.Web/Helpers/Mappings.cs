@@ -10,6 +10,7 @@ public static class Mappings
             Id = user.Id,
             Username = user.UserName ?? string.Empty,
             DisplayName = user.DisplayName,
+            AvatarPath = user.AvatarPath,
             Role = role,
             IsPasswordResetRequired = user.IsPasswordResetRequired
         };

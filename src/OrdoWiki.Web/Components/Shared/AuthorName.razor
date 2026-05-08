@@ -1,7 +1,16 @@
 @using OrdoWiki.Data.Auth
 
-<span class="AuthorName x-stack align-center gap-1">
-    <MudAvatar Size="@AvatarSize" Class="author-avatar">@_initials</MudAvatar>
+<span class="AuthorName x-stack align-center gap-1 @Class">
+    @if (!string.IsNullOrEmpty(_avatarPath))
+    {
+        <MudAvatar Size="@AvatarSize" Class="author-avatar">
+            <MudImage Src="@_avatarPath" Alt="@_displayName"/>
+        </MudAvatar>
+    }
+    else
+    {
+        <MudAvatar Size="@AvatarSize" Color="Color.Primary" Class="author-avatar">@_initials</MudAvatar>
+    }
     <span class="author-name">@_displayName</span>
     @if (_showRole)
     {

@@ -1,3 +1,7 @@
-﻿.NavBar {
+﻿.NavBar ::deep .mud-nav-link.active .mud-nav-link-text {
+    color: var(--color-appbar-text-selected);
+}
 
+.NavBar ::deep .AuthorName.navbar-avatar .author-name {
+    color: var(--color-appbar-text-selected);
 }

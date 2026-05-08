@@ -17,6 +17,8 @@ public class MediaService(
 {
     private const long MaxImageBytes = 10L * 1024 * 1024;
     private const int MaxDimension = 2400;
+    private const long MaxAvatarBytes = 5L * 1024 * 1024;
+    private const int AvatarSize = 256;
 
     private static readonly HashSet<string> _allowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -96,6 +98,51 @@ public class MediaService(
         catch (InvalidImageContentException)
         {
             return BadRequest<MediaAssetDto>("That image file appears to be corrupted.");
+        }
+    }
+
+    public async Task<ApiResponse<string>> SaveAvatarAsync(
+        Stream input,
+        string contentType,
+        long sizeBytes,
+        CancellationToken cancellationToken = default)
+    {
+        if (sizeBytes <= 0)
+            return BadRequest<string>("File is empty.");
+
+        if (sizeBytes > MaxAvatarBytes)
+            return BadRequest<string>($"Image is larger than the {MaxAvatarBytes / (1024 * 1024)} MB limit.");
+
+        if (!_allowedContentTypes.Contains(contentType))
+            return BadRequest<string>($"Content type '{contentType}' is not allowed.");
+
+        try
+        {
+            using Image image = await Image.LoadAsync(input, cancellationToken);
+
+            image.Mutate(x => x.Resize(new ResizeOptions
+            {
+                Mode = ResizeMode.Crop,
+                Position = AnchorPositionMode.Center,
+                Size = new Size(AvatarSize, AvatarSize),
+            }));
+
+            string id = Guid.NewGuid().ToString("N")[..12];
+            string relativePath = $"avatars/{id}.webp";
+            string absolutePath = Path.Combine(UploadsRoot, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(absolutePath)!);
+
+            await image.SaveAsWebpAsync(absolutePath, new WebpEncoder { Quality = 80 }, cancellationToken);
+
+            return Ok($"/uploads/{relativePath}");
+        }
+        catch (UnknownImageFormatException)
+        {
+            return BadRequest<string>("That file isn't a supported image.");
+        }
+        catch (InvalidImageContentException)
+        {
+            return BadRequest<string>("That image file appears to be corrupted.");
         }
     }
 

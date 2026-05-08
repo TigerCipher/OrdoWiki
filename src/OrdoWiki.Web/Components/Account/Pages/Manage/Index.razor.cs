@@ -14,6 +14,7 @@ public partial class Index
 
     private string Username { get; set; } = "";
     private string DisplayName { get; set; } = "";
+    private string? AvatarPath { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -24,5 +25,6 @@ public partial class Index
 
         Username = user.UserName ?? "";
         DisplayName = user.DisplayName ?? user.UserName ?? "";
+        AvatarPath = user.AvatarPath;
     }
 }

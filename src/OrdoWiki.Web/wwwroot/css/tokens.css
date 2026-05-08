@@ -1,5 +1,7 @@
 ﻿/*noinspection CssUnresolvedCustomProperty*/
 :root {
+    --color-white: #fff;
+    --color-black: #000;
     --color-bg: var(--mud-palette-background);
     --color-surface: var(--mud-palette-surface);
     --color-border: var(--mud-palette-lines-default);
@@ -10,6 +12,12 @@
     --color-beskar-gold: var(--color-accent);
     --color-danger: var(--mud-palette-error);
     --color-success: var(--mud-palette-success);
+    --color-appbar-bg: var(--mud-palette-appbar-background);
+    --color-appbar-text: var(--mud-palette-appbar-text);
+    --color-secondary: var(--mud-palette-secondary);
+    --color-tertiary: var(--mud-palette-tertiary);
+    --color-appbar-text-selected: #c8a560;
+    
 
     --space-1: 0.25rem;
     --space-2: 0.5rem;

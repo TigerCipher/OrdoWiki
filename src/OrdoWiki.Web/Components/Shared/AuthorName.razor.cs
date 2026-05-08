@@ -8,8 +8,12 @@ public partial class AuthorName
 {
     private string _initials = "?";
     private string _displayName = "Unknown";
+    private string? _avatarPath;
     private bool _showRole;
     private Color _roleColor = Color.Default;
+    
+    [Parameter]
+    public string Class { get; set; } = string.Empty;
 
     [Parameter]
     public UserDto? User { get; set; }
@@ -26,6 +30,7 @@ public partial class AuthorName
         {
             _initials = "?";
             _displayName = "Unknown";
+            _avatarPath = null;
             _showRole = false;
             return;
         }
@@ -35,6 +40,7 @@ public partial class AuthorName
             : User.Username;
 
         _initials = ComputeInitials(_displayName);
+        _avatarPath = User.AvatarPath;
 
         _showRole = !string.IsNullOrWhiteSpace(User.Role)
                     && !string.Equals(User.Role, Roles.Reader, StringComparison.OrdinalIgnoreCase);

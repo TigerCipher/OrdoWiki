@@ -2,6 +2,8 @@ namespace OrdoWiki.Web.Services;
 
 public class ThemeState
 {
+    public event Action? Changed;
+    
     public bool IsDarkMode
     {
         get;
@@ -12,8 +14,7 @@ public class ThemeState
             Changed?.Invoke();
         }
     } = true;
-
-    public event Action? Changed;
+    
 
     public void Toggle() => IsDarkMode = !IsDarkMode;
 }

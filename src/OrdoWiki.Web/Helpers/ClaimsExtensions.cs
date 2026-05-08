@@ -2,6 +2,7 @@ namespace OrdoWiki.Web.Helpers;
 
 using System.Security.Claims;
 using Data.Auth;
+using Models;
 
 public static class ClaimsExtensions
 {
@@ -15,6 +16,9 @@ public static class ClaimsExtensions
 
         public string? GetDisplayName() =>
             principal.FindFirstValue(OrdoWikiClaims.DisplayName) ?? principal.Identity?.Name;
+
+        public string? GetAvatarPath() =>
+            principal.FindFirstValue(OrdoWikiClaims.AvatarPath);
 
         public bool IsInAnyRole(params string[] roles)
         {
@@ -39,5 +43,22 @@ public static class ClaimsExtensions
 
         public bool MustChangePassword() =>
             principal.HasClaim(c => c.Type == OrdoWikiClaims.MustChangePassword);
+
+        public string? GetPrimaryRole() =>
+            principal.IsInRole(Roles.Admin) ? Roles.Admin :
+            principal.IsInRole(Roles.Designer) ? Roles.Designer :
+            principal.IsInRole(Roles.Editor) ? Roles.Editor :
+            principal.IsInRole(Roles.Reader) ? Roles.Reader :
+            null;
+
+        public UserDto ToUserDto() =>
+            new()
+            {
+                Id = principal.GetUserId() ?? string.Empty,
+                Username = principal.GetUserName() ?? string.Empty,
+                DisplayName = principal.FindFirstValue(OrdoWikiClaims.DisplayName),
+                AvatarPath = principal.GetAvatarPath(),
+                Role = principal.GetPrimaryRole()
+            };
     }
 }

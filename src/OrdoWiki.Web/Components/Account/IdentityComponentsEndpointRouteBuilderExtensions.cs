@@ -5,12 +5,14 @@ namespace Microsoft.AspNetCore.Routing;
 using System.Buffers.Text;
 using System.Security.Claims;
 using Antiforgery;
+using Http;
 using Identity;
 using Mvc;
 using OrdoWiki.Data.Auth;
 using OrdoWiki.Data.Entities;
 using OrdoWiki.Web.Components.Account;
 using OrdoWiki.Web.Components.Account.Shared;
+using OrdoWiki.Web.Services.Contract;
 using SignInResult = Identity.SignInResult;
 
 internal static class IdentityComponentsEndpointRouteBuilderExtensions
@@ -263,6 +265,69 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
 
             await signInManager.RefreshSignInAsync(user);
             SetStatus(context, "Your profile has been updated.");
+            return Results.LocalRedirect("/Account/Manage");
+        });
+
+        manageGroup.MapPost("/Avatar", async (
+            HttpContext context,
+            [FromServices] UserManager<ApplicationUser> userManager,
+            [FromServices] SignInManager<ApplicationUser> signInManager,
+            [FromServices] IMediaService media,
+            IFormFile? file) =>
+        {
+            ApplicationUser? user = await userManager.GetUserAsync(context.User);
+            if (user is null) return Results.LocalRedirect("/Account/Login");
+
+            if (file is null || file.Length == 0)
+            {
+                SetStatus(context, "Error: No file selected.");
+                return Results.LocalRedirect("/Account/Manage");
+            }
+
+            await using Stream stream = file.OpenReadStream();
+            OrdoWiki.Web.Models.ApiResponse<string> result = await media.SaveAvatarAsync(
+                stream, file.ContentType, file.Length);
+
+            if (!result)
+            {
+                SetStatus(context, $"Error: {result.Error}");
+                return Results.LocalRedirect("/Account/Manage");
+            }
+
+            user.AvatarPath = result.Value;
+            IdentityResult update = await userManager.UpdateAsync(user);
+            if (!update.Succeeded)
+            {
+                SetStatus(context, "Error: " + string.Join(" ", update.Errors.Select(e => e.Description)));
+                return Results.LocalRedirect("/Account/Manage");
+            }
+
+            await signInManager.RefreshSignInAsync(user);
+            SetStatus(context, "Avatar updated.");
+            return Results.LocalRedirect("/Account/Manage");
+        });
+
+        manageGroup.MapPost("/AvatarRemove", async (
+            HttpContext context,
+            [FromServices] UserManager<ApplicationUser> userManager,
+            [FromServices] SignInManager<ApplicationUser> signInManager) =>
+        {
+            ApplicationUser? user = await userManager.GetUserAsync(context.User);
+            if (user is null) return Results.LocalRedirect("/Account/Login");
+
+            if (user.AvatarPath is null)
+                return Results.LocalRedirect("/Account/Manage");
+
+            user.AvatarPath = null;
+            IdentityResult update = await userManager.UpdateAsync(user);
+            if (!update.Succeeded)
+            {
+                SetStatus(context, "Error: " + string.Join(" ", update.Errors.Select(e => e.Description)));
+                return Results.LocalRedirect("/Account/Manage");
+            }
+
+            await signInManager.RefreshSignInAsync(user);
+            SetStatus(context, "Avatar removed.");
             return Results.LocalRedirect("/Account/Manage");
         });
 

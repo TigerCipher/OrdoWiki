@@ -7,6 +7,53 @@
 
 <StatusMessage/>
 
+<MudText Typo="Typo.h6" Class="mb-2">Avatar</MudText>
+
+<div class="x-stack gap-4 mb-6" style="align-items:center">
+    @if (!string.IsNullOrEmpty(AvatarPath))
+    {
+        <MudAvatar Size="Size.Large" Style="width:96px;height:96px">
+            <MudImage Src="@AvatarPath" Alt="Avatar"/>
+        </MudAvatar>
+    }
+    else
+    {
+        <MudAvatar Color="Color.Primary" Size="Size.Large" Style="width:96px;height:96px">
+            @(string.IsNullOrEmpty(DisplayName) ? "?" : char.ToUpperInvariant(DisplayName[0]).ToString())
+        </MudAvatar>
+    }
+
+    <div class="y-stack gap-2">
+        <form action="/Account/Manage/Avatar" method="post" enctype="multipart/form-data">
+            <AntiforgeryToken/>
+            <div class="x-stack gap-2" style="align-items:center">
+                <input type="file" name="file" accept="image/*"/>
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.CloudUpload">
+                    Upload
+                </MudButton>
+            </div>
+        </form>
+
+        @if (!string.IsNullOrEmpty(AvatarPath))
+        {
+            <form action="/Account/Manage/AvatarRemove" method="post">
+                <AntiforgeryToken/>
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Outlined"
+                           Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Delete">
+                    Remove avatar
+                </MudButton>
+            </form>
+        }
+    </div>
+</div>
+
+<MudDivider Class="mb-4"/>
+
 <form action="/Account/Manage/ProfileUpdate" method="post">
     <AntiforgeryToken/>
 

@@ -10,4 +10,10 @@ public interface IMediaService
         string contentType,
         long sizeBytes,
         CancellationToken cancellationToken = default);
+
+    Task<ApiResponse<string>> SaveAvatarAsync(
+        Stream input,
+        string contentType,
+        long sizeBytes,
+        CancellationToken cancellationToken = default);
 }

@@ -11,7 +11,7 @@
 
 .AuthorName .author-name {
     font-weight: 500;
-    color: var(--color-text);
+    color: var(--color-accent);
     white-space: nowrap;
 }
 

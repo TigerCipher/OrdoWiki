@@ -21,6 +21,9 @@ internal sealed class OrdoWikiUserClaimsPrincipalFactory(
         if (!string.IsNullOrEmpty(user.DisplayName))
             identity.AddClaim(new Claim(OrdoWikiClaims.DisplayName, user.DisplayName));
 
+        if (!string.IsNullOrEmpty(user.AvatarPath))
+            identity.AddClaim(new Claim(OrdoWikiClaims.AvatarPath, user.AvatarPath));
+
         return identity;
     }
 }
