@@ -52,6 +52,35 @@ public static class Mappings
         };
     }
 
+    public static CharacterImageDto MapToDto(CharacterImage image) =>
+        new()
+        {
+            Id = image.Id,
+            CharacterId = image.CharacterId,
+            MediaAssetId = image.MediaAssetId,
+            Caption = image.Caption,
+            OrderIndex = image.OrderIndex,
+            MediaAsset = image.MediaAsset is null ? null : MapToDto(image.MediaAsset)
+        };
+
+    public static CharacterDto MapToDto(Character character, string? ownerRole = null) =>
+        new()
+        {
+            Id = character.Id,
+            Slug = character.Slug,
+            Name = character.Name,
+            Summary = character.Summary,
+            MarkdownBody = character.MarkdownBody,
+            OwnerId = character.OwnerId,
+            Owner = character.Owner is null ? null : MapToDto(character.Owner, ownerRole),
+            CreatedAt = AsUtc(character.CreatedAt),
+            UpdatedAt = AsUtc(character.UpdatedAt),
+            Images = character.Images
+                .OrderBy(i => i.OrderIndex)
+                .Select(MapToDto)
+                .ToList()
+        };
+
     public static MediaAssetDto MapToDto(MediaAsset asset) =>
         new()
         {
