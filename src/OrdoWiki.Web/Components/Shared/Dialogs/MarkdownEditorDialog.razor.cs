@@ -4,11 +4,10 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using MudBlazor;
+using OrdoWiki.Web.Services;
 
 public partial class MarkdownEditorDialog
 {
-    private const long MaxImageBytes = 10L * 1024 * 1024;
-
     private readonly string _editorId = $"md-editor-dlg-{Guid.NewGuid():N}";
     private readonly string _dropInputId = $"md-drop-dlg-{Guid.NewGuid():N}";
     private string _value = string.Empty;
@@ -62,9 +61,9 @@ public partial class MarkdownEditorDialog
         if (e.FileCount == 0) return;
         IBrowserFile file = e.File;
 
-        if (file.Size > MaxImageBytes)
+        if (file.Size > MediaLimits.MaxImageBytes)
         {
-            Snackbar.Add($"Image is larger than the {MaxImageBytes / (1024 * 1024)} MB limit.", Severity.Warning);
+            Snackbar.Add($"Image is larger than the {MediaLimits.MaxImageBytes / (1024 * 1024)} MB limit.", Severity.Warning);
             return;
         }
 
@@ -75,7 +74,7 @@ public partial class MarkdownEditorDialog
         StateHasChanged();
         try
         {
-            await using Stream stream = file.OpenReadStream(MaxImageBytes);
+            await using Stream stream = file.OpenReadStream(MediaLimits.MaxImageBytes);
             ApiResponse<MediaAssetDto> response = await MediaService.UploadImageAsync(
                 stream, file.Name, file.ContentType, file.Size);
 

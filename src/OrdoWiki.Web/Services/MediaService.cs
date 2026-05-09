@@ -15,9 +15,7 @@ public class MediaService(
     IConfiguration configuration,
     IWebHostEnvironment environment) : IMediaService
 {
-    private const long MaxImageBytes = 10L * 1024 * 1024;
     private const int MaxDimension = 2400;
-    private const long MaxAvatarBytes = 5L * 1024 * 1024;
     private const int AvatarSize = 256;
 
     private static readonly HashSet<string> _allowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -38,8 +36,8 @@ public class MediaService(
         if (sizeBytes <= 0)
             return BadRequest<MediaAssetDto>("File is empty.");
 
-        if (sizeBytes > MaxImageBytes)
-            return BadRequest<MediaAssetDto>($"File is larger than the {MaxImageBytes / (1024 * 1024)} MB limit.");
+        if (sizeBytes > MediaLimits.MaxImageBytes)
+            return BadRequest<MediaAssetDto>($"File is larger than the {MediaLimits.MaxImageBytes / (1024 * 1024)} MB limit.");
 
         if (!_allowedContentTypes.Contains(contentType))
             return BadRequest<MediaAssetDto>($"Content type '{contentType}' is not allowed.");
@@ -110,8 +108,8 @@ public class MediaService(
         if (sizeBytes <= 0)
             return BadRequest<string>("File is empty.");
 
-        if (sizeBytes > MaxAvatarBytes)
-            return BadRequest<string>($"Image is larger than the {MaxAvatarBytes / (1024 * 1024)} MB limit.");
+        if (sizeBytes > MediaLimits.MaxAvatarBytes)
+            return BadRequest<string>($"Image is larger than the {MediaLimits.MaxAvatarBytes / (1024 * 1024)} MB limit.");
 
         if (!_allowedContentTypes.Contains(contentType))
             return BadRequest<string>($"Content type '{contentType}' is not allowed.");

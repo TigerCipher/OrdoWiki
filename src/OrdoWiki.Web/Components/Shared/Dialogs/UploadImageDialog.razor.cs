@@ -3,11 +3,10 @@ namespace OrdoWiki.Web.Components.Shared.Dialogs;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
+using OrdoWiki.Web.Services;
 
 public partial class UploadImageDialog
 {
-    private const long MaxImageBytes = 10L * 1024 * 1024;
-
     private readonly string _inputId = $"upload-{Guid.NewGuid():N}";
     private IBrowserFile? _file;
     private string _altText = string.Empty;
@@ -30,9 +29,9 @@ public partial class UploadImageDialog
             return;
         }
 
-        if (picked.Size > MaxImageBytes)
+        if (picked.Size > MediaLimits.MaxImageBytes)
         {
-            _error = $"Image is {FormatBytes(picked.Size)} — max is {FormatBytes(MaxImageBytes)}.";
+            _error = $"Image is {FormatBytes(picked.Size)} — max is {FormatBytes(MediaLimits.MaxImageBytes)}.";
             _file = null;
             return;
         }
@@ -48,7 +47,7 @@ public partial class UploadImageDialog
         _uploading = true;
         try
         {
-            await using Stream stream = _file.OpenReadStream(MaxImageBytes);
+            await using Stream stream = _file.OpenReadStream(MediaLimits.MaxImageBytes);
             ApiResponse<MediaAssetDto> response = await MediaService.UploadImageAsync(
                 stream, _file.Name, _file.ContentType, _file.Size);
 

@@ -48,10 +48,21 @@
                 <div class="x-stack gap-2 align-center">
                     <AuthorName User="group.Owner"/>
                     <MudText Typo="Typo.caption" Color="Color.Tertiary">@group.Characters.Count character@(group.Characters.Count == 1 ? "" : "s")</MudText>
+                    @if (ShowExpandLink(group))
+                    {
+                        <MudLink Class="push-right see-all"
+                                 Color="Color.Primary"
+                                 Typo="Typo.body2"
+                                 OnClick="@(() => ToggleExpanded(group.Owner!.Id))">
+                            @(IsExpanded(group)
+                                ? "Show less"
+                                : $"See all ({group.Characters.Count})")
+                        </MudLink>
+                    }
                 </div>
 
                 <div class="character-row">
-                    @foreach (CharacterDto character in group.Characters)
+                    @foreach (CharacterDto character in VisibleCharacters(group))
                     {
                         <a class="character-card" href="@($"/characters/{character.Slug}")">
                             <div class="thumb">

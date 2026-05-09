@@ -3,12 +3,11 @@ namespace OrdoWiki.Web.Components.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
+using OrdoWiki.Web.Services;
 using Web.Models.Requests;
 
 public partial class CharacterGalleryEditor
 {
-    private const long MaxImageBytes = 10L * 1024 * 1024;
-
     private readonly string _inputId = $"gallery-{Guid.NewGuid():N}";
     private bool _uploading;
     private int? _dragSourceIndex;
@@ -50,13 +49,13 @@ public partial class CharacterGalleryEditor
                     break;
                 }
 
-                if (file.Size > MaxImageBytes)
+                if (file.Size > MediaLimits.MaxImageBytes)
                 {
-                    Snackbar.Add($"'{file.Name}' is larger than the {MaxImageBytes / (1024 * 1024)} MB limit.", Severity.Warning);
+                    Snackbar.Add($"'{file.Name}' is larger than the {MediaLimits.MaxImageBytes / (1024 * 1024)} MB limit.", Severity.Warning);
                     continue;
                 }
 
-                await using Stream stream = file.OpenReadStream(MaxImageBytes);
+                await using Stream stream = file.OpenReadStream(MediaLimits.MaxImageBytes);
                 ApiResponse<CharacterImageDto> response = await CharacterService.AttachImageAsync(
                     CharacterId, stream, file.Name, file.ContentType, file.Size);
 

@@ -6,10 +6,12 @@ using MudBlazor;
 public partial class CharacterList
 {
     private const int OwnersPerPage = 10;
+    private const int CharactersPerRow = 10;
 
     private List<CharacterGroup> _allGroups = [];
     private List<CharacterGroup> _filteredGroups = [];
     private List<CharacterGroup> _pageGroups = [];
+    private readonly HashSet<string> _expandedOwners = new(StringComparer.Ordinal);
     private bool _loading = true;
     private string _search = string.Empty;
     private int _page = 1;
@@ -38,7 +40,8 @@ public partial class CharacterList
             .GroupBy(c => c.OwnerId)
             .Select(g => new CharacterGroup(
                 g.First().Owner,
-                g.OrderBy(c => c.Name).ToList()))
+                g.OrderBy(c => c.Name).ToList(),
+                CapRow: true))
             .OrderBy(g => g.Owner?.DisplayName ?? g.Owner?.Username ?? string.Empty)
             .ToList();
 
@@ -48,6 +51,9 @@ public partial class CharacterList
     private void OnSearchChanged()
     {
         _page = 1;
+        // Filter contents change with the search term, so any "expanded" state
+        // from the previous query no longer maps cleanly. Reset it.
+        _expandedOwners.Clear();
         ApplyFilter();
     }
 
@@ -55,6 +61,12 @@ public partial class CharacterList
     {
         _page = page;
         ApplyPage();
+    }
+
+    private void ToggleExpanded(string ownerId)
+    {
+        if (!_expandedOwners.Add(ownerId))
+            _expandedOwners.Remove(ownerId);
     }
 
     private void ApplyFilter()
@@ -79,8 +91,11 @@ public partial class CharacterList
                         .Where(c => Contains(c.Name, term))
                         .ToList();
 
+                    // When the search hits a character (not the owner), surface
+                    // every matching character regardless of how deep in the
+                    // owner's roster it sits — so don't apply the row cap.
                     return matched.Count > 0
-                        ? new CharacterGroup(g.Owner, matched)
+                        ? new CharacterGroup(g.Owner, matched, CapRow: false)
                         : null;
                 })
                 .Where(g => g is not null)
@@ -101,9 +116,26 @@ public partial class CharacterList
             .ToList();
     }
 
+    private List<CharacterDto> VisibleCharacters(CharacterGroup group)
+    {
+        if (!group.CapRow) return group.Characters;
+        if (group.Owner is null) return group.Characters;
+        if (_expandedOwners.Contains(group.Owner.Id)) return group.Characters;
+        if (group.Characters.Count <= CharactersPerRow) return group.Characters;
+        return group.Characters.Take(CharactersPerRow).ToList();
+    }
+
+    private bool ShowExpandLink(CharacterGroup group) =>
+        group.CapRow
+        && group.Owner is not null
+        && group.Characters.Count > CharactersPerRow;
+
+    private bool IsExpanded(CharacterGroup group) =>
+        group.Owner is not null && _expandedOwners.Contains(group.Owner.Id);
+
     private static bool Contains(string? source, string term) =>
         !string.IsNullOrEmpty(source) &&
         source.Contains(term, StringComparison.OrdinalIgnoreCase);
 
-    private sealed record CharacterGroup(UserDto? Owner, List<CharacterDto> Characters);
+    private sealed record CharacterGroup(UserDto? Owner, List<CharacterDto> Characters, bool CapRow);
 }
