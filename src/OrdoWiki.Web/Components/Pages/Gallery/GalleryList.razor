@@ -1,0 +1,93 @@
+@page "/gallery"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Entities
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>OrdoWiki | Gallery</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <div class="x-stack gap-2 align-center">
+        <MudText Typo="Typo.h4" Class="fill-space">Gallery</MudText>
+        <MudButton OnClick="OpenUploadAsync"
+                   Variant="Variant.Outlined"
+                   StartIcon="@Icons.Material.Filled.Upload">
+            Upload
+        </MudButton>
+    </div>
+</SectionContent>
+
+<div class="GalleryList y-stack gap-4">
+    <div class="filters x-stack gap-3 align-center">
+        <MudChipSet T="MediaSourceType?"
+                    SelectedValue="_filter.SourceType"
+                    SelectedValueChanged="OnSourceFilterChanged"
+                    CheckMark="true"
+                    SelectionMode="SelectionMode.SingleSelection">
+            <MudChip T="MediaSourceType?" Value="@((MediaSourceType?)null)">All</MudChip>
+            <MudChip T="MediaSourceType?" Value="@((MediaSourceType?)MediaSourceType.WikiPage)">Pages</MudChip>
+            <MudChip T="MediaSourceType?" Value="@((MediaSourceType?)MediaSourceType.Character)">Characters</MudChip>
+            <MudChip T="MediaSourceType?" Value="@((MediaSourceType?)MediaSourceType.Standalone)">Standalone</MudChip>
+        </MudChipSet>
+
+        <MudAutocomplete T="UserDto"
+                         Class="uploader-filter push-right"
+                         Value="_selectedUploader"
+                         ValueChanged="OnUploaderChanged"
+                         SearchFunc="SearchUploadersAsync"
+                         ToStringFunc="@(u => u?.DisplayName ?? u?.Username ?? string.Empty)"
+                         Placeholder="Filter by uploader…"
+                         Variant="Variant.Outlined"
+                         Margin="Margin.Dense"
+                         Clearable="true"
+                         CoerceValue="false"
+                         CoerceText="false"/>
+    </div>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (_items.Count == 0)
+    {
+        <MudText Typo="Typo.body1" Color="Color.Tertiary">
+            No images yet.
+        </MudText>
+    }
+    else
+    {
+        <div class="grid">
+            @foreach (GalleryItemDto item in _items)
+            {
+                <button type="button" class="tile" @onclick="@(() => OpenLightboxAsync(item))">
+                    <img src="@item.Asset.StoragePath" alt="@item.Asset.OriginalName" loading="lazy"/>
+                    <div class="tile-meta y-stack gap-1">
+                        <AuthorName User="item.Asset.UploadedBy" AvatarSize="Size.Small"/>
+                        @if (item.Source is not null)
+                        {
+                            <a class="source-link" href="@item.Source.Url" @onclick:stopPropagation="true">
+                                <MudText Typo="Typo.caption" Color="Color.Tertiary">
+                                    from @item.Source.Kind: @item.Source.Name
+                                </MudText>
+                            </a>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Tertiary">Standalone</MudText>
+                        }
+                    </div>
+                </button>
+            }
+        </div>
+
+        @if (_pageCount > 1)
+        {
+            <div class="x-stack justify-center">
+                <MudPagination Count="_pageCount" Selected="_filter.Page" SelectedChanged="OnPageChanged"/>
+            </div>
+        }
+    }
+</div>

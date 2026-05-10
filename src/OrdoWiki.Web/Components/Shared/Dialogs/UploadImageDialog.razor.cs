@@ -1,5 +1,6 @@
 namespace OrdoWiki.Web.Components.Shared.Dialogs;
 
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
@@ -15,6 +16,12 @@ public partial class UploadImageDialog
 
     [CascadingParameter]
     public IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public MediaSourceType SourceType { get; set; } = MediaSourceType.Standalone;
+
+    [Parameter]
+    public Guid? SourceId { get; set; }
 
     [Inject]
     private IMediaService MediaService { get; set; } = null!;
@@ -49,7 +56,7 @@ public partial class UploadImageDialog
         {
             await using Stream stream = _file.OpenReadStream(MediaLimits.MaxImageBytes);
             ApiResponse<MediaAssetDto> response = await MediaService.UploadImageAsync(
-                stream, _file.Name, _file.ContentType, _file.Size);
+                stream, _file.Name, _file.ContentType, _file.Size, SourceType, SourceId);
 
             if (!response)
             {

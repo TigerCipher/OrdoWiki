@@ -1,5 +1,6 @@
 namespace OrdoWiki.Web.Components.Shared.Dialogs;
 
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
@@ -25,6 +26,12 @@ public partial class MarkdownEditorDialog
 
     [Parameter]
     public string Placeholder { get; set; } = "Write your markdown here...";
+
+    [Parameter]
+    public MediaSourceType SourceType { get; set; } = MediaSourceType.Standalone;
+
+    [Parameter]
+    public Guid? SourceId { get; set; }
 
     [Inject]
     private IMarkdownService Markdown { get; set; } = null!;
@@ -76,7 +83,7 @@ public partial class MarkdownEditorDialog
         {
             await using Stream stream = file.OpenReadStream(MediaLimits.MaxImageBytes);
             ApiResponse<MediaAssetDto> response = await MediaService.UploadImageAsync(
-                stream, file.Name, file.ContentType, file.Size);
+                stream, file.Name, file.ContentType, file.Size, SourceType, SourceId);
 
             if (!response)
             {

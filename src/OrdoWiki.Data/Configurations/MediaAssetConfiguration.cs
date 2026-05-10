@@ -16,6 +16,7 @@ public class MediaAssetConfiguration : IEntityTypeConfiguration<MediaAsset>
 
         builder.HasIndex(x => x.UploadedById);
         builder.HasIndex(x => x.UploadedAt);
+        builder.HasIndex(x => new { x.SourceType, x.UploadedAt });
 
         builder.HasOne(x => x.UploadedBy)
             .WithMany()

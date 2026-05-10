@@ -81,7 +81,7 @@ public static class Mappings
                 .ToList()
         };
 
-    public static MediaAssetDto MapToDto(MediaAsset asset) =>
+    public static MediaAssetDto MapToDto(MediaAsset asset, string? uploaderRole = null) =>
         new()
         {
             Id = asset.Id,
@@ -92,7 +92,10 @@ public static class Mappings
             Width = asset.Width,
             Height = asset.Height,
             UploadedById = asset.UploadedById,
-            UploadedAt = AsUtc(asset.UploadedAt)
+            UploadedBy = asset.UploadedBy is null ? null : MapToDto(asset.UploadedBy, uploaderRole),
+            UploadedAt = AsUtc(asset.UploadedAt),
+            SourceType = asset.SourceType,
+            SourceId = asset.SourceId
         };
 
     // Npgsql returns timestamps with Kind=Unspecified; the wire value is UTC.

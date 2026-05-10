@@ -14,4 +14,7 @@ public class MediaAsset
     public ApplicationUser? UploadedBy { get; set; }
 
     public DateTime UploadedAt { get; set; }
+
+    public MediaSourceType SourceType { get; set; } = MediaSourceType.Standalone;
+    public Guid? SourceId { get; set; }
 }

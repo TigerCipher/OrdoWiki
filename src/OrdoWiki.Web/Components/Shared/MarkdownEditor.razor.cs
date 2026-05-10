@@ -1,5 +1,6 @@
 namespace OrdoWiki.Web.Components.Shared;
 
+using Data.Entities;
 using Dialogs;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -32,6 +33,12 @@ public partial class MarkdownEditor
 
     [Parameter]
     public int MaxLines { get; set; } = 30;
+
+    [Parameter]
+    public MediaSourceType SourceType { get; set; } = MediaSourceType.Standalone;
+
+    [Parameter]
+    public Guid? SourceId { get; set; }
 
     [Inject]
     private IMarkdownService Markdown { get; set; } = null!;
@@ -75,7 +82,9 @@ public partial class MarkdownEditor
         {
             { nameof(MarkdownEditorDialog.Value), _value },
             { nameof(MarkdownEditorDialog.Label), Label },
-            { nameof(MarkdownEditorDialog.Placeholder), Placeholder }
+            { nameof(MarkdownEditorDialog.Placeholder), Placeholder },
+            { nameof(MarkdownEditorDialog.SourceType), SourceType },
+            { nameof(MarkdownEditorDialog.SourceId), SourceId }
         };
 
         DialogOptions options = new()
@@ -110,7 +119,13 @@ public partial class MarkdownEditor
             FullWidth = true,
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<UploadImageDialog>("Insert image", options);
+        DialogParameters parameters = new()
+        {
+            { nameof(UploadImageDialog.SourceType), SourceType },
+            { nameof(UploadImageDialog.SourceId), SourceId }
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<UploadImageDialog>("Insert image", parameters, options);
         DialogResult? result = await dialog.Result;
 
         if (result is { Canceled: false, Data: ImageInsertResult image })
@@ -139,7 +154,7 @@ public partial class MarkdownEditor
         {
             await using Stream stream = file.OpenReadStream(MediaLimits.MaxImageBytes);
             ApiResponse<MediaAssetDto> response = await MediaService.UploadImageAsync(
-                stream, file.Name, file.ContentType, file.Size);
+                stream, file.Name, file.ContentType, file.Size, SourceType, SourceId);
 
             if (!response)
             {

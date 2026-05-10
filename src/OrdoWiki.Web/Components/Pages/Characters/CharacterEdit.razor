@@ -1,5 +1,6 @@
 @page "/characters/{Slug}/edit"
 @using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Entities
 @using OrdoWiki.Web.Components.Shared
 
 @rendermode InteractiveServer
@@ -51,7 +52,9 @@
 
         <MarkdownEditor @bind-Value="@_character.MarkdownBody"
                         Label="Backstory"
-                        Placeholder="Tell us about this character (markdown supported)"/>
+                        Placeholder="Tell us about this character (markdown supported)"
+                        SourceType="MediaSourceType.Character"
+                        SourceId="@_character.Id"/>
 
         <div class="x-stack gap-2">
             <MudButton Color="Color.Error"

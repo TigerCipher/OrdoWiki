@@ -218,7 +218,8 @@ public class CharacterService(
                 $"This character already has the maximum of {CharacterCaps.ReaderMaxImagesPerCharacter} images.");
 
         ApiResponse<MediaAssetDto> uploadResponse = await mediaService.UploadImageAsync(
-            input, originalName, contentType, sizeBytes, cancellationToken);
+            input, originalName, contentType, sizeBytes,
+            MediaSourceType.Character, character.Id, cancellationToken);
         if (!uploadResponse) return BadRequest<CharacterImageDto>(uploadResponse.Error ?? "Upload failed.");
 
         MediaAssetDto asset = uploadResponse;

@@ -1,5 +1,7 @@
 namespace OrdoWiki.Web.Models;
 
+using Data.Entities;
+
 public class MediaAssetDto
 {
     public Guid Id { get; set; }
@@ -10,5 +12,8 @@ public class MediaAssetDto
     public int? Width { get; set; }
     public int? Height { get; set; }
     public string UploadedById { get; set; } = string.Empty;
+    public UserDto? UploadedBy { get; set; }
     public DateTime UploadedAt { get; set; }
+    public MediaSourceType SourceType { get; set; }
+    public Guid? SourceId { get; set; }
 }

@@ -1,5 +1,6 @@
 namespace OrdoWiki.Web.Services.Contract;
 
+using Data.Entities;
 using Models;
 
 public interface IMediaService
@@ -9,6 +10,8 @@ public interface IMediaService
         string originalName,
         string contentType,
         long sizeBytes,
+        MediaSourceType sourceType = MediaSourceType.Standalone,
+        Guid? sourceId = null,
         CancellationToken cancellationToken = default);
 
     Task<ApiResponse<string>> SaveAvatarAsync(

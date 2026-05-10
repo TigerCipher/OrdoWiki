@@ -31,6 +31,8 @@ public class MediaService(
         string originalName,
         string contentType,
         long sizeBytes,
+        MediaSourceType sourceType = MediaSourceType.Standalone,
+        Guid? sourceId = null,
         CancellationToken cancellationToken = default)
     {
         if (sizeBytes <= 0)
@@ -82,6 +84,8 @@ public class MediaService(
                 Height = image.Height,
                 UploadedById = user.Id,
                 UploadedAt = now,
+                SourceType = sourceType,
+                SourceId = sourceId,
             };
 
             context.MediaAssets.Add(asset);
