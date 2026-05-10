@@ -42,6 +42,10 @@
                         </ActivatorContent>
                         <ChildContent>
                             <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Filled.Person">Profile</MudMenuItem>
+                            @if (context.User.CanDesign())
+                            {
+                                <MudMenuItem Href="/design/banners" Icon="@Icons.Material.Filled.Image">Banners</MudMenuItem>
+                            }
                             @if (desktopIsAdmin)
                             {
                                 <MudMenuItem Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudMenuItem>
@@ -79,6 +83,10 @@
                         </ActivatorContent>
                         <ChildContent>
                             <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Filled.Person">Profile</MudMenuItem>
+                            @if (context.User.CanDesign())
+                            {
+                                <MudMenuItem Href="/design/banners" Icon="@Icons.Material.Filled.Image">Banners</MudMenuItem>
+                            }
                             @if (mobileIsAdmin)
                             {
                                 <MudMenuItem Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudMenuItem>

@@ -18,6 +18,7 @@ public class ApplicationDbContext(
     public DbSet<MandoMonth> MandoMonths => Set<MandoMonth>();
     public DbSet<MandoEra> MandoEras => Set<MandoEra>();
     public DbSet<TimelineEvent> TimelineEvents => Set<TimelineEvent>();
+    public DbSet<Banner> Banners => Set<Banner>();
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<WikiPageTag> WikiPageTags => Set<WikiPageTag>();
     public DbSet<CharacterTag> CharacterTags => Set<CharacterTag>();

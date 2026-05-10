@@ -1,3 +1,13 @@
+.InteractiveCarousel .empty {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    border: 1px dashed var(--color-border);
+    border-radius: 6px;
+}
+
 .InteractiveCarousel ::deep .banner {
     display: block;
     width: 100%;
@@ -7,6 +17,11 @@
     background: transparent;
     cursor: zoom-in;
     overflow: hidden;
+    text-decoration: none;
+}
+
+.InteractiveCarousel ::deep a.banner {
+    cursor: pointer;
 }
 
 .InteractiveCarousel ::deep .banner img {

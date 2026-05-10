@@ -2,25 +2,48 @@ namespace OrdoWiki.Web.Components.Layout;
 
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using OrdoWiki.Web.Services;
 using Shared.Dialogs;
 
-public partial class InteractiveCarousel
+public partial class InteractiveCarousel : IAsyncDisposable
 {
-    private static readonly BannerImage[] _banners =
-    [
-        new("/img/Thrac_and_Vhosa_zoomed.jpg", "Thrac & Vhosa staring longingly at each other", Color.Tertiary),
-        new("/img/After_Party.jpg", "The After Party - Tana's Masterpiece", Color.Dark),
-    ];
+    private IReadOnlyList<BannerDto> _banners = [];
+
+    [Inject]
+    private IBannerService BannerService { get; set; } = null!;
+
+    [Inject]
+    private BannerState BannerState { get; set; } = null!;
 
     [Inject]
     private IDialogService DialogService { get; set; } = null!;
 
-    private async Task OpenFullsizeAsync(BannerImage banner)
+    protected override async Task OnInitializedAsync()
     {
+        BannerState.Changed += RefreshAsync;
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        _banners = await BannerService.GetVisibleAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        BannerState.Changed -= RefreshAsync;
+        return ValueTask.CompletedTask;
+    }
+
+    private async Task OpenFullsizeAsync(BannerDto banner)
+    {
+        if (string.IsNullOrEmpty(banner.ImageUrl)) return;
+
         DialogParameters parameters = new()
         {
-            { nameof(ImageLightboxDialog.Src), banner.Src },
-            { nameof(ImageLightboxDialog.Alt), banner.Alt },
+            { nameof(ImageLightboxDialog.Src), banner.ImageUrl },
+            { nameof(ImageLightboxDialog.Alt), banner.Alt ?? string.Empty },
         };
 
         DialogOptions options = new()
@@ -32,6 +55,4 @@ public partial class InteractiveCarousel
 
         await DialogService.ShowAsync<ImageLightboxDialog>(string.Empty, parameters, options);
     }
-
-    private sealed record BannerImage(string Src, string Alt, Color Color);
 }

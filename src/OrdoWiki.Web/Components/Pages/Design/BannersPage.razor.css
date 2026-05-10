@@ -1,0 +1,30 @@
+.BannersPage .slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-3);
+}
+
+.BannersPage .slot {
+    background: var(--color-surface);
+}
+
+.BannersPage .preview {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 4px;
+    background: var(--color-surface-alt);
+}
+
+.BannersPage .placeholder {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    background: var(--color-surface-alt);
+    border: 1px dashed var(--color-border);
+    border-radius: 4px;
+}

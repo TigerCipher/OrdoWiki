@@ -1,0 +1,77 @@
+@using OrdoWiki.Data.Entities
+@using OrdoWiki.Web.Models.Requests
+
+<MudDialog Class="BannerEditDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Edit banner slot @Slot.SlotIndex</MudText>
+    </TitleContent>
+    <DialogContent>
+        <div class="y-stack gap-3">
+            @if (!string.IsNullOrEmpty(_imageUrl))
+            {
+                <img src="@_imageUrl" alt="@(_altText ?? string.Empty)" class="preview"/>
+            }
+            else
+            {
+                <MudPaper Outlined="true" Class="pa-4 placeholder">
+                    <MudText Typo="Typo.body2" Color="Color.Tertiary">No image set yet.</MudText>
+                </MudPaper>
+            }
+
+            <div>
+                <InputFile id="@_inputId"
+                           style="display:none"
+                           accept=".jpg,.jpeg,.png,.webp,.gif"
+                           OnChange="@OnFilePickedAsync"/>
+                <MudButton HtmlTag="label"
+                           Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.CloudUpload"
+                           Disabled="@_uploading"
+                           UserAttributes="@(new Dictionary<string, object?> { { "for", _inputId } })">
+                    @(_uploading ? "Uploading..." : (string.IsNullOrEmpty(_imageUrl) ? "Upload image" : "Replace image"))
+                </MudButton>
+                @if (!string.IsNullOrEmpty(_imageUrl))
+                {
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Error"
+                               StartIcon="@Icons.Material.Filled.Delete"
+                               Class="ml-2"
+                               OnClick="ClearImage"
+                               Disabled="@_uploading">
+                        Clear
+                    </MudButton>
+                }
+            </div>
+
+            <MudTextField T="string"
+                          @bind-Value="_altText"
+                          Label="Alt text (for accessibility)"
+                          Placeholder="Describe the image"
+                          Variant="Variant.Outlined"
+                          MaxLength="300"/>
+
+            <MudTextField T="string"
+                          @bind-Value="_linkUrl"
+                          Label="Click-through link (optional)"
+                          Placeholder="/timeline or /logs/some-event"
+                          HelperText="Leave blank to open the image in a lightbox instead."
+                          Variant="Variant.Outlined"
+                          MaxLength="500"/>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Dense="true">@_error</MudAlert>
+            }
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="@_saving">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="SaveAsync"
+                   Disabled="@(_saving || _uploading)">
+            @(_saving ? "Saving..." : "Save")
+        </MudButton>
+    </DialogActions>
+</MudDialog>

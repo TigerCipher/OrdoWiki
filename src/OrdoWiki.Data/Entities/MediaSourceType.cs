@@ -6,4 +6,5 @@ public enum MediaSourceType
     WikiPage = 1,
     Character = 2,
     Avatar = 3,
+    Banner = 4,
 }

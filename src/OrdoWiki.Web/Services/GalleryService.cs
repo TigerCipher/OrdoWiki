@@ -18,7 +18,8 @@ public class GalleryService(
         IQueryable<MediaAsset> q = context.MediaAssets
             .AsNoTracking()
             .Include(a => a.UploadedBy)
-            .Where(a => a.SourceType != MediaSourceType.Avatar);
+            .Where(a => a.SourceType != MediaSourceType.Avatar
+                     && a.SourceType != MediaSourceType.Banner);
 
         if (filter.SourceType is { } src)
             q = q.Where(a => a.SourceType == src);
@@ -67,7 +68,8 @@ public class GalleryService(
     {
         List<ApplicationUser> users = await context.MediaAssets
             .AsNoTracking()
-            .Where(a => a.SourceType != MediaSourceType.Avatar)
+            .Where(a => a.SourceType != MediaSourceType.Avatar
+                     && a.SourceType != MediaSourceType.Banner)
             .Select(a => a.UploadedBy!)
             .Distinct()
             .OrderBy(u => u.DisplayName ?? u.UserName)

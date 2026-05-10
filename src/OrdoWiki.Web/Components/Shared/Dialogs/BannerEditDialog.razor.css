@@ -1,0 +1,12 @@
+.BannerEditDialog .preview {
+    max-width: 100%;
+    max-height: 240px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: var(--color-surface-alt);
+}
+
+.BannerEditDialog .placeholder {
+    background: var(--color-surface);
+    text-align: center;
+}

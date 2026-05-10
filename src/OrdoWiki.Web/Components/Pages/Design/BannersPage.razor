@@ -1,0 +1,81 @@
+@page "/design/banners"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Auth
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+@attribute [Authorize(Policy = Policies.CanDesign)]
+
+<PageTitle>OrdoWiki | Design | Banners</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <div class="x-stack gap-2 align-center">
+        <MudIcon Icon="@Icons.Material.Filled.Image" Color="Color.Primary"/>
+        <MudText Typo="Typo.h4">Home banners</MudText>
+    </div>
+</SectionContent>
+
+<div class="BannersPage y-stack gap-3">
+    <MudText Typo="Typo.body2" Color="Color.Tertiary">
+        The home page carousel rotates through these four slots. Slots 1–3 can be set by Designers or Admins; slot 4 is reserved for Admins.
+        Empty slots are skipped on the public view.
+    </MudText>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else
+    {
+        <div class="slots">
+            @foreach (BannerDto slot in _slots)
+            {
+                bool locked = slot.AdminOnly && !_isAdmin;
+                <MudPaper Outlined="true" Class="slot pa-3 y-stack gap-2">
+                    <div class="x-stack align-center">
+                        <MudText Typo="Typo.subtitle1" Class="fill-space">Slot @slot.SlotIndex</MudText>
+                        @if (slot.AdminOnly)
+                        {
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Filled">Admin only</MudChip>
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(slot.ImageUrl))
+                    {
+                        <img src="@slot.ImageUrl" alt="@(slot.Alt ?? string.Empty)" class="preview"/>
+                    }
+                    else
+                    {
+                        <div class="placeholder">
+                            <MudIcon Icon="@Icons.Material.Filled.HideImage" Size="Size.Large" Color="Color.Tertiary"/>
+                            <MudText Typo="Typo.caption" Color="Color.Tertiary">Empty slot</MudText>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(slot.Alt))
+                    {
+                        <MudText Typo="Typo.caption">
+                            <strong>Alt:</strong> @slot.Alt
+                        </MudText>
+                    }
+
+                    @if (!string.IsNullOrEmpty(slot.LinkUrl))
+                    {
+                        <MudText Typo="Typo.caption">
+                            <strong>Link:</strong> <a href="@slot.LinkUrl">@slot.LinkUrl</a>
+                        </MudText>
+                    }
+
+                    <MudButton OnClick="@(() => EditAsync(slot))"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Disabled="locked"
+                               StartIcon="@Icons.Material.Filled.Edit">
+                        @(locked ? "Admin only" : "Edit")
+                    </MudButton>
+                </MudPaper>
+            }
+        </div>
+    }
+</div>

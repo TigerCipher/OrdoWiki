@@ -1,20 +1,38 @@
 @rendermode InteractiveServer
 
 <div class="InteractiveCarousel">
-    <MudCarousel Class="mud-width-full"
-                 Style="height: 300px"
-                 ShowArrows="true"
-                 ShowBullets="true"
-                 EnableSwipeGesture="true"
-                 TData="object"
-                 AutoCycle="true">
-        @foreach (BannerImage banner in _banners)
-        {
-            <MudCarouselItem Transition="Transition.Slide" Color="@banner.Color">
-                <button type="button" class="banner" @onclick="() => OpenFullsizeAsync(banner)">
-                    <img src="@banner.Src" alt="@banner.Alt" />
-                </button>
-            </MudCarouselItem>
-        }
-    </MudCarousel>
+    @if (_banners.Count == 0)
+    {
+        <div class="empty">
+            <MudText Typo="Typo.body2" Color="Color.Tertiary">No banner images set yet.</MudText>
+        </div>
+    }
+    else
+    {
+        <MudCarousel Class="mud-width-full"
+                     Style="height: 300px"
+                     ShowArrows="@(_banners.Count > 1)"
+                     ShowBullets="@(_banners.Count > 1)"
+                     EnableSwipeGesture="true"
+                     TData="object"
+                     AutoCycle="@(_banners.Count > 1)">
+            @foreach (BannerDto banner in _banners)
+            {
+                <MudCarouselItem Transition="Transition.Slide" Color="Color.Tertiary">
+                    @if (!string.IsNullOrEmpty(banner.LinkUrl))
+                    {
+                        <a class="banner" href="@banner.LinkUrl">
+                            <img src="@banner.ImageUrl" alt="@(banner.Alt ?? string.Empty)" />
+                        </a>
+                    }
+                    else
+                    {
+                        <button type="button" class="banner" @onclick="() => OpenFullsizeAsync(banner)">
+                            <img src="@banner.ImageUrl" alt="@(banner.Alt ?? string.Empty)" />
+                        </button>
+                    }
+                </MudCarouselItem>
+            }
+        </MudCarousel>
+    }
 </div>
