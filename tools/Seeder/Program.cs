@@ -69,6 +69,7 @@ static async Task SeedTimelineEventsAsync(ApplicationDbContext db, string creato
         {
             Id = Guid.NewGuid(),
             Title = $"{Pick(rng, WordBanks.EventVerbs)} {Pick(rng, WordBanks.EventNouns)} ({RandomToken(rng, 4)})",
+            Summary = BuildSummary(rng),
             MarkdownBody = BuildBody(rng),
             MandoYear = year,
             MandoMonth = month,

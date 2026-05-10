@@ -7,6 +7,7 @@ using Web.Models.Requests;
 public partial class TimelineEdit
 {
     private string _title = string.Empty;
+    private string _summary = string.Empty;
     private string _body = string.Empty;
     private string _displayOverride = string.Empty;
     private int _year;
@@ -44,6 +45,7 @@ public partial class TimelineEdit
 
         TimelineEventDto ev = response;
         _title = ev.Title;
+        _summary = ev.Summary ?? string.Empty;
         _body = ev.MarkdownBody ?? string.Empty;
         _displayOverride = ev.DisplayOverride ?? string.Empty;
         _year = ev.MandoYear;
@@ -65,6 +67,7 @@ public partial class TimelineEdit
         {
             Id = Id,
             Title = _title,
+            Summary = _summary,
             MarkdownBody = _body,
             MandoYear = _year,
             MandoMonth = _month,

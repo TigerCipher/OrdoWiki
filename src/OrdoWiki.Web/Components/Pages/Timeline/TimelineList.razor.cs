@@ -19,7 +19,7 @@ public partial class TimelineList
     private IMandoCalendarService Calendar { get; set; } = null!;
 
     [Inject]
-    private IMarkdownService Markdown { get; set; } = null!;
+    private NavigationManager Navigation { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;

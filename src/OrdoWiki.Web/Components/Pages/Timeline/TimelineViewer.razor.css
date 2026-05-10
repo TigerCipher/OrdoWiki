@@ -1,0 +1,10 @@
+.TimelineViewer .meta-row {
+    flex-wrap: wrap;
+    color: var(--color-muted);
+}
+
+.TimelineViewer .summary {
+    background-color: var(--color-surface);
+    border-left: 3px solid var(--color-accent);
+    color: var(--color-text);
+}

@@ -86,6 +86,7 @@ public static class Mappings
         {
             Id = ev.Id,
             Title = ev.Title,
+            Summary = ev.Summary,
             MarkdownBody = ev.MarkdownBody,
             EpochDayNumber = ev.EpochDayNumber,
             MandoYear = ev.MandoYear,

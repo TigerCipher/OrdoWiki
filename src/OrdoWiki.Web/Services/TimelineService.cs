@@ -73,6 +73,7 @@ public class TimelineService(
         {
             Id = Guid.NewGuid(),
             Title = request.Title.Trim(),
+            Summary = string.IsNullOrWhiteSpace(request.Summary) ? null : request.Summary!.Trim(),
             MarkdownBody = string.IsNullOrWhiteSpace(request.MarkdownBody) ? null : request.MarkdownBody,
             MandoYear = request.MandoYear,
             MandoMonth = request.MandoMonth,
@@ -105,6 +106,7 @@ public class TimelineService(
             return BadRequest<TimelineEventDto>("Title is required.");
 
         ev.Title = request.Title.Trim();
+        ev.Summary = string.IsNullOrWhiteSpace(request.Summary) ? null : request.Summary!.Trim();
         ev.MarkdownBody = string.IsNullOrWhiteSpace(request.MarkdownBody) ? null : request.MarkdownBody;
         ev.MandoYear = request.MandoYear;
         ev.MandoMonth = request.MandoMonth;

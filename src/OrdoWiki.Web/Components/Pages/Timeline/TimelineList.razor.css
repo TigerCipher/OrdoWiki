@@ -1,11 +1,21 @@
 .TimelineList .event {
     background: var(--color-surface);
+    cursor: pointer;
+    transition: background-color 120ms ease, border-color 120ms ease;
 }
 
-.TimelineList .markdown-body {
+.TimelineList .event:hover {
+    background: var(--mud-palette-action-default-hover);
+}
+
+.TimelineList .event-title {
     color: var(--mud-palette-text-primary);
 }
 
-.TimelineList .markdown-body :deep(p) {
-    margin: 0 0 0.5em 0;
+.TimelineList .event-summary {
+    color: var(--color-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }

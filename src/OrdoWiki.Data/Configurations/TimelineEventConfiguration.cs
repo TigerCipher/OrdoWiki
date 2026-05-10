@@ -10,6 +10,7 @@ public class TimelineEventConfiguration : IEntityTypeConfiguration<TimelineEvent
     {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.Summary).HasMaxLength(500);
         builder.Property(x => x.DisplayOverride).HasMaxLength(120);
         builder.Property(x => x.CreatedById).IsRequired();
 

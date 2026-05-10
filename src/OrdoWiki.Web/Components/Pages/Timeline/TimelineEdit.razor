@@ -36,6 +36,14 @@
                       Variant="Variant.Outlined"
                       MaxLength="120"/>
 
+        <MudTextField T="string"
+                      @bind-Value="_summary"
+                      Label="Summary (optional)"
+                      HelperText="One-line preview shown on the timeline list."
+                      Lines="2"
+                      MaxLength="500"
+                      Variant="Variant.Outlined"/>
+
         <MarkdownEditor @bind-Value="_body"
                         Label="Description"
                         Placeholder="What happened? (markdown supported)"/>

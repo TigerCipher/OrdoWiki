@@ -7,6 +7,7 @@ using Web.Models.Requests;
 public partial class TimelineCreate
 {
     private string _title = string.Empty;
+    private string _summary = string.Empty;
     private string _body = string.Empty;
     private string _displayOverride = string.Empty;
     private int _year;
@@ -35,6 +36,7 @@ public partial class TimelineCreate
         ApiResponse<TimelineEventDto> response = await TimelineService.CreateAsync(new CreateTimelineEventRequest
         {
             Title = _title,
+            Summary = _summary,
             MarkdownBody = _body,
             MandoYear = _year,
             MandoMonth = _month,

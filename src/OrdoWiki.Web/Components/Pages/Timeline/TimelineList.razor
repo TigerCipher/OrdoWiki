@@ -55,20 +55,24 @@
                     <ItemContent>
                         @foreach (TimelineEventDto ev in group.Events)
                         {
-                            <MudPaper Outlined="true" Class="event pa-3 mb-2">
+                            <MudPaper Outlined="true"
+                                      Class="event pa-3 mb-2"
+                                      @onclick="@(() => Navigation.NavigateTo($"/timeline/{ev.Id}"))">
                                 <div class="x-stack gap-2 align-center">
-                                    <MudText Typo="Typo.subtitle1" Class="fill-space">@ev.Title</MudText>
+                                    <MudText Typo="Typo.subtitle1" Class="fill-space event-title">@ev.Title</MudText>
                                     <AuthorizeView Policy="@Policies.CanEdit" Context="auth">
-                                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                                       Size="Size.Small"
-                                                       Color="Color.Primary"
-                                                       Href="@($"/timeline/{ev.Id}/edit")"/>
+                                        <span @onclick:stopPropagation="true">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                           Size="Size.Small"
+                                                           Color="Color.Primary"
+                                                           Href="@($"/timeline/{ev.Id}/edit")"/>
+                                        </span>
                                     </AuthorizeView>
                                 </div>
                                 <MudText Typo="Typo.caption" Color="Color.Tertiary">@ev.DisplayDate</MudText>
-                                @if (!string.IsNullOrWhiteSpace(ev.MarkdownBody))
+                                @if (!string.IsNullOrWhiteSpace(ev.Summary))
                                 {
-                                    <div class="markdown-body mt-2">@((MarkupString)Markdown.Render(ev.MarkdownBody))</div>
+                                    <MudText Typo="Typo.body2" Class="event-summary mt-2">@ev.Summary</MudText>
                                 }
                             </MudPaper>
                         }

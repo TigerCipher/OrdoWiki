@@ -4,6 +4,7 @@ public class TimelineEventDto
 {
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string? Summary { get; set; }
     public string? MarkdownBody { get; set; }
     public long EpochDayNumber { get; set; }
 

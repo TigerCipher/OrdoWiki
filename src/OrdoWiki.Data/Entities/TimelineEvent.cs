@@ -4,6 +4,7 @@ public class TimelineEvent
 {
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string? Summary { get; set; }
     public string? MarkdownBody { get; set; }
 
     /// <summary>Canonical sort key — derived from <c>MandoYear/Month/Day</c> on save.</summary>
