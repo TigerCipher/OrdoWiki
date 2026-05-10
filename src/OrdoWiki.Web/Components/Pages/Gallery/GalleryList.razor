@@ -10,14 +10,7 @@
 <PageTitle>OrdoWiki | Gallery</PageTitle>
 
 <SectionContent SectionName="page-header">
-    <div class="x-stack gap-2 align-center">
-        <MudText Typo="Typo.h4" Class="fill-space">Gallery</MudText>
-        <MudButton OnClick="OpenUploadAsync"
-                   Variant="Variant.Outlined"
-                   StartIcon="@Icons.Material.Filled.Upload">
-            Upload
-        </MudButton>
-    </div>
+    <MudText Typo="Typo.h4" Class="fill-space">Gallery</MudText>
 </SectionContent>
 
 <div class="GalleryList y-stack gap-4">
@@ -34,7 +27,7 @@
         </MudChipSet>
 
         <MudAutocomplete T="UserDto"
-                         Class="uploader-filter push-right"
+                         Class="uploader-filter"
                          Value="_selectedUploader"
                          ValueChanged="OnUploaderChanged"
                          SearchFunc="SearchUploadersAsync"
@@ -45,6 +38,14 @@
                          Clearable="true"
                          CoerceValue="false"
                          CoerceText="false"/>
+
+        <MudButton Class="push-right"
+                   OnClick="OpenUploadAsync"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Upload">
+            Upload
+        </MudButton>
     </div>
 
     @if (_loading)

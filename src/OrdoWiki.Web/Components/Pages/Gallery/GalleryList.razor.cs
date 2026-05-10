@@ -93,8 +93,8 @@ public partial class GalleryList
         DialogOptions options = new()
         {
             CloseButton = true,
-            MaxWidth = MaxWidth.Large,
-            FullWidth = true,
+            BackdropClick = true,
+            MaxWidth = MaxWidth.False,
         };
 
         await DialogService.ShowAsync<ImageLightboxDialog>(string.Empty, parameters, options);
