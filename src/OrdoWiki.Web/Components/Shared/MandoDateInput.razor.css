@@ -1,0 +1,23 @@
+.MandoDateInput .row {
+    flex-wrap: wrap;
+}
+
+.MandoDateInput .era {
+    min-width: 220px;
+    flex: 0 1 220px;
+}
+
+.MandoDateInput .year {
+    min-width: 100px;
+    flex: 0 1 120px;
+}
+
+.MandoDateInput .month {
+    min-width: 160px;
+    flex: 1 1 180px;
+}
+
+.MandoDateInput .day {
+    min-width: 90px;
+    flex: 0 1 100px;
+}

@@ -1,0 +1,68 @@
+@using OrdoWiki.Data.Calendars
+
+<div class="MandoDateInput y-stack gap-2">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else
+    {
+        <div class="row x-stack gap-2 align-end">
+            <MudSelect T="Guid?"
+                       Value="_selectedEraId"
+                       ValueChanged="OnEraChanged"
+                       Label="Era"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Class="era">
+                @foreach (MandoEraDto era in _eras)
+                {
+                    <MudSelectItem T="Guid?" Value="era.Id">@era.ShortCode &mdash; @era.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudNumericField T="int"
+                             Value="_displayYear"
+                             ValueChanged="OnDisplayYearChanged"
+                             Label="Year"
+                             Variant="Variant.Outlined"
+                             Margin="Margin.Dense"
+                             Min="0"
+                             Class="year"/>
+
+            <MudSelect T="int?"
+                       Value="Month"
+                       ValueChanged="OnMonthChanged"
+                       Label="Month"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Clearable="true"
+                       Class="month">
+                @foreach (MandoMonthDto m in _months)
+                {
+                    <MudSelectItem T="int?" Value="m.MonthIndex">@m.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="int?"
+                       Value="Day"
+                       ValueChanged="OnDayChanged"
+                       Label="Day"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Disabled="@(Month is null)"
+                       Clearable="true"
+                       Class="day">
+                @for (int i = 1; i <= MandoCalendar.DaysPerMonth; i++)
+                {
+                    int local = i;
+                    <MudSelectItem T="int?" Value="local">@local</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+
+        <MudText Typo="Typo.body2" Color="Color.Tertiary">
+            Preview: <strong>@_preview</strong>
+        </MudText>
+    }
+</div>

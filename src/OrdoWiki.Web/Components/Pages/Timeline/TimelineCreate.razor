@@ -1,0 +1,48 @@
+@page "/timeline/new"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Auth
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+@attribute [Authorize(Policies.CanEdit)]
+
+<PageTitle>OrdoWiki | New event</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <MudText Typo="Typo.h4">New timeline event</MudText>
+</SectionContent>
+
+<div class="TimelineCreate y-stack gap-4">
+    <MudTextField T="string"
+                  @bind-Value="_title"
+                  Label="Title"
+                  Required="true"
+                  RequiredError="Title is required"
+                  MaxLength="200"
+                  Variant="Variant.Outlined"/>
+
+    <MandoDateInput @bind-Year="_year" @bind-Month="_month" @bind-Day="_day"/>
+
+    <MudTextField T="string"
+                  @bind-Value="_displayOverride"
+                  Label="Display override (optional)"
+                  Placeholder="e.g. 'Late summer, 47 ACW'"
+                  Variant="Variant.Outlined"
+                  MaxLength="120"/>
+
+    <MarkdownEditor @bind-Value="_body"
+                    Label="Description"
+                    Placeholder="What happened? (markdown supported)"/>
+
+    <div class="x-stack gap-2">
+        <MudButton Href="/timeline" Variant="Variant.Outlined">Cancel</MudButton>
+        <MudButton Class="push-right"
+                   Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   Disabled="@_saving"
+                   OnClick="SaveAsync">
+            @(_saving ? "Saving..." : "Create")
+        </MudButton>
+    </div>
+</div>

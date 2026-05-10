@@ -81,6 +81,43 @@ public static class Mappings
                 .ToList()
         };
 
+    public static TimelineEventDto MapToDto(TimelineEvent ev, string? createdByRole = null, string displayDate = "") =>
+        new()
+        {
+            Id = ev.Id,
+            Title = ev.Title,
+            MarkdownBody = ev.MarkdownBody,
+            EpochDayNumber = ev.EpochDayNumber,
+            MandoYear = ev.MandoYear,
+            MandoMonth = ev.MandoMonth,
+            MandoDay = ev.MandoDay,
+            DisplayOverride = ev.DisplayOverride,
+            CreatedById = ev.CreatedById,
+            CreatedBy = ev.CreatedBy is null ? null : MapToDto(ev.CreatedBy, createdByRole),
+            CreatedAt = AsUtc(ev.CreatedAt),
+            UpdatedAt = AsUtc(ev.UpdatedAt),
+            DisplayDate = displayDate,
+        };
+
+    public static MandoMonthDto MapToDto(MandoMonth month) =>
+        new()
+        {
+            Id = month.Id,
+            MonthIndex = month.MonthIndex,
+            Name = month.Name,
+        };
+
+    public static MandoEraDto MapToDto(MandoEra era) =>
+        new()
+        {
+            Id = era.Id,
+            Name = era.Name,
+            ShortCode = era.ShortCode,
+            AnchorYear = era.AnchorYear,
+            Direction = era.Direction,
+            SortOrder = era.SortOrder,
+        };
+
     public static MediaAssetDto MapToDto(MediaAsset asset, string? uploaderRole = null) =>
         new()
         {

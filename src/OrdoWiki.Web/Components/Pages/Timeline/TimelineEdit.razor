@@ -1,0 +1,60 @@
+@page "/timeline/{Id:guid}/edit"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Auth
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+@attribute [Authorize(Policies.CanEdit)]
+
+<PageTitle>OrdoWiki | Edit event</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <MudText Typo="Typo.h4">Edit event</MudText>
+</SectionContent>
+
+<div class="TimelineEdit y-stack gap-4">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else
+    {
+        <MudTextField T="string"
+                      @bind-Value="_title"
+                      Label="Title"
+                      Required="true"
+                      MaxLength="200"
+                      Variant="Variant.Outlined"/>
+
+        <MandoDateInput @bind-Year="_year" @bind-Month="_month" @bind-Day="_day"/>
+
+        <MudTextField T="string"
+                      @bind-Value="_displayOverride"
+                      Label="Display override (optional)"
+                      Placeholder="e.g. 'Late summer, 47 ACW'"
+                      Variant="Variant.Outlined"
+                      MaxLength="120"/>
+
+        <MarkdownEditor @bind-Value="_body"
+                        Label="Description"
+                        Placeholder="What happened? (markdown supported)"/>
+
+        <div class="x-stack gap-2">
+            <MudButton Color="Color.Error"
+                       Variant="Variant.Outlined"
+                       OnClick="DeleteAsync"
+                       StartIcon="@Icons.Material.Filled.Delete">
+                Delete
+            </MudButton>
+            <MudButton Href="/timeline" Variant="Variant.Outlined">Cancel</MudButton>
+            <MudButton Class="push-right"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Disabled="@_saving"
+                       OnClick="SaveAsync">
+                @(_saving ? "Saving..." : "Save")
+            </MudButton>
+        </div>
+    }
+</div>

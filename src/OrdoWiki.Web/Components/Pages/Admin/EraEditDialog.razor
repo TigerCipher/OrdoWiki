@@ -1,0 +1,23 @@
+@using OrdoWiki.Data.Calendars
+
+<MudDialog>
+    <DialogContent>
+        <div class="y-stack gap-3" style="min-width: 400px;">
+            <MudTextField T="string" @bind-Value="_name" Label="Name" Required="true" MaxLength="60"/>
+            <MudTextField T="string" @bind-Value="_shortCode" Label="Short code" Required="true" MaxLength="8"
+                          HelperText="Shown after the year, e.g. ACW"/>
+            <MudNumericField T="int" @bind-Value="_anchorYear" Label="Anchor year"
+                             HelperText="Signed absolute year. Forward eras start counting from this year; backward eras count down toward it."/>
+            <MudSelect T="EraDirection" @bind-Value="_direction" Label="Direction">
+                <MudSelectItem Value="EraDirection.Forward">Forward (counts up)</MudSelectItem>
+                <MudSelectItem Value="EraDirection.Backward">Backward (counts down)</MudSelectItem>
+            </MudSelect>
+            <MudNumericField T="int" @bind-Value="_sortOrder" Label="Sort order"
+                             HelperText="Lower values appear first in pickers."/>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OrdoWiki.Data;
@@ -11,9 +12,11 @@ using OrdoWiki.Data;
 namespace OrdoWiki.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260510030024_AddCalendarConfiguration")]
+    partial class AddCalendarConfiguration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -731,69 +734,6 @@ namespace OrdoWiki.Data.Migrations
                     b.ToTable("page_revisions", (string)null);
                 });
 
-            modelBuilder.Entity("OrdoWiki.Data.Entities.TimelineEvent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("CreatedById")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("created_by_id");
-
-                    b.Property<string>("DisplayOverride")
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)")
-                        .HasColumnName("display_override");
-
-                    b.Property<long>("EpochDayNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("epoch_day_number");
-
-                    b.Property<int?>("MandoDay")
-                        .HasColumnType("integer")
-                        .HasColumnName("mando_day");
-
-                    b.Property<int?>("MandoMonth")
-                        .HasColumnType("integer")
-                        .HasColumnName("mando_month");
-
-                    b.Property<int>("MandoYear")
-                        .HasColumnType("integer")
-                        .HasColumnName("mando_year");
-
-                    b.Property<string>("MarkdownBody")
-                        .HasColumnType("text")
-                        .HasColumnName("markdown_body");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("title");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id")
-                        .HasName("pk_timeline_events");
-
-                    b.HasIndex("CreatedById")
-                        .HasDatabaseName("ix_timeline_events_created_by_id");
-
-                    b.HasIndex("EpochDayNumber")
-                        .HasDatabaseName("ix_timeline_events_epoch_day_number");
-
-                    b.ToTable("timeline_events", (string)null);
-                });
-
             modelBuilder.Entity("OrdoWiki.Data.Entities.WikiPage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1022,18 +962,6 @@ namespace OrdoWiki.Data.Migrations
                     b.Navigation("Editor");
 
                     b.Navigation("Page");
-                });
-
-            modelBuilder.Entity("OrdoWiki.Data.Entities.TimelineEvent", b =>
-                {
-                    b.HasOne("OrdoWiki.Data.Entities.ApplicationUser", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_timeline_events_users_created_by_id");
-
-                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("OrdoWiki.Data.Entities.WikiPage", b =>

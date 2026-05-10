@@ -15,6 +15,9 @@ public class ApplicationDbContext(
     public DbSet<MediaAsset> MediaAssets => Set<MediaAsset>();
     public DbSet<Character> Characters => Set<Character>();
     public DbSet<CharacterImage> CharacterImages => Set<CharacterImage>();
+    public DbSet<MandoMonth> MandoMonths => Set<MandoMonth>();
+    public DbSet<MandoEra> MandoEras => Set<MandoEra>();
+    public DbSet<TimelineEvent> TimelineEvents => Set<TimelineEvent>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -1,0 +1,11 @@
+.TimelineList .event {
+    background: var(--color-surface);
+}
+
+.TimelineList .markdown-body {
+    color: var(--mud-palette-text-primary);
+}
+
+.TimelineList .markdown-body :deep(p) {
+    margin: 0 0 0.5em 0;
+}
