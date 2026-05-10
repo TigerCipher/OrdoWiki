@@ -14,6 +14,7 @@ public class TimelineService(
     ApplicationDbContext context,
     IUserService userService,
     IMandoCalendarService calendar,
+    ITagService tagService,
     AuthenticationStateProvider authState,
     IAuthorizationService authorization) : ITimelineService
 {
@@ -28,6 +29,8 @@ public class TimelineService(
         IQueryable<TimelineEvent> query = context.TimelineEvents.AsNoTracking();
         if (minYear.HasValue) query = query.Where(e => e.MandoYear >= minYear.Value);
         if (maxYear.HasValue) query = query.Where(e => e.MandoYear <= maxYear.Value);
+        if (filter.TagId is { } tagId)
+            query = query.Where(e => context.TimelineEventTags.Any(j => j.TimelineEventId == e.Id && j.TagId == tagId));
 
         int total = await query.CountAsync();
 
@@ -43,12 +46,25 @@ public class TimelineService(
 
         Dictionary<string, string?> roles = await userService.GetHighestRolesAsync(events.Select(e => e.CreatedById));
 
+        // Batch tag lookup to avoid N+1 across the page.
+        List<Guid> eventIds = events.Select(e => e.Id).ToList();
+        Dictionary<Guid, List<TagDto>> tagsByEvent = await context.TimelineEventTags
+            .AsNoTracking()
+            .Where(j => eventIds.Contains(j.TimelineEventId))
+            .Select(j => new { j.TimelineEventId, Tag = new TagDto { Id = j.Tag.Id, Slug = j.Tag.Slug, Name = j.Tag.Name } })
+            .ToListAsync()
+            .ContinueWith(t => t.Result
+                .GroupBy(x => x.TimelineEventId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.Tag).OrderBy(t => t.Name).ToList()));
+
         List<TimelineEventDto> dtos = new(events.Count);
         foreach (TimelineEvent ev in events)
         {
             string display = ev.DisplayOverride ?? await calendar.FormatAsync(
                 new MandoDate(ev.MandoYear, ev.MandoMonth, ev.MandoDay));
-            dtos.Add(MapToDto(ev, roles.GetValueOrDefault(ev.CreatedById), display));
+            TimelineEventDto dto = MapToDto(ev, roles.GetValueOrDefault(ev.CreatedById), display);
+            dto.Tags = tagsByEvent.GetValueOrDefault(ev.Id, []);
+            dtos.Add(dto);
         }
 
         return Ok(new PagedResult<TimelineEventDto>(dtos, total, page, pageSize));
@@ -149,7 +165,9 @@ public class TimelineService(
         string display = ev.DisplayOverride ?? await calendar.FormatAsync(
             new MandoDate(ev.MandoYear, ev.MandoMonth, ev.MandoDay));
 
-        return Ok(MapToDto(ev, roles.GetValueOrDefault(ev.CreatedById), display));
+        TimelineEventDto dto = MapToDto(ev, roles.GetValueOrDefault(ev.CreatedById), display);
+        dto.Tags = await tagService.GetTagsForAsync(TagTarget.TimelineEvent, ev.Id);
+        return Ok(dto);
     }
 
     public async Task<ApiResponse<TimelineEventDto>> CreateAsync(CreateTimelineEventRequest request)
@@ -186,6 +204,9 @@ public class TimelineService(
         context.TimelineEvents.Add(ev);
         await context.SaveChangesAsync();
 
+        if (request.Tags is not null)
+            await tagService.SetTagsAsync(TagTarget.TimelineEvent, ev.Id, request.Tags);
+
         return await GetEventByIdAsync(ev.Id);
     }
 
@@ -214,6 +235,9 @@ public class TimelineService(
         ev.UpdatedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
+
+        if (request.Tags is not null)
+            await tagService.SetTagsAsync(TagTarget.TimelineEvent, ev.Id, request.Tags);
 
         return await GetEventByIdAsync(ev.Id);
     }

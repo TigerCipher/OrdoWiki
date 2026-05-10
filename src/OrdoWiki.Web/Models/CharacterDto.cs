@@ -15,4 +15,6 @@ public class CharacterDto
     public DateTime UpdatedAt { get; set; }
 
     public List<CharacterImageDto> Images { get; set; } = [];
+
+    public IReadOnlyList<TagDto> Tags { get; set; } = [];
 }

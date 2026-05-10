@@ -12,13 +12,24 @@ public partial class CharacterList
     private List<CharacterGroup> _filteredGroups = [];
     private List<CharacterGroup> _pageGroups = [];
     private readonly HashSet<string> _expandedOwners = new(StringComparer.Ordinal);
+    private IReadOnlyList<TagDto> _allTags = [];
+    private TagDto? _selectedTag;
     private bool _loading = true;
     private string _search = string.Empty;
     private int _page = 1;
     private int _pageCount = 1;
 
+    [SupplyParameterFromQuery(Name = "tag")]
+    public string? TagSlug { get; set; }
+
     [Inject]
     private ICharacterService CharacterService { get; set; } = null!;
+
+    [Inject]
+    private ITagService TagService { get; set; } = null!;
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
@@ -27,7 +38,18 @@ public partial class CharacterList
     {
         if (!RendererInfo.IsInteractive) return;
 
-        ApiResponse<List<CharacterDto>> response = await CharacterService.GetCharactersAsync();
+        _allTags = await TagService.GetAllAsync();
+        _selectedTag = string.IsNullOrEmpty(TagSlug)
+            ? null
+            : _allTags.FirstOrDefault(t => string.Equals(t.Slug, TagSlug, StringComparison.OrdinalIgnoreCase));
+
+        await LoadCharactersAsync();
+    }
+
+    private async Task LoadCharactersAsync()
+    {
+        _loading = true;
+        ApiResponse<List<CharacterDto>> response = await CharacterService.GetCharactersAsync(_selectedTag?.Id);
         _loading = false;
 
         if (!response)
@@ -45,7 +67,19 @@ public partial class CharacterList
             .OrderBy(g => g.Owner?.DisplayName ?? g.Owner?.Username ?? string.Empty)
             .ToList();
 
+        _expandedOwners.Clear();
+        _page = 1;
         ApplyFilter();
+    }
+
+    private async Task OnTagFilterChangedAsync(TagDto? tag)
+    {
+        _selectedTag = tag;
+        string url = tag is null
+            ? Navigation.GetUriWithQueryParameter("tag", (string?)null)
+            : Navigation.GetUriWithQueryParameter("tag", tag.Slug);
+        Navigation.NavigateTo(url, replace: true);
+        await LoadCharactersAsync();
     }
 
     private void OnSearchChanged()

@@ -11,7 +11,8 @@ using Models.Requests;
 public class CharacterService(
     ApplicationDbContext context,
     IUserService userService,
-    IMediaService mediaService) : ICharacterService
+    IMediaService mediaService,
+    ITagService tagService) : ICharacterService
 {
     public async Task<ApiResponse<CharacterDto>> GetCharacterByIdAsync(Guid id)
     {
@@ -27,7 +28,9 @@ public class CharacterService(
         Dictionary<string, string?> roles = await userService.GetHighestRolesAsync([character.OwnerId]);
         roles.TryGetValue(character.OwnerId, out string? ownerRole);
 
-        return Ok(MapToDto(character, ownerRole));
+        CharacterDto dto = MapToDto(character, ownerRole);
+        dto.Tags = await tagService.GetTagsForAsync(TagTarget.Character, character.Id);
+        return Ok(dto);
     }
 
     public async Task<ApiResponse<CharacterDto>> GetCharacterBySlugAsync(string slug)
@@ -44,16 +47,26 @@ public class CharacterService(
         Dictionary<string, string?> roles = await userService.GetHighestRolesAsync([character.OwnerId]);
         roles.TryGetValue(character.OwnerId, out string? ownerRole);
 
-        return Ok(MapToDto(character, ownerRole));
+        CharacterDto dto = MapToDto(character, ownerRole);
+        dto.Tags = await tagService.GetTagsForAsync(TagTarget.Character, character.Id);
+        return Ok(dto);
     }
 
-    public async Task<ApiResponse<List<CharacterDto>>> GetCharactersAsync()
+    public async Task<ApiResponse<List<CharacterDto>>> GetCharactersAsync(Guid? tagId = null)
     {
-        List<Character> characters = await context.Characters
+        IQueryable<Character> query = context.Characters
             .AsNoTracking()
             .Include(c => c.Owner)
             .Include(c => c.Images.OrderBy(i => i.OrderIndex).Take(1))
-                .ThenInclude(i => i.MediaAsset)
+                .ThenInclude(i => i.MediaAsset);
+
+        if (tagId.HasValue)
+        {
+            Guid id = tagId.Value;
+            query = query.Where(c => context.CharacterTags.Any(j => j.CharacterId == c.Id && j.TagId == id));
+        }
+
+        List<Character> characters = await query
             .OrderBy(c => c.Owner!.DisplayName ?? c.Owner.UserName)
             .ThenBy(c => c.Name)
             .ToListAsync();
@@ -134,6 +147,9 @@ public class CharacterService(
             context.Characters.Add(character);
             await context.SaveChangesAsync();
 
+            if (request.Tags is not null)
+                await tagService.SetTagsAsync(TagTarget.Character, character.Id, request.Tags);
+
             return await GetCharacterByIdAsync(character.Id);
         }
         catch (OrdoException ex)
@@ -169,6 +185,9 @@ public class CharacterService(
             }
 
             await context.SaveChangesAsync();
+
+            if (request.Tags is not null)
+                await tagService.SetTagsAsync(TagTarget.Character, character.Id, request.Tags);
 
             return await GetCharacterByIdAsync(character.Id);
         }

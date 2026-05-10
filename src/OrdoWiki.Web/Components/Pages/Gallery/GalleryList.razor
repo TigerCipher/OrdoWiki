@@ -1,5 +1,6 @@
 @page "/gallery"
 @using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Auth
 @using OrdoWiki.Data.Entities
 @using OrdoWiki.Web.Components.Shared
 
@@ -14,7 +15,7 @@
 </SectionContent>
 
 <div class="GalleryList y-stack gap-4">
-    <div class="filters x-stack gap-3 align-center">
+    <div class="filters x-stack gap-3 align-center wrap">
         <MudChipSet T="MediaSourceType?"
                     SelectedValue="_filter.SourceType"
                     SelectedValueChanged="OnSourceFilterChanged"
@@ -38,6 +39,21 @@
                          Clearable="true"
                          CoerceValue="false"
                          CoerceText="false"/>
+
+        <MudSelect T="TagDto"
+                   Value="_selectedTag"
+                   ValueChanged="OnTagFilterChangedAsync"
+                   Label="Tag"
+                   Variant="Variant.Outlined"
+                   Margin="Margin.Dense"
+                   Clearable="true"
+                   Class="tag-filter">
+            <MudSelectItem T="TagDto" Value="@((TagDto?)null)">All tags</MudSelectItem>
+            @foreach (TagDto tag in _allTags)
+            {
+                <MudSelectItem T="TagDto" Value="@tag">@tag.Name</MudSelectItem>
+            }
+        </MudSelect>
 
         <MudButton Class="push-right"
                    OnClick="OpenUploadAsync"
@@ -63,13 +79,24 @@
         <div class="grid">
             @foreach (GalleryItemDto item in _items)
             {
-                <button type="button" class="tile" @onclick="@(() => OpenLightboxAsync(item))">
-                    <img src="@item.Asset.StoragePath" alt="@item.Asset.OriginalName" loading="lazy"/>
+                <div class="tile">
+                    <button type="button" class="tile-button" @onclick="@(() => OpenLightboxAsync(item))">
+                        <img src="@item.Asset.StoragePath" alt="@item.Asset.OriginalName" loading="lazy"/>
+                    </button>
                     <div class="tile-meta y-stack gap-1">
-                        <AuthorName User="item.Asset.UploadedBy" AvatarSize="Size.Small"/>
+                        <div class="x-stack align-center gap-1">
+                            <AuthorName User="item.Asset.UploadedBy" AvatarSize="Size.Small" Class="fill-space"/>
+                            <AuthorizeView Policy="@Policies.CanEdit" Context="auth">
+                                <MudIconButton Icon="@Icons.Material.Filled.LocalOffer"
+                                               Size="Size.Small"
+                                               Color="Color.Primary"
+                                               aria-label="Edit tags"
+                                               OnClick="@(() => EditTagsAsync(item))"/>
+                            </AuthorizeView>
+                        </div>
                         @if (item.Source is not null)
                         {
-                            <a class="source-link" href="@item.Source.Url" @onclick:stopPropagation="true">
+                            <a class="source-link" href="@item.Source.Url">
                                 <MudText Typo="Typo.caption" Color="Color.Tertiary">
                                     from @item.Source.Kind: @item.Source.Name
                                 </MudText>
@@ -79,8 +106,23 @@
                         {
                             <MudText Typo="Typo.caption" Color="Color.Tertiary">Standalone</MudText>
                         }
+                        @if (item.Tags.Count > 0)
+                        {
+                            <div class="tile-tags x-stack gap-1 wrap">
+                                @foreach (TagDto tag in item.Tags)
+                                {
+                                    <MudChip T="string"
+                                             Color="Color.Secondary"
+                                             Size="Size.Small"
+                                             Variant="Variant.Outlined"
+                                             Href="@($"/gallery?tag={tag.Slug}")">
+                                        @tag.Name
+                                    </MudChip>
+                                }
+                            </div>
+                        }
                     </div>
-                </button>
+                </div>
             }
         </div>
 

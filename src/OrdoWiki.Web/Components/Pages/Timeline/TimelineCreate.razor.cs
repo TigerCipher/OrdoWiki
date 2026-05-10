@@ -14,6 +14,7 @@ public partial class TimelineCreate
     private int? _month;
     private int? _day;
     private bool _saving;
+    private IReadOnlyList<string> _tagNames = [];
 
     [Inject]
     private ITimelineService TimelineService { get; set; } = null!;
@@ -23,6 +24,8 @@ public partial class TimelineCreate
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
+
+    private void OnTagsChanged(IReadOnlyList<string> tags) => _tagNames = tags;
 
     private async Task SaveAsync()
     {
@@ -42,6 +45,7 @@ public partial class TimelineCreate
             MandoMonth = _month,
             MandoDay = _day,
             DisplayOverride = _displayOverride,
+            Tags = _tagNames,
         });
         _saving = false;
 

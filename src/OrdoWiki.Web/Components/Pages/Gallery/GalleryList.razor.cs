@@ -10,12 +10,23 @@ public partial class GalleryList
     private readonly GalleryFilter _filter = new() { PageSize = 24 };
     private List<GalleryItemDto> _items = [];
     private List<UserDto> _uploaders = [];
+    private IReadOnlyList<TagDto> _allTags = [];
     private UserDto? _selectedUploader;
+    private TagDto? _selectedTag;
     private bool _loading = true;
     private int _pageCount = 1;
 
+    [SupplyParameterFromQuery(Name = "tag")]
+    public string? TagSlug { get; set; }
+
     [Inject]
     private IGalleryService GalleryService { get; set; } = null!;
+
+    [Inject]
+    private ITagService TagService { get; set; } = null!;
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = null!;
 
     [Inject]
     private IDialogService DialogService { get; set; } = null!;
@@ -29,6 +40,12 @@ public partial class GalleryList
 
         ApiResponse<List<UserDto>> uploadersResponse = await GalleryService.GetUploadersAsync();
         if (uploadersResponse) _uploaders = uploadersResponse.Value;
+
+        _allTags = await TagService.GetAllAsync();
+        _selectedTag = string.IsNullOrEmpty(TagSlug)
+            ? null
+            : _allTags.FirstOrDefault(t => string.Equals(t.Slug, TagSlug, StringComparison.OrdinalIgnoreCase));
+        _filter.TagId = _selectedTag?.Id;
 
         await LoadAsync();
     }
@@ -69,6 +86,48 @@ public partial class GalleryList
     {
         _filter.Page = page;
         await LoadAsync();
+    }
+
+    private async Task OnTagFilterChangedAsync(TagDto? tag)
+    {
+        _selectedTag = tag;
+        _filter.TagId = tag?.Id;
+        _filter.Page = 1;
+        string url = tag is null
+            ? Navigation.GetUriWithQueryParameter("tag", (string?)null)
+            : Navigation.GetUriWithQueryParameter("tag", tag.Slug);
+        Navigation.NavigateTo(url, replace: true);
+        await LoadAsync();
+    }
+
+    private async Task EditTagsAsync(GalleryItemDto item)
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(EditMediaTagsDialog.AssetId), item.Asset.Id },
+            { nameof(EditMediaTagsDialog.ImageUrl), item.Asset.StoragePath },
+            { nameof(EditMediaTagsDialog.Caption), item.Asset.OriginalName },
+            { nameof(EditMediaTagsDialog.InitialTags), (IReadOnlyList<string>)item.Tags.Select(t => t.Name).ToList() },
+        };
+
+        DialogOptions options = new()
+        {
+            CloseButton = true,
+            BackdropClick = false,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<EditMediaTagsDialog>("Edit tags", parameters, options);
+        DialogResult? result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            // Refresh tags list (new tags may have been created) and reload page
+            // so chip rows reflect updated tagging.
+            _allTags = await TagService.GetAllAsync();
+            await LoadAsync();
+        }
     }
 
     private Task<IEnumerable<UserDto>> SearchUploadersAsync(string? value, CancellationToken cancellationToken)

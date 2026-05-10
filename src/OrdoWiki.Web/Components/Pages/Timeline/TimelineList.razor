@@ -59,6 +59,21 @@
                              HideSpinButtons="true"
                              Class="filter-year"/>
 
+            <MudSelect T="TagDto"
+                       Value="_selectedTag"
+                       ValueChanged="OnTagFilterChangedAsync"
+                       Label="Tag"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Clearable="true"
+                       Class="filter-tag">
+                <MudSelectItem T="TagDto" Value="@((TagDto?)null)">All tags</MudSelectItem>
+                @foreach (TagDto tag in _allTags)
+                {
+                    <MudSelectItem T="TagDto" Value="@tag">@tag.Name</MudSelectItem>
+                }
+            </MudSelect>
+
             <MudButton OnClick="ApplyFiltersAsync"
                        Variant="Variant.Filled"
                        Color="Color.Primary"
@@ -116,6 +131,20 @@
                                         @if (!string.IsNullOrWhiteSpace(ev.Summary))
                                         {
                                             <MudText Typo="Typo.body2" Class="event-summary mt-2">@ev.Summary</MudText>
+                                        }
+                                        @if (ev.Tags.Count > 0)
+                                        {
+                                            <div class="event-tags x-stack gap-1 wrap mt-2">
+                                                @foreach (TagDto tag in ev.Tags)
+                                                {
+                                                    <MudChip T="string"
+                                                             Color="Color.Secondary"
+                                                             Size="Size.Small"
+                                                             Variant="Variant.Outlined">
+                                                        @tag.Name
+                                                    </MudChip>
+                                                }
+                                            </div>
                                         }
                                     </a>
                                     <AuthorizeView Policy="@Policies.CanEdit" Context="auth">

@@ -52,6 +52,22 @@
             }
         </div>
 
+        @if (_event.Tags.Count > 0)
+        {
+            <div class="tags x-stack gap-1 align-center wrap">
+                @foreach (TagDto tag in _event.Tags)
+                {
+                    <MudChip T="string"
+                             Color="Color.Secondary"
+                             Size="Size.Small"
+                             Variant="Variant.Outlined"
+                             Href="@($"/timeline?tag={tag.Slug}")">
+                        @tag.Name
+                    </MudChip>
+                }
+            </div>
+        }
+
         @if (!string.IsNullOrWhiteSpace(_event.Summary))
         {
             <MudPaper Outlined="true" Class="summary pa-3">

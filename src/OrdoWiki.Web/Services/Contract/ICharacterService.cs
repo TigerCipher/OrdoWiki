@@ -7,7 +7,7 @@ public interface ICharacterService
 {
     Task<ApiResponse<CharacterDto>> GetCharacterByIdAsync(Guid id);
     Task<ApiResponse<CharacterDto>> GetCharacterBySlugAsync(string slug);
-    Task<ApiResponse<List<CharacterDto>>> GetCharactersAsync();
+    Task<ApiResponse<List<CharacterDto>>> GetCharactersAsync(Guid? tagId = null);
     Task<ApiResponse<List<CharacterDto>>> GetMyCharactersAsync();
 
     Task<ApiResponse<CharacterDto>> CreateCharacterAsync(CreateCharacterRequest request);

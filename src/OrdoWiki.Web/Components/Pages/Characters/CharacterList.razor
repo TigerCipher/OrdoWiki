@@ -20,15 +20,33 @@
 </SectionContent>
 
 <div class="CharacterList y-stack gap-6">
-    <MudTextField @bind-Value="_search"
-                  @bind-Value:after="OnSearchChanged"
-                  Placeholder="Search by user or character name…"
-                  Variant="Variant.Outlined"
-                  Margin="Margin.Dense"
-                  Adornment="Adornment.Start"
-                  AdornmentIcon="@Icons.Material.Filled.Search"
-                  DebounceInterval="200"
-                  Clearable="true"/>
+    <div class="x-stack gap-2 align-center wrap">
+        <MudTextField @bind-Value="_search"
+                      @bind-Value:after="OnSearchChanged"
+                      Placeholder="Search by user or character name…"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      DebounceInterval="200"
+                      Clearable="true"
+                      Class="search-field"/>
+
+        <MudSelect T="TagDto"
+                   Value="_selectedTag"
+                   ValueChanged="OnTagFilterChangedAsync"
+                   Label="Filter by tag"
+                   Variant="Variant.Outlined"
+                   Margin="Margin.Dense"
+                   Clearable="true"
+                   Class="tag-filter">
+            <MudSelectItem T="TagDto" Value="@((TagDto?)null)">All tags</MudSelectItem>
+            @foreach (TagDto tag in _allTags)
+            {
+                <MudSelectItem T="TagDto" Value="@tag">@tag.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </div>
 
     @if (_loading)
     {

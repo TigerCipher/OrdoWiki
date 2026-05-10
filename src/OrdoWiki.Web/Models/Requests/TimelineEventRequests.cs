@@ -9,6 +9,7 @@ public sealed class CreateTimelineEventRequest
     public int? MandoMonth { get; set; }
     public int? MandoDay { get; set; }
     public string? DisplayOverride { get; set; }
+    public IReadOnlyList<string>? Tags { get; set; }
 }
 
 public sealed class UpdateTimelineEventRequest
@@ -21,4 +22,5 @@ public sealed class UpdateTimelineEventRequest
     public int? MandoMonth { get; set; }
     public int? MandoDay { get; set; }
     public string? DisplayOverride { get; set; }
+    public IReadOnlyList<string>? Tags { get; set; }
 }

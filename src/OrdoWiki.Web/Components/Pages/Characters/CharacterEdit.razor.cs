@@ -15,6 +15,7 @@ public partial class CharacterEdit
     private bool _canEdit;
     private bool _saving;
     private int? _imageCap;
+    private IReadOnlyList<string> _tagNames = [];
 
     [Parameter, EditorRequired]
     public required string Slug { get; set; }
@@ -47,6 +48,7 @@ public partial class CharacterEdit
 
         _character = response;
         _originalName = _character.Name;
+        _tagNames = _character.Tags.Select(t => t.Name).ToList();
 
         ApiResponse<bool> editCheck = await CharacterService.CanEditCharacterAsync(_character.Id);
         _canEdit = editCheck.Success && editCheck.Value;
@@ -57,6 +59,8 @@ public partial class CharacterEdit
 
         _loading = false;
     }
+
+    private void OnTagsChanged(IReadOnlyList<string> tags) => _tagNames = tags;
 
     private async Task SaveAsync()
     {
@@ -70,6 +74,7 @@ public partial class CharacterEdit
                 Summary = _character.Summary,
                 MarkdownBody = _character.MarkdownBody,
                 Slug = _character.Slug,
+                Tags = _tagNames,
             });
 
             if (!response)

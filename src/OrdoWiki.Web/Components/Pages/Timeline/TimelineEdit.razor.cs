@@ -15,6 +15,7 @@ public partial class TimelineEdit
     private int? _day;
     private bool _loading = true;
     private bool _saving;
+    private IReadOnlyList<string> _tagNames = [];
 
     [Parameter, EditorRequired]
     public required Guid Id { get; set; }
@@ -51,8 +52,11 @@ public partial class TimelineEdit
         _year = ev.MandoYear;
         _month = ev.MandoMonth;
         _day = ev.MandoDay;
+        _tagNames = ev.Tags.Select(t => t.Name).ToList();
         _loading = false;
     }
+
+    private void OnTagsChanged(IReadOnlyList<string> tags) => _tagNames = tags;
 
     private async Task SaveAsync()
     {
@@ -73,6 +77,7 @@ public partial class TimelineEdit
             MandoMonth = _month,
             MandoDay = _day,
             DisplayOverride = _displayOverride,
+            Tags = _tagNames,
         });
         _saving = false;
 

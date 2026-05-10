@@ -18,6 +18,41 @@ public class TagService(ApplicationDbContext context, IUserService userService) 
         return tags;
     }
 
+    public async Task<IReadOnlyList<TagDto>> GetAllWithCountsAsync()
+    {
+        // One query per join table — simpler than UNION ALL and EF can compose each.
+        var counts = await context.Tags
+            .AsNoTracking()
+            .Select(t => new
+            {
+                t.Id,
+                t.Slug,
+                t.Name,
+                Pages = context.WikiPageTags.Count(j => j.TagId == t.Id),
+                Characters = context.CharacterTags.Count(j => j.TagId == t.Id),
+                Media = context.MediaAssetTags.Count(j => j.TagId == t.Id),
+                Events = context.TimelineEventTags.Count(j => j.TagId == t.Id),
+            })
+            .OrderBy(t => t.Name)
+            .ToListAsync();
+
+        return counts
+            .Select(t => new TagDto
+            {
+                Id = t.Id,
+                Slug = t.Slug,
+                Name = t.Name,
+                UsageCount = t.Pages + t.Characters + t.Media + t.Events,
+            })
+            .ToList();
+    }
+
+    public async Task<TagDto?> GetBySlugAsync(string slug)
+    {
+        Tag? tag = await context.Tags.AsNoTracking().SingleOrDefaultAsync(t => t.Slug == slug);
+        return tag is null ? null : new TagDto { Id = tag.Id, Slug = tag.Slug, Name = tag.Name };
+    }
+
     public async Task<IReadOnlyList<TagDto>> SearchAsync(string query, int limit = 20)
     {
         IQueryable<Tag> q = context.Tags.AsNoTracking();

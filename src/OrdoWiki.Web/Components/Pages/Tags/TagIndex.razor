@@ -1,0 +1,52 @@
+@page "/tags"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>OrdoWiki | Tags</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <MudText Typo="Typo.h4">Tags</MudText>
+</SectionContent>
+
+<div class="TagIndex y-stack gap-3">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (_tags.Count == 0)
+    {
+        <MudText Typo="Typo.body1" Color="Color.Tertiary">
+            No tags yet. Add some when editing a log, character, image, or timeline event.
+        </MudText>
+    }
+    else
+    {
+        <MudTextField @bind-Value="_search"
+                      @bind-Value:after="ApplyFilter"
+                      Placeholder="Filter tags…"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      DebounceInterval="150"
+                      Clearable="true"/>
+
+        <div class="tag-list x-stack gap-2 wrap">
+            @foreach (TagDto tag in _filtered)
+            {
+                <a href="@($"/tags/{tag.Slug}")" class="tag-card">
+                    <MudPaper Outlined="true" Class="pa-3 y-stack gap-1">
+                        <MudText Typo="Typo.subtitle1" Class="tag-name">@tag.Name</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Tertiary">
+                            @(tag.UsageCount ?? 0) @(tag.UsageCount == 1 ? "use" : "uses")
+                        </MudText>
+                    </MudPaper>
+                </a>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,62 @@
+.TagDetail .cards {
+    flex-wrap: wrap;
+}
+
+.TagDetail .card {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    flex: 0 1 18rem;
+    transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.TagDetail .card:hover {
+    transform: translateY(-2px);
+}
+
+.TagDetail .card .mud-paper {
+    background: var(--color-surface);
+    height: 100%;
+}
+
+.TagDetail .card .mud-paper:hover {
+    border-color: var(--color-accent);
+}
+
+.TagDetail .card .title {
+    color: var(--mud-palette-text-primary);
+}
+
+.TagDetail .card .summary {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.TagDetail .image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-2);
+}
+
+.TagDetail .thumb {
+    display: block;
+    aspect-ratio: 1 / 1;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.TagDetail .thumb:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-accent);
+}
+
+.TagDetail .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}

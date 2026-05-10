@@ -15,6 +15,15 @@
     width: 9rem;
 }
 
+.TimelineList .filter-tag {
+    min-width: 12rem;
+    max-width: 16rem;
+}
+
+.TimelineList .event-tags {
+    flex-wrap: wrap;
+}
+
 .TimelineList .event {
     background: var(--color-surface);
     transition: background-color 120ms ease;

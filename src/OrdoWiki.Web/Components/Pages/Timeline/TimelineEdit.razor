@@ -44,6 +44,8 @@
                       MaxLength="500"
                       Variant="Variant.Outlined"/>
 
+        <TagPicker Label="Tags" Value="_tagNames" ValueChanged="OnTagsChanged"/>
+
         <MarkdownEditor @bind-Value="_body"
                         Label="Description"
                         Placeholder="What happened? (markdown supported)"/>

@@ -1,0 +1,146 @@
+@page "/tags/{Slug}"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>OrdoWiki | Tags | @(_tag?.Name ?? Slug)</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <div class="x-stack gap-2 align-center">
+        <MudIcon Icon="@Icons.Material.Filled.LocalOffer" Color="Color.Primary"/>
+        <MudText Typo="Typo.h4" Class="fill-space">@(_tag?.Name ?? Slug)</MudText>
+        <MudButton Href="/tags"
+                   Variant="Variant.Outlined"
+                   StartIcon="@Icons.Material.Filled.ArrowBack">
+            All tags
+        </MudButton>
+    </div>
+</SectionContent>
+
+<div class="TagDetail y-stack gap-6">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (_tag is null)
+    {
+        <MudText Typo="Typo.body1" Color="Color.Tertiary">Tag not found.</MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.caption" Color="Color.Tertiary">
+            @_totalUses @(_totalUses == 1 ? "use" : "uses") across pages, characters, events, and images.
+        </MudText>
+
+        @if (_pages.Count > 0)
+        {
+            <section class="section y-stack gap-2">
+                <div class="x-stack align-center">
+                    <MudText Typo="Typo.h6" Class="fill-space">Logs (@_pageTotal)</MudText>
+                    @if (_pageTotal > _pages.Count)
+                    {
+                        <MudLink Href="@($"/logs?tag={Slug}")">View all</MudLink>
+                    }
+                </div>
+                <div class="cards x-stack gap-2 wrap">
+                    @foreach (WikiPageDto p in _pages)
+                    {
+                        <a href="@($"/logs/{p.Slug}")" class="card">
+                            <MudPaper Outlined="true" Class="pa-3 y-stack gap-1">
+                                <MudText Typo="Typo.subtitle2" Class="title">@p.Title</MudText>
+                                @if (!string.IsNullOrWhiteSpace(p.Summary))
+                                {
+                                    <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="summary">@p.Summary</MudText>
+                                }
+                            </MudPaper>
+                        </a>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (_characters.Count > 0)
+        {
+            <section class="section y-stack gap-2">
+                <div class="x-stack align-center">
+                    <MudText Typo="Typo.h6" Class="fill-space">Characters (@_characterTotal)</MudText>
+                    @if (_characterTotal > _characters.Count)
+                    {
+                        <MudLink Href="@($"/characters?tag={Slug}")">View all</MudLink>
+                    }
+                </div>
+                <div class="cards x-stack gap-2 wrap">
+                    @foreach (CharacterDto c in _characters)
+                    {
+                        <a href="@($"/characters/{c.Slug}")" class="card">
+                            <MudPaper Outlined="true" Class="pa-3 y-stack gap-1">
+                                <MudText Typo="Typo.subtitle2" Class="title">@c.Name</MudText>
+                                @if (c.Owner is not null)
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Tertiary">
+                                        by @(c.Owner.DisplayName ?? c.Owner.Username)
+                                    </MudText>
+                                }
+                            </MudPaper>
+                        </a>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (_events.Count > 0)
+        {
+            <section class="section y-stack gap-2">
+                <div class="x-stack align-center">
+                    <MudText Typo="Typo.h6" Class="fill-space">Timeline events (@_eventTotal)</MudText>
+                    @if (_eventTotal > _events.Count)
+                    {
+                        <MudLink Href="@($"/timeline?tag={Slug}")">View all</MudLink>
+                    }
+                </div>
+                <div class="cards x-stack gap-2 wrap">
+                    @foreach (TimelineEventDto ev in _events)
+                    {
+                        <a href="@($"/timeline/{ev.Id}")" class="card">
+                            <MudPaper Outlined="true" Class="pa-3 y-stack gap-1">
+                                <MudText Typo="Typo.subtitle2" Class="title">@ev.Title</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Tertiary">@ev.DisplayDate</MudText>
+                            </MudPaper>
+                        </a>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (_images.Count > 0)
+        {
+            <section class="section y-stack gap-2">
+                <div class="x-stack align-center">
+                    <MudText Typo="Typo.h6" Class="fill-space">Images (@_imageTotal)</MudText>
+                    @if (_imageTotal > _images.Count)
+                    {
+                        <MudLink Href="@($"/gallery?tag={Slug}")">View all</MudLink>
+                    }
+                </div>
+                <div class="image-grid">
+                    @foreach (GalleryItemDto img in _images)
+                    {
+                        <a href="@($"/gallery?tag={Slug}")" class="thumb">
+                            <img src="@img.Asset.StoragePath" alt="@img.Asset.OriginalName" loading="lazy"/>
+                        </a>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (_pages.Count == 0 && _characters.Count == 0 && _events.Count == 0 && _images.Count == 0)
+        {
+            <MudText Typo="Typo.body1" Color="Color.Tertiary">
+                Nothing tagged with this yet.
+            </MudText>
+        }
+    }
+</div>

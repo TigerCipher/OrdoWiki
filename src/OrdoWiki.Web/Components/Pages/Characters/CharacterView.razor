@@ -39,6 +39,22 @@
             </div>
         </div>
 
+        @if (_character.Tags.Count > 0)
+        {
+            <div class="tags x-stack gap-1 align-center wrap">
+                @foreach (TagDto tag in _character.Tags)
+                {
+                    <MudChip T="string"
+                             Color="Color.Secondary"
+                             Size="Size.Small"
+                             Variant="Variant.Outlined"
+                             Href="@($"/characters?tag={tag.Slug}")">
+                        @tag.Name
+                    </MudChip>
+                }
+            </div>
+        }
+
         @if (!string.IsNullOrWhiteSpace(_character.Summary))
         {
             <MudPaper Outlined="true" Class="summary pa-3">

@@ -1,0 +1,27 @@
+.TagIndex .tag-list {
+    flex-wrap: wrap;
+}
+
+.TagIndex .tag-card {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.12s ease;
+}
+
+.TagIndex .tag-card:hover {
+    transform: translateY(-2px);
+}
+
+.TagIndex .tag-card .mud-paper {
+    background: var(--color-surface);
+    min-width: 12rem;
+}
+
+.TagIndex .tag-card .mud-paper:hover {
+    border-color: var(--color-accent);
+}
+
+.TagIndex .tag-name {
+    color: var(--mud-palette-text-primary);
+}

@@ -14,6 +14,9 @@ public sealed class TimelineEventFilter
     /// <summary>Optional upper year bound. Same interpretation as <see cref="MinDisplayYear"/>.</summary>
     public int? MaxDisplayYear { get; set; }
 
+    /// <summary>Optional tag filter. When set, results include only events tagged with this tag.</summary>
+    public Guid? TagId { get; set; }
+
     public bool Descending { get; set; } = true;
 
     public int Page { get; set; } = 1;

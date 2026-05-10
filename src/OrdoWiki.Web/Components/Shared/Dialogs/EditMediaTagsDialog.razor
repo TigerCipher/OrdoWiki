@@ -1,0 +1,32 @@
+@using OrdoWiki.Web.Models
+@using OrdoWiki.Web.Components.Shared
+
+<MudDialog Class="EditMediaTagsDialog">
+    <DialogContent>
+        <div class="y-stack gap-2">
+            @if (!string.IsNullOrEmpty(ImageUrl))
+            {
+                <img src="@ImageUrl" alt="@(Caption ?? string.Empty)" class="preview" />
+            }
+            <TagPicker Label="Tags" Value="_tagNames" ValueChanged="OnTagsChanged"/>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   Disabled="@_saving"
+                   OnClick="SaveAsync">
+            @(_saving ? "Saving..." : "Save")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .EditMediaTagsDialog .preview {
+        max-width: 100%;
+        max-height: 200px;
+        object-fit: contain;
+        margin-bottom: 0.5rem;
+    }
+</style>

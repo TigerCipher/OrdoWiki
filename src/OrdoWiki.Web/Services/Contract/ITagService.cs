@@ -7,6 +7,11 @@ public interface ITagService
     /// <summary>All tags, alphabetical. Includes usage count across all surfaces.</summary>
     Task<IReadOnlyList<TagDto>> GetAllAsync();
 
+    /// <summary>All tags, alphabetical, with their usage counts populated.</summary>
+    Task<IReadOnlyList<TagDto>> GetAllWithCountsAsync();
+
+    Task<TagDto?> GetBySlugAsync(string slug);
+
     /// <summary>Autocomplete-style search by name prefix or substring.</summary>
     Task<IReadOnlyList<TagDto>> SearchAsync(string query, int limit = 20);
 

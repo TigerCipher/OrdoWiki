@@ -6,6 +6,7 @@ public class CreateCharacterRequest
     public string? Summary { get; set; }
     public required string MarkdownBody { get; set; }
     public string? Slug { get; set; }
+    public IReadOnlyList<string>? Tags { get; set; }
 }
 
 public class EditCharacterRequest
@@ -15,6 +16,7 @@ public class EditCharacterRequest
     public string? Summary { get; set; }
     public required string MarkdownBody { get; set; }
     public string? Slug { get; set; }
+    public IReadOnlyList<string>? Tags { get; set; }
 }
 
 public class ReorderCharacterImagesRequest

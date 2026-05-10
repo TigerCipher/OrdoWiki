@@ -21,4 +21,6 @@ public class TimelineEventDto
 
     /// <summary>Server-formatted display string from the calendar service. Set on read.</summary>
     public string DisplayDate { get; set; } = string.Empty;
+
+    public IReadOnlyList<TagDto> Tags { get; set; } = [];
 }

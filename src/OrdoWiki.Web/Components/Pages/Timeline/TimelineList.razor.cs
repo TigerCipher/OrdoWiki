@@ -11,21 +11,32 @@ public partial class TimelineList
     private List<YearGroup> _groups = [];
     private IReadOnlyList<MandoEraDto> _eras = [];
     private IReadOnlyList<MandoEraInfo> _eraInfos = [];
+    private IReadOnlyList<TagDto> _allTags = [];
     private int _totalCount;
     private int _totalPages;
 
     private bool _loading = true;
     private bool _descending = true;
     private Guid? _eraFilter;
+    private TagDto? _selectedTag;
     private int? _minYear;
     private int? _maxYear;
     private int _page = 1;
+
+    [SupplyParameterFromQuery(Name = "tag")]
+    public string? TagSlug { get; set; }
 
     [Inject]
     private ITimelineService TimelineService { get; set; } = null!;
 
     [Inject]
     private IMandoCalendarService Calendar { get; set; } = null!;
+
+    [Inject]
+    private ITagService TagService { get; set; } = null!;
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
@@ -36,6 +47,10 @@ public partial class TimelineList
 
         _eras = await Calendar.GetErasAsync();
         _eraInfos = _eras.Select(e => e.ToInfo()).ToList();
+        _allTags = await TagService.GetAllAsync();
+        _selectedTag = string.IsNullOrEmpty(TagSlug)
+            ? null
+            : _allTags.FirstOrDefault(t => string.Equals(t.Slug, TagSlug, StringComparison.OrdinalIgnoreCase));
 
         await LoadAsync();
     }
@@ -49,6 +64,7 @@ public partial class TimelineList
             EraId = _eraFilter,
             MinDisplayYear = _minYear,
             MaxDisplayYear = _maxYear,
+            TagId = _selectedTag?.Id,
             Descending = _descending,
             Page = _page,
             PageSize = PageSize,
@@ -86,7 +102,20 @@ public partial class TimelineList
         _eraFilter = null;
         _minYear = null;
         _maxYear = null;
+        _selectedTag = null;
         _page = 1;
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("tag", (string?)null), replace: true);
+        await LoadAsync();
+    }
+
+    private async Task OnTagFilterChangedAsync(TagDto? tag)
+    {
+        _selectedTag = tag;
+        _page = 1;
+        string url = tag is null
+            ? Navigation.GetUriWithQueryParameter("tag", (string?)null)
+            : Navigation.GetUriWithQueryParameter("tag", tag.Slug);
+        Navigation.NavigateTo(url, replace: true);
         await LoadAsync();
     }
 

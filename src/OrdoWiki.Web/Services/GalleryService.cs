@@ -26,6 +26,9 @@ public class GalleryService(
         if (!string.IsNullOrEmpty(filter.UploaderId))
             q = q.Where(a => a.UploadedById == filter.UploaderId);
 
+        if (filter.TagId is { } tagId)
+            q = q.Where(a => context.MediaAssetTags.Any(j => j.MediaAssetId == a.Id && j.TagId == tagId));
+
         int total = await q.CountAsync();
 
         List<MediaAsset> items = await q
@@ -39,12 +42,22 @@ public class GalleryService(
 
         Dictionary<Guid, SourceLink> sources = await ResolveSourcesAsync(items);
 
+        List<Guid> assetIds = items.Select(a => a.Id).ToList();
+        Dictionary<Guid, List<TagDto>> tagsByAsset = (await context.MediaAssetTags
+                .AsNoTracking()
+                .Where(j => assetIds.Contains(j.MediaAssetId))
+                .Select(j => new { j.MediaAssetId, Tag = new TagDto { Id = j.Tag.Id, Slug = j.Tag.Slug, Name = j.Tag.Name } })
+                .ToListAsync())
+            .GroupBy(x => x.MediaAssetId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Tag).OrderBy(t => t.Name).ToList());
+
         List<GalleryItemDto> dtos = items.Select(a => new GalleryItemDto
         {
             Asset = MapToDto(a, roles.GetValueOrDefault(a.UploadedById)),
             Source = a.SourceId.HasValue
                 ? sources.GetValueOrDefault(a.SourceId.Value)
                 : null,
+            Tags = tagsByAsset.GetValueOrDefault(a.Id, []),
         }).ToList();
 
         return Ok(new PagedResult<GalleryItemDto>(dtos, total, page, pageSize));

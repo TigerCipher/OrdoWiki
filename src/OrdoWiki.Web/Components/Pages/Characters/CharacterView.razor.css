@@ -8,3 +8,7 @@
     border-left: 3px solid var(--color-accent);
     color: var(--color-text);
 }
+
+.CharacterView .tags {
+    flex-wrap: wrap;
+}

@@ -50,6 +50,8 @@
                       MaxLength="500"
                       Sizing="InputSizing.Auto"/>
 
+        <TagPicker Label="Tags" Value="_tagNames" ValueChanged="OnTagsChanged"/>
+
         <MarkdownEditor @bind-Value="@_character.MarkdownBody"
                         Label="Backstory"
                         Placeholder="Tell us about this character (markdown supported)"
