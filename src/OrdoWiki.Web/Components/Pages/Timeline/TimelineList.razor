@@ -24,19 +24,55 @@
 </SectionContent>
 
 <div class="TimelineList y-stack gap-3">
-    @if (_loading)
-    {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
-    }
-    else if (_allEvents.Count == 0)
-    {
-        <MudText Typo="Typo.body1" Color="Color.Tertiary">
-            No events yet.
-        </MudText>
-    }
-    else
-    {
-        <div class="x-stack gap-2 align-center">
+
+    <MudPaper Outlined="true" Class="filters pa-3">
+        <div class="x-stack gap-2 align-center wrap">
+            <MudSelect T="Guid?"
+                       @bind-Value="_eraFilter"
+                       Label="Era"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Clearable="true"
+                       Class="filter-era">
+                <MudSelectItem T="Guid?" Value="@((Guid?)null)">All eras</MudSelectItem>
+                @foreach (MandoEraDto era in _eras)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)era.Id)">@era.Name (@era.ShortCode)</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudNumericField T="int?"
+                             @bind-Value="_minYear"
+                             Label="@(YearLabel("From year"))"
+                             Variant="Variant.Outlined"
+                             Margin="Margin.Dense"
+                             Clearable="true"
+                             HideSpinButtons="true"
+                             Class="filter-year"/>
+
+            <MudNumericField T="int?"
+                             @bind-Value="_maxYear"
+                             Label="@(YearLabel("To year"))"
+                             Variant="Variant.Outlined"
+                             Margin="Margin.Dense"
+                             Clearable="true"
+                             HideSpinButtons="true"
+                             Class="filter-year"/>
+
+            <MudButton OnClick="ApplyFiltersAsync"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Size="Size.Small">
+                Apply
+            </MudButton>
+            <MudButton OnClick="ClearFiltersAsync"
+                       Variant="Variant.Outlined"
+                       Size="Size.Small">
+                Clear
+            </MudButton>
+
+            <div class="fill-space"></div>
+
             <MudButton OnClick="ToggleSortAsync"
                        Variant="Variant.Outlined"
                        Size="Size.Small"
@@ -44,6 +80,23 @@
                 @(_descending ? "Newest first" : "Oldest first")
             </MudButton>
         </div>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (_totalCount == 0)
+    {
+        <MudText Typo="Typo.body1" Color="Color.Tertiary">
+            No events match these filters.
+        </MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.caption" Color="Color.Tertiary">
+            Showing page @_page of @_totalPages — @_totalCount @(_totalCount == 1 ? "event" : "events") total.
+        </MudText>
 
         <MudTimeline TimelinePosition="TimelinePosition.Start" TimelineAlign="TimelineAlign.Default">
             @foreach (YearGroup group in _groups)
@@ -55,30 +108,43 @@
                     <ItemContent>
                         @foreach (TimelineEventDto ev in group.Events)
                         {
-                            <MudPaper Outlined="true"
-                                      Class="event pa-3 mb-2"
-                                      @onclick="@(() => Navigation.NavigateTo($"/timeline/{ev.Id}"))">
-                                <div class="x-stack gap-2 align-center">
-                                    <MudText Typo="Typo.subtitle1" Class="fill-space event-title">@ev.Title</MudText>
+                            <MudPaper Outlined="true" Class="event mb-2">
+                                <div class="event-row x-stack align-center">
+                                    <a href="@($"/timeline/{ev.Id}")" class="event-main pa-3">
+                                        <MudText Typo="Typo.subtitle1" Class="event-title">@ev.Title</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Tertiary">@ev.DisplayDate</MudText>
+                                        @if (!string.IsNullOrWhiteSpace(ev.Summary))
+                                        {
+                                            <MudText Typo="Typo.body2" Class="event-summary mt-2">@ev.Summary</MudText>
+                                        }
+                                    </a>
                                     <AuthorizeView Policy="@Policies.CanEdit" Context="auth">
-                                        <span @onclick:stopPropagation="true">
-                                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                                           Size="Size.Small"
-                                                           Color="Color.Primary"
-                                                           Href="@($"/timeline/{ev.Id}/edit")"/>
-                                        </span>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                       Size="Size.Small"
+                                                       Color="Color.Primary"
+                                                       Href="@($"/timeline/{ev.Id}/edit")"
+                                                       Class="event-edit mr-2"/>
                                     </AuthorizeView>
                                 </div>
-                                <MudText Typo="Typo.caption" Color="Color.Tertiary">@ev.DisplayDate</MudText>
-                                @if (!string.IsNullOrWhiteSpace(ev.Summary))
-                                {
-                                    <MudText Typo="Typo.body2" Class="event-summary mt-2">@ev.Summary</MudText>
-                                }
                             </MudPaper>
                         }
                     </ItemContent>
                 </MudTimelineItem>
             }
         </MudTimeline>
+
+        @if (_totalPages > 1)
+        {
+            <div class="x-stack justify-center pa-2">
+                <MudPagination Count="_totalPages"
+                               Selected="_page"
+                               SelectedChanged="PageChangedAsync"
+                               Color="Color.Primary"
+                               BoundaryCount="1"
+                               MiddleCount="3"
+                               ShowFirstButton="true"
+                               ShowLastButton="true"/>
+            </div>
+        }
     }
 </div>

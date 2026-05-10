@@ -17,12 +17,28 @@ public class TimelineService(
     AuthenticationStateProvider authState,
     IAuthorizationService authorization) : ITimelineService
 {
-    public async Task<ApiResponse<List<TimelineEventDto>>> GetEventsAsync()
+    public async Task<ApiResponse<PagedResult<TimelineEventDto>>> GetEventsAsync(TimelineEventFilter filter)
     {
-        List<TimelineEvent> events = await context.TimelineEvents
-            .AsNoTracking()
+        int page = Math.Max(1, filter.Page);
+        int pageSize = Math.Clamp(filter.PageSize, 1, 100);
+
+        IReadOnlyList<MandoEraDto> eras = await calendar.GetErasAsync();
+        (int? minYear, int? maxYear) = ResolveYearBounds(filter, eras);
+
+        IQueryable<TimelineEvent> query = context.TimelineEvents.AsNoTracking();
+        if (minYear.HasValue) query = query.Where(e => e.MandoYear >= minYear.Value);
+        if (maxYear.HasValue) query = query.Where(e => e.MandoYear <= maxYear.Value);
+
+        int total = await query.CountAsync();
+
+        query = filter.Descending
+            ? query.OrderByDescending(e => e.EpochDayNumber).ThenByDescending(e => e.Id)
+            : query.OrderBy(e => e.EpochDayNumber).ThenBy(e => e.Id);
+
+        List<TimelineEvent> events = await query
             .Include(e => e.CreatedBy)
-            .OrderBy(e => e.EpochDayNumber)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         Dictionary<string, string?> roles = await userService.GetHighestRolesAsync(events.Select(e => e.CreatedById));
@@ -35,7 +51,89 @@ public class TimelineService(
             dtos.Add(MapToDto(ev, roles.GetValueOrDefault(ev.CreatedById), display));
         }
 
-        return Ok(dtos);
+        return Ok(new PagedResult<TimelineEventDto>(dtos, total, page, pageSize));
+    }
+
+    /// <summary>
+    /// Translate the filter's optional era + year bounds into absolute-year bounds against
+    /// <see cref="TimelineEvent.MandoYear"/>. Year fields are display-years inside the era when
+    /// an era is selected, or absolute signed years otherwise.
+    /// </summary>
+    private static (int? min, int? max) ResolveYearBounds(TimelineEventFilter filter, IReadOnlyList<MandoEraDto> eras)
+    {
+        if (filter.EraId is null)
+        {
+            int? min = filter.MinDisplayYear;
+            int? max = filter.MaxDisplayYear;
+            if (min.HasValue && max.HasValue && min > max) (min, max) = (max, min);
+            return (min, max);
+        }
+
+        MandoEraDto? era = eras.FirstOrDefault(e => e.Id == filter.EraId);
+        if (era is null) return (null, null);
+        MandoEraInfo info = era.ToInfo();
+
+        (int? eraMin, int? eraMax) = GetEraBounds(info, eras);
+
+        if (filter.MinDisplayYear is null && filter.MaxDisplayYear is null)
+            return (eraMin, eraMax);
+
+        // Display years convert to absolute via the era's direction. For Backward, larger
+        // display year = smaller absolute year, so order may flip after conversion.
+        int? userA = filter.MinDisplayYear.HasValue
+            ? MandoEraResolver.ToAbsoluteYear(info, filter.MinDisplayYear.Value)
+            : (int?)null;
+        int? userB = filter.MaxDisplayYear.HasValue
+            ? MandoEraResolver.ToAbsoluteYear(info, filter.MaxDisplayYear.Value)
+            : (int?)null;
+
+        int? userMin = (userA, userB) switch
+        {
+            (null, null) => null,
+            ({ } a, null) => a,
+            (null, { } b) => b,
+            ({ } a, { } b) => Math.Min(a, b),
+        };
+        int? userMax = (userA, userB) switch
+        {
+            (null, null) => null,
+            ({ } a, null) => a,
+            (null, { } b) => b,
+            ({ } a, { } b) => Math.Max(a, b),
+        };
+
+        int? finalMin = (eraMin, userMin) switch
+        {
+            (null, _) => userMin,
+            (_, null) => eraMin,
+            ({ } a, { } b) => Math.Max(a, b),
+        };
+        int? finalMax = (eraMax, userMax) switch
+        {
+            (null, _) => userMax,
+            (_, null) => eraMax,
+            ({ } a, { } b) => Math.Min(a, b),
+        };
+
+        return (finalMin, finalMax);
+    }
+
+    private static (int? min, int? max) GetEraBounds(MandoEraInfo era, IReadOnlyList<MandoEraDto> allEras)
+    {
+        if (era.Direction == EraDirection.Forward)
+        {
+            int? nextAnchor = allEras
+                .Where(e => e.Direction == EraDirection.Forward && e.AnchorYear > era.AnchorYear)
+                .Select(e => (int?)e.AnchorYear)
+                .Min();
+            return (era.AnchorYear, nextAnchor.HasValue ? nextAnchor.Value - 1 : (int?)null);
+        }
+
+        int? prevAnchor = allEras
+            .Where(e => e.Direction == EraDirection.Backward && e.AnchorYear < era.AnchorYear)
+            .Select(e => (int?)e.AnchorYear)
+            .Max();
+        return (prevAnchor, era.AnchorYear - 1);
     }
 
     public async Task<ApiResponse<TimelineEventDto>> GetEventByIdAsync(Guid id)

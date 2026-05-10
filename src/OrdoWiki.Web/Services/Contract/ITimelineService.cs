@@ -5,7 +5,7 @@ using Models.Requests;
 
 public interface ITimelineService
 {
-    Task<ApiResponse<List<TimelineEventDto>>> GetEventsAsync();
+    Task<ApiResponse<PagedResult<TimelineEventDto>>> GetEventsAsync(TimelineEventFilter filter);
     Task<ApiResponse<TimelineEventDto>> GetEventByIdAsync(Guid id);
     Task<ApiResponse<TimelineEventDto>> CreateAsync(CreateTimelineEventRequest request);
     Task<ApiResponse<TimelineEventDto>> UpdateAsync(UpdateTimelineEventRequest request);

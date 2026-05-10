@@ -6,11 +6,20 @@ using MudBlazor;
 
 public partial class TimelineList
 {
-    private List<TimelineEventDto> _allEvents = [];
+    private const int PageSize = 25;
+
     private List<YearGroup> _groups = [];
+    private IReadOnlyList<MandoEraDto> _eras = [];
     private IReadOnlyList<MandoEraInfo> _eraInfos = [];
+    private int _totalCount;
+    private int _totalPages;
+
     private bool _loading = true;
     private bool _descending = true;
+    private Guid? _eraFilter;
+    private int? _minYear;
+    private int? _maxYear;
+    private int _page = 1;
 
     [Inject]
     private ITimelineService TimelineService { get; set; } = null!;
@@ -19,16 +28,32 @@ public partial class TimelineList
     private IMandoCalendarService Calendar { get; set; } = null!;
 
     [Inject]
-    private NavigationManager Navigation { get; set; } = null!;
-
-    [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
         if (!RendererInfo.IsInteractive) return;
 
-        ApiResponse<List<TimelineEventDto>> response = await TimelineService.GetEventsAsync();
+        _eras = await Calendar.GetErasAsync();
+        _eraInfos = _eras.Select(e => e.ToInfo()).ToList();
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+
+        ApiResponse<PagedResult<TimelineEventDto>> response = await TimelineService.GetEventsAsync(new TimelineEventFilter
+        {
+            EraId = _eraFilter,
+            MinDisplayYear = _minYear,
+            MaxDisplayYear = _maxYear,
+            Descending = _descending,
+            Page = _page,
+            PageSize = PageSize,
+        });
+
         _loading = false;
 
         if (!response.Success)
@@ -37,23 +62,43 @@ public partial class TimelineList
             return;
         }
 
-        _allEvents = response.Value;
-        IReadOnlyList<MandoEraDto> eras = await Calendar.GetErasAsync();
-        _eraInfos = eras.Select(e => e.ToInfo()).ToList();
-
-        Regroup();
+        PagedResult<TimelineEventDto> page = response;
+        _totalCount = page.TotalCount;
+        _totalPages = page.TotalPages;
+        Regroup(page.Items);
     }
 
-    private Task ToggleSortAsync()
+    private async Task ToggleSortAsync()
     {
         _descending = !_descending;
-        Regroup();
-        return Task.CompletedTask;
+        _page = 1;
+        await LoadAsync();
     }
 
-    private void Regroup()
+    private async Task ApplyFiltersAsync()
     {
-        IEnumerable<IGrouping<int, TimelineEventDto>> grouped = _allEvents.GroupBy(e => e.MandoYear);
+        _page = 1;
+        await LoadAsync();
+    }
+
+    private async Task ClearFiltersAsync()
+    {
+        _eraFilter = null;
+        _minYear = null;
+        _maxYear = null;
+        _page = 1;
+        await LoadAsync();
+    }
+
+    private async Task PageChangedAsync(int newPage)
+    {
+        _page = newPage;
+        await LoadAsync();
+    }
+
+    private void Regroup(IReadOnlyList<TimelineEventDto> events)
+    {
+        IEnumerable<IGrouping<int, TimelineEventDto>> grouped = events.GroupBy(e => e.MandoYear);
 
         IEnumerable<IGrouping<int, TimelineEventDto>> orderedGroups = _descending
             ? grouped.OrderByDescending(g => g.Key)
@@ -76,6 +121,11 @@ public partial class TimelineList
             ? absoluteYear.ToString()
             : $"{MandoEraResolver.DisplayYear(era.Value, absoluteYear)} {era.Value.ShortCode}";
     }
+
+    private string YearLabel(string suffix) =>
+        _eraFilter is not null && _eras.FirstOrDefault(e => e.Id == _eraFilter) is { } selected
+            ? $"{suffix} ({selected.ShortCode})"
+            : suffix;
 
     private sealed record YearGroup(int AbsoluteYear, string YearLabel, List<TimelineEventDto> Events);
 }
