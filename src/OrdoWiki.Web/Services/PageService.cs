@@ -10,7 +10,8 @@ using Models.Requests;
 
 public class PageService(
     ApplicationDbContext context,
-    IUserService userService) : IPageService
+    IUserService userService,
+    ITagService tagService) : IPageService
 {
     public async Task<ApiResponse<WikiPageDto>> GetPageByIdAsync(Guid id)
     {
@@ -37,7 +38,9 @@ public class PageService(
             return NotFound<WikiPageDto>();
 
         Dictionary<string, string?> roles = await LoadRolesForPageAsync(page);
-        return Ok(MapToDto(page, page.CurrentRevision, roles));
+        WikiPageDto dto = MapToDto(page, page.CurrentRevision, roles);
+        dto.Tags = await tagService.GetTagsForAsync(TagTarget.WikiPage, page.Id);
+        return Ok(dto);
     }
 
     public async Task<ApiResponse<WikiPageDto>> CreatePageAsync(CreatePageRequest request)
@@ -149,8 +152,13 @@ public class PageService(
             }
         
             await context.SaveChangesAsync();
-        
-            return Ok(MapToDto(page, revision));
+
+            if (request.Tags is not null)
+                await tagService.SetTagsAsync(TagTarget.WikiPage, page.Id, request.Tags);
+
+            WikiPageDto dto = MapToDto(page, revision);
+            dto.Tags = await tagService.GetTagsForAsync(TagTarget.WikiPage, page.Id);
+            return Ok(dto);
         }
         catch (OrdoException ex)
         {
@@ -158,14 +166,21 @@ public class PageService(
         }
     }
 
-    public async Task<ApiResponse<List<WikiPageDto>>> GetPagesAsync()
+    public async Task<ApiResponse<List<WikiPageDto>>> GetPagesAsync(Guid? tagId = null)
     {
-        List<WikiPage> pages = await context.WikiPages
+        IQueryable<WikiPage> query = context.WikiPages
             .AsNoTracking()
             .Include(x => x.CurrentRevision)
             .ThenInclude(r => r!.Editor)
-            .Include(x => x.Creator)
-            .ToListAsync();
+            .Include(x => x.Creator);
+
+        if (tagId.HasValue)
+        {
+            Guid id = tagId.Value;
+            query = query.Where(p => context.WikiPageTags.Any(j => j.PageId == p.Id && j.TagId == id));
+        }
+
+        List<WikiPage> pages = await query.ToListAsync();
 
         IEnumerable<string> userIds = pages
             .SelectMany(p => new[] { p.CreatedById, p.CurrentRevision?.EditedById })

@@ -48,6 +48,22 @@
             }
         </div>
 
+        @if (_page.Tags.Count > 0)
+        {
+            <div class="tags x-stack gap-1 align-center wrap">
+                @foreach (TagDto tag in _page.Tags)
+                {
+                    <MudChip T="string"
+                             Color="Color.Secondary"
+                             Size="Size.Small"
+                             Variant="Variant.Outlined"
+                             Href="@($"/logs?tag={tag.Slug}")">
+                        @tag.Name
+                    </MudChip>
+                }
+            </div>
+        }
+
         @if (!string.IsNullOrWhiteSpace(_page.Summary))
         {
             <MudPaper Outlined="true" Class="summary pa-3">

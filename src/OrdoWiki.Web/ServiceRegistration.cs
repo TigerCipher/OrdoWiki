@@ -14,6 +14,7 @@ public static class ServiceRegistration
         services.AddScoped<IGalleryService, GalleryService>();
         services.AddScoped<IMandoCalendarService, MandoCalendarService>();
         services.AddScoped<ITimelineService, TimelineService>();
+        services.AddScoped<ITagService, TagService>();
         services.AddScoped<IOrdoDialogs, OrdoDialogs>();
         services.AddScoped<ITimeZoneService, TimeZoneService>();
         services.AddScoped<ThemeState>();

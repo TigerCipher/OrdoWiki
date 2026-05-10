@@ -1,3 +1,12 @@
 ﻿.Page ::deep .mud-table-row:hover {
     cursor: pointer;
 }
+
+.Page .filter-bar {
+    background: var(--color-surface);
+}
+
+.Page .tag-filter {
+    min-width: 14rem;
+    max-width: 20rem;
+}

@@ -1,0 +1,13 @@
+.TagPicker .picker {
+    background: var(--color-surface);
+    min-height: 2.75rem;
+}
+
+.TagPicker .picker .wrap {
+    flex-wrap: wrap;
+}
+
+.TagPicker .picker-input {
+    flex: 1;
+    min-width: 8rem;
+}

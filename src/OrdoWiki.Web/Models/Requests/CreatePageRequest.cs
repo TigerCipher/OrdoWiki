@@ -17,4 +17,5 @@ public class EditPageRequest
     public string? EditSummary { get; set; }
     public string? Slug { get; set; }
     public required Guid PageId { get; set; }
+    public IReadOnlyList<string>? Tags { get; set; }
 }

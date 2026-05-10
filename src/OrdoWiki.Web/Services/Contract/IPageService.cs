@@ -10,5 +10,5 @@ public interface IPageService
     Task<ApiResponse<WikiPageDto>> CreatePageAsync(CreatePageRequest request);
     Task<ApiResponse<WikiPageDto>> EditPageAsync(EditPageRequest request);
 
-    Task<ApiResponse<List<WikiPageDto>>> GetPagesAsync();
+    Task<ApiResponse<List<WikiPageDto>>> GetPagesAsync(Guid? tagId = null);
 }

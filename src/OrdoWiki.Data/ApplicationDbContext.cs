@@ -18,6 +18,11 @@ public class ApplicationDbContext(
     public DbSet<MandoMonth> MandoMonths => Set<MandoMonth>();
     public DbSet<MandoEra> MandoEras => Set<MandoEra>();
     public DbSet<TimelineEvent> TimelineEvents => Set<TimelineEvent>();
+    public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<WikiPageTag> WikiPageTags => Set<WikiPageTag>();
+    public DbSet<CharacterTag> CharacterTags => Set<CharacterTag>();
+    public DbSet<MediaAssetTag> MediaAssetTags => Set<MediaAssetTag>();
+    public DbSet<TimelineEventTag> TimelineEventTags => Set<TimelineEventTag>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

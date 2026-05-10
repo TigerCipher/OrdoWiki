@@ -1,0 +1,41 @@
+@using OrdoWiki.Web.Models
+
+<div class="TagPicker y-stack gap-1">
+    @if (Label is not null)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Tertiary">@Label</MudText>
+    }
+
+    <MudPaper Outlined="true" Class="picker pa-2">
+        <div class="x-stack align-center wrap gap-1">
+            @foreach (string name in _selected)
+            {
+                <MudChip T="string"
+                         Color="Color.Secondary"
+                         Variant="Variant.Filled"
+                         Size="Size.Small"
+                         OnClose="@(() => RemoveAsync(name))"
+                         CloseIcon="@Icons.Material.Filled.Close">
+                    @name
+                </MudChip>
+            }
+
+            <MudAutocomplete T="string"
+                             @ref="_input"
+                             Value="@string.Empty"
+                             ValueChanged="OnPickedAsync"
+                             Text="@_typedText"
+                             TextChanged="@(t => _typedText = t)"
+                             SearchFunc="SearchAsync"
+                             Placeholder="@(_selected.Count == 0 ? "Add tags…" : "Add another…")"
+                             Variant="Variant.Text"
+                             Margin="Margin.Dense"
+                             Class="picker-input"
+                             ResetValueOnEmptyText="true"
+                             CoerceText="true"
+                             CoerceValue="true"
+                             ShowProgressIndicator="true"
+                             OnKeyDown="OnKeyDownAsync"/>
+        </div>
+    </MudPaper>
+</div>

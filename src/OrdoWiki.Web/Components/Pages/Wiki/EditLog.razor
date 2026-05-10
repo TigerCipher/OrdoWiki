@@ -47,7 +47,9 @@
                       MaxLength="500"
                       Sizing="InputSizing.Auto"
                       Placeholder="Summary for this log" />
-        
+
+        <TagPicker Label="Tags" Value="_tagNames" ValueChanged="OnTagsChanged"/>
+
         <MarkdownEditor @bind-Value="@_markdownBody"
                         Label="Contents"
                         Placeholder="The log contents (markdown supported)"

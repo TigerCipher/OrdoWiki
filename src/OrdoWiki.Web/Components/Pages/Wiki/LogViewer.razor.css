@@ -3,6 +3,10 @@
     color: var(--color-muted);
 }
 
+.LogViewer .tags {
+    flex-wrap: wrap;
+}
+
 .LogViewer .summary {
     background-color: var(--color-surface);
     border-left: 3px solid var(--color-accent);

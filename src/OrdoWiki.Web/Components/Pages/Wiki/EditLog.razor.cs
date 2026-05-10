@@ -13,6 +13,7 @@ public partial class EditLog
 
     private string _editSummary = string.Empty;
     private string _markdownBody = string.Empty;
+    private IReadOnlyList<string> _tagNames = [];
 
     [Parameter, EditorRequired]
     public required string Slug { get; set; }
@@ -41,8 +42,11 @@ public partial class EditLog
         _revision = _page.CurrentRevision ?? new PageRevisionDto();
         _markdownBody = _revision.MarkdownBody;
         _originalTitle = _page.Title;
+        _tagNames = _page.Tags.Select(t => t.Name).ToList();
         _loading = false;
     }
+
+    private void OnTagsChanged(IReadOnlyList<string> tags) => _tagNames = tags;
 
     private async Task SaveEditAsync()
     {
@@ -53,7 +57,8 @@ public partial class EditLog
             MarkdownBody = _markdownBody,
             EditSummary = _editSummary,
             Slug = _page.Slug,
-            Summary = _page.Summary
+            Summary = _page.Summary,
+            Tags = _tagNames,
         });
 
         if (!response)

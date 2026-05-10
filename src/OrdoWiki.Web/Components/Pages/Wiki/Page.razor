@@ -11,6 +11,25 @@
 
 <div class="Page">
 
+    <MudPaper Outlined="true" Class="filter-bar pa-3 mb-3">
+        <div class="x-stack gap-2 align-center">
+            <MudSelect T="TagDto"
+                       Value="_selectedTag"
+                       ValueChanged="OnTagFilterChangedAsync"
+                       Label="Filter by tag"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Clearable="true"
+                       Class="tag-filter">
+                <MudSelectItem T="TagDto" Value="@((TagDto?)null)">All tags</MudSelectItem>
+                @foreach (TagDto tag in _allTags)
+                {
+                    <MudSelectItem T="TagDto" Value="@tag">@tag.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+    </MudPaper>
+
     <MudDataGrid T="WikiPageDto"
                  Items="_pages"
                  @bind-RowsPerPage="_rowsPerPage"

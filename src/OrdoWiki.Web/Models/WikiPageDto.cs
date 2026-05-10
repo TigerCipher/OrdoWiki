@@ -16,6 +16,8 @@ public class WikiPageDto
     public string CreatedById { get; set; } = string.Empty;
     public UserDto? Creator { get; set; }
     public List<PageRevisionDto> Revisions { get; set; } = [];
-    
+
+    public IReadOnlyList<TagDto> Tags { get; set; } = [];
+
     public string CreatorName => Creator?.DisplayName ?? "<unknown>";
 }

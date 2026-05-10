@@ -1,4 +1,4 @@
-﻿namespace OrdoWiki.Web.Components.Pages.Wiki;
+namespace OrdoWiki.Web.Components.Pages.Wiki;
 
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -8,11 +8,19 @@ using Shared.Dialogs;
 public partial class Page
 {
     private List<WikiPageDto> _pages = [];
+    private IReadOnlyList<TagDto> _allTags = [];
+    private TagDto? _selectedTag;
     private int _rowsPerPage = 10;
     private bool _loading = true;
 
+    [SupplyParameterFromQuery(Name = "tag")]
+    public string? TagSlug { get; set; }
+
     [Inject]
     private IPageService PageService { get; set; } = null!;
+
+    [Inject]
+    private ITagService TagService { get; set; } = null!;
 
     [Inject]
     private IOrdoDialogs OrdoDialogs { get; set; } = null!;
@@ -27,7 +35,18 @@ public partial class Page
     {
         if (!RendererInfo.IsInteractive) return;
 
-        ApiResponse<List<WikiPageDto>> response = await PageService.GetPagesAsync();
+        _allTags = await TagService.GetAllAsync();
+        _selectedTag = string.IsNullOrEmpty(TagSlug)
+            ? null
+            : _allTags.FirstOrDefault(t => string.Equals(t.Slug, TagSlug, StringComparison.OrdinalIgnoreCase));
+
+        await LoadPagesAsync();
+    }
+
+    private async Task LoadPagesAsync()
+    {
+        _loading = true;
+        ApiResponse<List<WikiPageDto>> response = await PageService.GetPagesAsync(_selectedTag?.Id);
         _loading = false;
 
         if (!response)
@@ -51,6 +70,16 @@ public partial class Page
         }
 
         _pages = response;
+    }
+
+    private async Task OnTagFilterChangedAsync(TagDto? tag)
+    {
+        _selectedTag = tag;
+        string url = tag is null
+            ? Navigation.GetUriWithQueryParameter("tag", (string?)null)
+            : Navigation.GetUriWithQueryParameter("tag", tag.Slug);
+        Navigation.NavigateTo(url, replace: true);
+        await LoadPagesAsync();
     }
 
     private void OpenPage(DataGridRowClickEventArgs<WikiPageDto> args)
