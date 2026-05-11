@@ -10,7 +10,7 @@ using Models.Requests;
 using System.Security.Claims;
 
 public class BannerService(
-    ApplicationDbContext context,
+    IDbContextFactory<ApplicationDbContext> contextFactory,
     IUserService userService,
     BannerState bannerState,
     AuthenticationStateProvider authState,
@@ -20,6 +20,7 @@ public class BannerService(
 
     public async Task<IReadOnlyList<BannerDto>> GetSlotsAsync()
     {
+        await using ApplicationDbContext context = await contextFactory.CreateDbContextAsync();
         List<Banner> banners = await context.Banners
             .AsNoTracking()
             .Include(b => b.MediaAsset)
@@ -31,6 +32,7 @@ public class BannerService(
 
     public async Task<IReadOnlyList<BannerDto>> GetVisibleAsync()
     {
+        await using ApplicationDbContext context = await contextFactory.CreateDbContextAsync();
         List<Banner> banners = await context.Banners
             .AsNoTracking()
             .Include(b => b.MediaAsset)
@@ -62,6 +64,8 @@ public class BannerService(
             if (!result.Succeeded)
                 return Forbidden<BannerDto>("You don't have permission to edit banners.");
         }
+
+        await using ApplicationDbContext context = await contextFactory.CreateDbContextAsync();
 
         Banner? banner = await context.Banners.SingleOrDefaultAsync(b => b.SlotIndex == request.SlotIndex);
         if (banner is null) return NotFound<BannerDto>();

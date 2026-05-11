@@ -17,6 +17,8 @@ public static class ServiceRegistration
         services.AddScoped<ITagService, TagService>();
         services.AddScoped<IBannerService, BannerService>();
         services.AddScoped<BannerState>();
+        services.AddScoped<ISiteThemeService, SiteThemeService>();
+        services.AddScoped<SiteThemeState>();
         services.AddScoped<IOrdoDialogs, OrdoDialogs>();
         services.AddScoped<ITimeZoneService, TimeZoneService>();
         services.AddScoped<ThemeState>();

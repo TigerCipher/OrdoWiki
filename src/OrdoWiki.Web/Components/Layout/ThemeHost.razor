@@ -1,3 +1,10 @@
 @rendermode InteractiveServer
 
 <MudThemeProvider Theme="_theme" IsDarkMode="@ThemeState.IsDarkMode"/>
+
+@if (!string.IsNullOrEmpty(_customCss))
+{
+    <HeadContent>
+        <style id="ordo-theme-vars">@((MarkupString)_customCss)</style>
+    </HeadContent>
+}

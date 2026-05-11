@@ -1,16 +1,46 @@
-﻿namespace OrdoWiki.Web.Components.Layout;
+namespace OrdoWiki.Web.Components.Layout;
 
 using MudBlazor;
+using MudBlazor.Utilities;
+using OrdoWiki.Web.Models;
+using System.Reflection;
 
 public static class OrdoTheme
 {
-    public static MudTheme Build() => new()
+    /// <summary>
+    /// Subset of <see cref="Palette"/> properties exposed in the theme editor. Each entry
+    /// maps to a property name on the palette object — order is the display order in the UI.
+    /// </summary>
+    public static readonly string[] EditablePaletteKeys =
+    [
+        "Primary", "Secondary", "Tertiary",
+        "Info", "Success", "Warning", "Error",
+        "Background", "Surface",
+        "AppbarBackground", "AppbarText",
+        "DrawerBackground", "DrawerText",
+        "TextPrimary", "TextSecondary",
+        "ActionDefault",
+        "LinesDefault", "Divider",
+    ];
+
+    public static MudTheme Build(SiteThemeDto? overrides = null)
+    {
+        MudTheme theme = BuildDefault();
+        if (overrides is not null)
+        {
+            ApplyPaletteOverrides(theme.PaletteLight, overrides.LightPalette);
+            ApplyPaletteOverrides(theme.PaletteDark, overrides.DarkPalette);
+        }
+        return theme;
+    }
+
+    private static MudTheme BuildDefault() => new()
     {
         PaletteDark = new PaletteDark
         {
-            Primary = "#c8a560",   // beskar gold
-            Secondary = "#8a7a5a", // muted brass
-            Tertiary = "#9a3a2a",  // Mando red
+            Primary = "#c8a560",
+            Secondary = "#8a7a5a",
+            Tertiary = "#9a3a2a",
             Info = "#6a8caf",
             Success = "#5b8c5a",
             Warning = "#d99a3d",
@@ -30,7 +60,7 @@ public static class OrdoTheme
             LinesDefault = "#2e2e2e",
             TableLines = "#2e2e2e",
             Divider = "#2e2e2e",
-            TableHover = "#ffffff55"
+            TableHover = "#ffffff55",
         },
         PaletteLight =
         {
@@ -56,7 +86,6 @@ public static class OrdoTheme
             TableLines = "#E7DFDB",
             Divider = "#E7DFDB",
             TableHover = "#ffffff55",
-            
         },
         Typography = new Typography
         {
@@ -64,17 +93,44 @@ public static class OrdoTheme
             {
                 FontFamily = ["'Inter'", "'Segoe UI'", "Helvetica", "Arial", "sans-serif"],
                 FontSize = "1rem",
-                LineHeight = "1.55"
+                LineHeight = "1.55",
             },
             H1 = new H1Typography { FontSize = "2.5rem", FontWeight = "600" },
             H2 = new H2Typography { FontSize = "2rem", FontWeight = "600" },
-            H3 = new H3Typography { FontSize = "1.5rem", FontWeight = "600" }
+            H3 = new H3Typography { FontSize = "1.5rem", FontWeight = "600" },
         },
         LayoutProperties = new LayoutProperties
         {
             DefaultBorderRadius = "4px",
             AppbarHeight = "64px",
-            DrawerWidthLeft = "260px"
-        }
+            DrawerWidthLeft = "260px",
+        },
     };
+
+    /// <summary>Read the current value of a palette key as a hex string for editor display.</summary>
+    public static string? ReadPaletteValue(Palette palette, string key)
+    {
+        PropertyInfo? prop = palette.GetType().GetProperty(key, BindingFlags.Public | BindingFlags.Instance);
+        if (prop is null) return null;
+        object? value = prop.GetValue(palette);
+        return value switch
+        {
+            MudColor c => c.Value,
+            string s => s,
+            _ => null,
+        };
+    }
+
+    private static void ApplyPaletteOverrides(Palette palette, Dictionary<string, string> overrides)
+    {
+        foreach ((string key, string val) in overrides)
+        {
+            if (string.IsNullOrWhiteSpace(val)) continue;
+            PropertyInfo? prop = palette.GetType().GetProperty(key, BindingFlags.Public | BindingFlags.Instance);
+            if (prop is null || !prop.CanWrite) continue;
+            if (prop.PropertyType != typeof(MudColor)) continue;
+            try { prop.SetValue(palette, new MudColor(val)); }
+            catch { /* swallow — invalid color string from a user is a no-op, not a crash */ }
+        }
+    }
 }

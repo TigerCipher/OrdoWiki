@@ -1,0 +1,241 @@
+@page "/design/theme"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Auth
+@using OrdoWiki.Data.Entities
+@using OrdoWiki.Web.Components.Layout
+@using OrdoWiki.Web.Components.Shared
+@using OrdoWiki.Web.Models.Requests
+@using MudBlazor.Utilities
+
+@rendermode InteractiveServer
+
+@attribute [Authorize(Policy = Policies.CanDesign)]
+
+<PageTitle>OrdoWiki | Design | Theme</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <div class="x-stack gap-2 align-center">
+        <MudIcon Icon="@Icons.Material.Filled.Palette" Color="Color.Primary"/>
+        <MudText Typo="Typo.h4">Theme editor</MudText>
+    </div>
+</SectionContent>
+
+<div class="ThemePage y-stack gap-4">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else
+    {
+        <div class="x-stack gap-2 align-center">
+            <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="fill-space"></MudText>
+            <MudButton OnClick="@SaveAsync"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Disabled="@_saving"
+                       StartIcon="@Icons.Material.Filled.Save">
+                @(_saving ? "Saving..." : "Save")
+            </MudButton>
+        </div>
+
+        <MudText Typo="Typo.body2" Color="Color.Tertiary">
+            Edit the palette per mode, set per-mode background images, and tweak any
+            custom CSS variables. Changes apply across the site after Save.
+        </MudText>
+
+        <MudExpansionPanels MultiExpansion="true" class="theme-panels">
+
+            @* ---------- Palettes ---------- *@
+            <MudExpansionPanel Text="Light palette" Expanded="true">
+                <div class="palette-grid">
+                    @foreach (string key in OrdoTheme.EditablePaletteKeys)
+                    {
+                        string current = GetLightValue(key);
+                        <div class="palette-cell">
+                            <MudColorPicker Label="@key"
+                                            Value="@(new MudColor(current))"
+                                            ValueChanged="@(c => SetLightValue(key, c.Value))"
+                                            ShowAlpha="false"
+                                            PickerVariant="PickerVariant.Inline"/>
+                        </div>
+                    }
+                </div>
+            </MudExpansionPanel>
+
+            <MudExpansionPanel Text="Dark palette" Expanded="true">
+                <div class="palette-grid">
+                    @foreach (string key in OrdoTheme.EditablePaletteKeys)
+                    {
+                        string current = GetDarkValue(key);
+                        <div class="palette-cell">
+                            <MudColorPicker Label="@key"
+                                            Value="@(new MudColor(current))"
+                                            ValueChanged="@(c => SetDarkValue(key, c.Value))"
+                                            ShowAlpha="false"
+                                            PickerVariant="PickerVariant.Inline"/>
+                        </div>
+                    }
+                </div>
+            </MudExpansionPanel>
+
+            @* ---------- Backgrounds ---------- *@
+            <MudExpansionPanel Text="Background images" Expanded="true">
+                <div class="bg-grid">
+                    @foreach ((string label, bool isDark) in new[] { ("Light mode", false), ("Dark mode", true) })
+                    {
+                        string? url = isDark ? _theme.DarkBackgroundUrl : _theme.LightBackgroundUrl;
+                        <MudPaper Outlined="true" Class="bg-slot pa-3 y-stack gap-2">
+                            <MudText Typo="Typo.subtitle1">@label</MudText>
+                            @if (!string.IsNullOrEmpty(url))
+                            {
+                                <img src="@url" class="bg-preview" alt="@(label + " background")"/>
+                            }
+                            else
+                            {
+                                <div class="bg-placeholder">
+                                    <MudIcon Icon="@Icons.Material.Filled.HideImage" Size="Size.Large" Color="Color.Tertiary"/>
+                                    <MudText Typo="Typo.caption" Color="Color.Tertiary">No background</MudText>
+                                </div>
+                            }
+                            <div class="x-stack gap-2">
+                                <InputFile id="@($"bg-{(isDark ? "dark" : "light")}")"
+                                           style="display:none"
+                                           accept=".jpg,.jpeg,.png,.webp"
+                                           OnChange="@(async e => await UploadBackgroundAsync(e, isDark))"/>
+                                <MudButton HtmlTag="label"
+                                           Variant="Variant.Outlined"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.CloudUpload"
+                                           Disabled="@_uploading"
+                                           UserAttributes="@(new Dictionary<string, object?> { { "for", $"bg-{(isDark ? "dark" : "light")}" } })">
+                                    Upload
+                                </MudButton>
+                                @if (!string.IsNullOrEmpty(url))
+                                {
+                                    <MudButton Variant="Variant.Text"
+                                               Color="Color.Error"
+                                               StartIcon="@Icons.Material.Filled.Delete"
+                                               OnClick="@(() => ClearBackground(isDark))">
+                                        Clear
+                                    </MudButton>
+                                }
+                            </div>
+                        </MudPaper>
+                    }
+                </div>
+            </MudExpansionPanel>
+
+            @* ---------- Custom variables (values) ---------- *@
+            <MudExpansionPanel Text="@($"Custom CSS variables ({_customVariables.Count})")" Expanded="true">
+                @if (_customVariables.Count == 0)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Tertiary">
+                        No custom variables registered yet.
+                        @if (_isAdmin)
+                        {
+                            <text>Use the panel below to add some.</text>
+                        }
+                        else
+                        {
+                            <text>Ask an admin to register some.</text>
+                        }
+                    </MudText>
+                }
+                else
+                {
+                    <div class="custom-grid">
+                        @foreach (CustomThemeVariableDto v in _customVariables)
+                        {
+                            <div class="custom-row">
+                                <div class="y-stack gap-0">
+                                    <MudText Typo="Typo.subtitle2">@v.Name</MudText>
+                                    @if (!string.IsNullOrEmpty(v.Description))
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Tertiary">@v.Description</MudText>
+                                    }
+                                </div>
+                                <MudColorPicker Label="Light"
+                                                Value="@(new MudColor(GetCustomValue(v.Name, isDark: false)))"
+                                                ValueChanged="@(c => SetCustomValue(v.Name, isDark: false, c.Value))"
+                                                ShowAlpha="false"
+                                                PickerVariant="PickerVariant.Inline"/>
+                                <MudColorPicker Label="Dark"
+                                                Value="@(new MudColor(GetCustomValue(v.Name, isDark: true)))"
+                                                ValueChanged="@(c => SetCustomValue(v.Name, isDark: true, c.Value))"
+                                                ShowAlpha="false"
+                                                PickerVariant="PickerVariant.Inline"/>
+                            </div>
+                        }
+                    </div>
+                }
+            </MudExpansionPanel>
+
+            @* ---------- Admin: registry management ---------- *@
+            @if (_isAdmin)
+            {
+                <MudExpansionPanel Text="Manage custom variables (admin)">
+                    <div class="y-stack gap-3">
+                        <MudText Typo="Typo.body2" Color="Color.Tertiary">
+                            Register new CSS variable names so designers can set their values per mode.
+                            Names should start with <code>--</code> (added automatically if missing).
+                        </MudText>
+
+                        <div class="x-stack gap-2 align-end">
+                            <MudTextField T="string"
+                                          @bind-Value="_newVarName"
+                                          Label="Variable name"
+                                          Placeholder="--mando-trim-color"
+                                          Variant="Variant.Outlined"
+                                          Margin="Margin.Dense"
+                                          Class="fill-space"/>
+                            <MudTextField T="string"
+                                          @bind-Value="_newVarDescription"
+                                          Label="Description (optional)"
+                                          Variant="Variant.Outlined"
+                                          Margin="Margin.Dense"
+                                          Class="fill-space"/>
+                            <MudButton OnClick="AddCustomVariableAsync"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Add">
+                                Add
+                            </MudButton>
+                        </div>
+
+                        @if (_customVariables.Count > 0)
+                        {
+                            <MudTable Items="@_customVariables" Dense="true" Hover="true">
+                                <HeaderContent>
+                                    <MudTh>Name</MudTh>
+                                    <MudTh>Description</MudTh>
+                                    <MudTh></MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd><code>@context.Name</code></MudTd>
+                                    <MudTd>@context.Description</MudTd>
+                                    <MudTd>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Color="Color.Error"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => DeleteCustomVariableAsync(context))"/>
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </div>
+                </MudExpansionPanel>
+            }
+
+        </MudExpansionPanels>
+
+        <div class="x-stack gap-2 justify-end">
+            <MudButton OnClick="SaveAsync"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Disabled="@_saving"
+                       StartIcon="@Icons.Material.Filled.Save">
+                @(_saving ? "Saving..." : "Save")
+            </MudButton>
+        </div>
+    }
+</div>
