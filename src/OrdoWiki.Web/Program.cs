@@ -15,12 +15,26 @@ using OrdoWiki.Web.Components.Account;
 // `dotnet OrdoWiki.Web.dll --migrate` — apply pending EF migrations and exit.
 // Used by the migrator service in deploy/docker-compose.yml so the app container
 // always boots against an up-to-date schema without racing other replicas.
+//
+// Identity must be registered here too: IdentityDbContext only configures the
+// IdentityUserPasskey / IdentityPasskeyData entities once IdentityCore +
+// EntityFrameworkStores wire up the SchemaVersion options. Without it, model
+// validation fails with "IdentityPasskeyData requires a primary key".
 if (args.Contains("--migrate"))
 {
     WebApplicationBuilder migrateBuilder = WebApplication.CreateBuilder(args);
     string migrateConnection = migrateBuilder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-    migrateBuilder.Services.AddOrdoWikiData(migrateConnection);
+    migrateBuilder.Services
+        .AddOrdoWikiData(migrateConnection)
+        .AddIdentityCore<ApplicationUser>(options =>
+        {
+            options.SignIn.RequireConfirmedAccount = false;
+            options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+            options.User.RequireUniqueEmail = false;
+        })
+        .AddRoles<IdentityRole>()
+        .AddEntityFrameworkStores<ApplicationDbContext>();
 
     using WebApplication migrateApp = migrateBuilder.Build();
     using IServiceScope scope = migrateApp.Services.CreateScope();
