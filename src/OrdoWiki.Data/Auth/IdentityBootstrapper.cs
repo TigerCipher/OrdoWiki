@@ -18,6 +18,9 @@ public class IdentityBootstrapper(
         await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
 
 #if DEBUG
+        // Dev convenience only. In production, migrations are applied by the
+        // one-shot `migrator` compose service (`dotnet OrdoWiki.Web.dll --migrate`)
+        // before the app container starts.
         ApplicationDbContext db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         IEnumerable<string> pending = await db.Database.GetPendingMigrationsAsync(cancellationToken);
         if (pending.Any())

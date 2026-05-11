@@ -1,4 +1,17 @@
 services:
+  migrator:
+    image: ghcr.io/${GHCR_OWNER}/ordowiki:${IMAGE_TAG:-latest}
+    container_name: ordowiki-migrator
+    restart: "no"
+    command: ["dotnet", "OrdoWiki.Web.dll", "--migrate"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=ordowiki;Username=ordowiki;Password=${DB_PASSWORD}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+
   app:
     image: ghcr.io/${GHCR_OWNER}/ordowiki:${IMAGE_TAG:-latest}
     container_name: ordowiki-app
@@ -7,11 +20,18 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=ordowiki;Username=ordowiki;Password=${DB_PASSWORD}"
+      UploadsRoot: /data/uploads
+      DataProtection__KeysPath: /data/dpkeys
+      Admin__Username: ${ADMIN_USERNAME}
+      Admin__InitialPassword: ${ADMIN_INITIAL_PASSWORD}
     volumes:
       - uploads:/data/uploads
+      - dpkeys:/data/dpkeys
     depends_on:
       postgres:
         condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     networks: [internal]
 
   postgres:
@@ -48,6 +68,7 @@ services:
 volumes:
   pgdata:
   uploads:
+  dpkeys:
   caddy_data:
   caddy_config:
 

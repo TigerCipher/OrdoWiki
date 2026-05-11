@@ -19,7 +19,7 @@ WORKDIR /app
 
 RUN groupadd --system --gid 1000 ordowiki && \
     useradd --system --uid 1000 --gid ordowiki ordowiki && \
-    mkdir -p /data/uploads && \
+    mkdir -p /data/uploads /data/dpkeys && \
     chown -R ordowiki:ordowiki /app /data
 
 COPY --from=build --chown=ordowiki:ordowiki /app .

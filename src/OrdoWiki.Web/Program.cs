@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using MudBlazor.Services;
 using OrdoWiki.Data;
@@ -9,6 +12,26 @@ using OrdoWiki.Web;
 using OrdoWiki.Web.Components;
 using OrdoWiki.Web.Components.Account;
 
+// `dotnet OrdoWiki.Web.dll --migrate` — apply pending EF migrations and exit.
+// Used by the migrator service in deploy/docker-compose.yml so the app container
+// always boots against an up-to-date schema without racing other replicas.
+if (args.Contains("--migrate"))
+{
+    WebApplicationBuilder migrateBuilder = WebApplication.CreateBuilder(args);
+    string migrateConnection = migrateBuilder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+    migrateBuilder.Services.AddOrdoWikiData(migrateConnection);
+
+    using WebApplication migrateApp = migrateBuilder.Build();
+    using IServiceScope scope = migrateApp.Services.CreateScope();
+    ApplicationDbContext db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    Console.WriteLine("Applying pending migrations...");
+    await db.Database.MigrateAsync();
+    Console.WriteLine("Migrations complete.");
+    return;
+}
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
@@ -16,6 +39,27 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddMudServices();
 builder.Services.AddMemoryCache();
+
+// Caddy terminates TLS and forwards plain HTTP to us. Without this, Request.Scheme
+// stays "http", UseHttpsRedirection ping-pongs, and Identity post-login redirects
+// build wrong absolute URLs. KnownNetworks/Proxies cleared because the docker
+// network IP isn't loopback.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+// Persist Data Protection keys to a mounted volume so Identity auth cookies and
+// antiforgery tokens survive container restarts. Default location is inside the
+// container's filesystem and gets wiped on every redeploy.
+string dpKeysPath = builder.Configuration["DataProtection:KeysPath"]
+    ?? Path.Combine(builder.Environment.ContentRootPath, "App_Data", "dpkeys");
+Directory.CreateDirectory(dpKeysPath);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dpKeysPath))
+    .SetApplicationName("OrdoWiki");
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -52,6 +96,10 @@ builder.Services
     .AddClaimsPrincipalFactory<OrdoWikiUserClaimsPrincipalFactory>();
 
 WebApplication app = builder.Build();
+
+// Must be the very first middleware so HttpsRedirection / HSTS / Auth see the
+// real client scheme + IP from Caddy.
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
     app.UseMigrationsEndPoint();
