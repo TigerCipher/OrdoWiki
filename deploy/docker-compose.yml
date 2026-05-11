@@ -1,4 +1,17 @@
 services:
+  # Docker named volumes are created with root ownership and don't inherit
+  # permissions from the image's mount point. The app container runs as UID 1000
+  # and would otherwise fail to write to /data/dpkeys or /data/uploads.
+  init-perms:
+    image: alpine:3
+    container_name: ordowiki-init-perms
+    restart: "no"
+    user: root
+    command: ["sh", "-c", "chown -R 1000:1000 /data/dpkeys /data/uploads && chmod 700 /data/dpkeys"]
+    volumes:
+      - dpkeys:/data/dpkeys
+      - uploads:/data/uploads
+
   migrator:
     image: ghcr.io/${GHCR_OWNER}/ordowiki:${IMAGE_TAG:-latest}
     container_name: ordowiki-migrator
@@ -31,6 +44,8 @@ services:
       postgres:
         condition: service_healthy
       migrator:
+        condition: service_completed_successfully
+      init-perms:
         condition: service_completed_successfully
     networks: [internal]
 
