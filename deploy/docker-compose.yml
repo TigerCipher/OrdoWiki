@@ -7,7 +7,7 @@ services:
     container_name: ordowiki-init-perms
     restart: "no"
     user: root
-    command: ["sh", "-c", "chown -R 1000:1000 /data/dpkeys /data/uploads && chmod 700 /data/dpkeys"]
+    command: ["sh", "-c", "chown -R 1654:1654 /data/dpkeys /data/uploads && chmod 700 /data/dpkeys"]
     volumes:
       - dpkeys:/data/dpkeys
       - uploads:/data/uploads

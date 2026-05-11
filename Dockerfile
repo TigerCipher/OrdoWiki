@@ -17,11 +17,11 @@ RUN dotnet publish src/OrdoWiki.Web/OrdoWiki.Web.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 
-# The aspnet base image ships with a non-root user at UID/GID 1000 (exposed as $APP_UID).
+# The aspnet base image ships with a non-root user `app` at UID/GID 1654 (exposed as $APP_UID).
 RUN mkdir -p /data/uploads /data/dpkeys && \
-    chown -R 1000:1000 /app /data
+    chown -R 1654:1654 /app /data
 
-COPY --from=build --chown=1000:1000 /app .
+COPY --from=build --chown=1654:1654 /app .
 USER $APP_UID
 
 ENV ASPNETCORE_URLS=http://+:8080
