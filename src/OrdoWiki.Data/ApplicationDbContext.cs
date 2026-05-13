@@ -20,6 +20,7 @@ public class ApplicationDbContext(
     public DbSet<TimelineEvent> TimelineEvents => Set<TimelineEvent>();
     public DbSet<Banner> Banners => Set<Banner>();
     public DbSet<SiteTheme> SiteThemes => Set<SiteTheme>();
+    public DbSet<HomePage> HomePages => Set<HomePage>();
     public DbSet<CustomThemeVariable> CustomThemeVariables => Set<CustomThemeVariable>();
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<WikiPageTag> WikiPageTags => Set<WikiPageTag>();

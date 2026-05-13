@@ -1,0 +1,49 @@
+.Home .bio-body {
+    background-color: var(--color-surface);
+}
+
+.Home .featured-card {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.Home .featured-card:hover .mud-paper {
+    border-color: var(--color-accent);
+}
+
+.Home .featured-title {
+    color: var(--color-accent);
+}
+
+.Home .recent-carousel {
+    background-color: var(--color-surface);
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: var(--mud-default-borderradius);
+    overflow: hidden;
+}
+
+.Home .event-slide {
+    display: block;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+}
+
+.Home .event-slide-body {
+    height: 100%;
+    justify-content: center;
+    /* Leave room for the carousel's left/right arrow buttons (~48px each). */
+    padding-inline: 64px;
+}
+
+.Home .event-slide-title {
+    color: var(--color-accent);
+}
+
+.Home .event-slide-summary {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

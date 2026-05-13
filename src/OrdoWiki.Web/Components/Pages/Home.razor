@@ -1,4 +1,7 @@
 @page "/"
+@using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Auth
+@using OrdoWiki.Web.Components.Shared
 
 @rendermode InteractiveServer
 
@@ -8,20 +11,158 @@
     <MudText Typo="Typo.h4">Clan Ordo</MudText>
 </SectionContent>
 
-<div class="Home">
-    <MudPaper Class="pa-6" Elevation="2">
-        <MudText Typo="Typo.body1" Class="mb-4">
-            OrdoWiki — Connection to Postgres verified.
-        </MudText>
-        
-        <div class="y-stack gap-4">
-            @for (int i = 0; i < 25; i++)
+<div class="Home y-stack gap-6">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else
+    {
+        <section class="bio-section y-stack gap-3">
+            <div class="x-stack align-center">
+                <MudText Typo="Typo.h5" Class="fill-space">About Clan Ordo</MudText>
+                <AuthorizeView Roles="@Roles.Admin">
+                    @if (!_editingBio)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       OnClick="@StartEditBio"
+                                       UserAttributes="@(new Dictionary<string, object?> { { "aria-label", "Edit bio" } })"/>
+                    }
+                </AuthorizeView>
+            </div>
+
+            @if (_editingBio)
             {
-                <MudText Typo="Typo.body1">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam luctus arcu condimentum eros luctus, vel suscipit est dictum. Duis tristique semper pulvinar. Donec rutrum magna sit amet sollicitudin suscipit. Aliquam scelerisque interdum tempor. Ut augue turpis, tincidunt viverra justo sed, suscipit euismod lacus. Nam sit amet mi nec elit convallis varius. Praesent sit amet tortor ac tellus viverra tincidunt molestie sed odio. Donec nisi nisi, tincidunt ac ipsum eget, molestie venenatis sem.
-                </MudText>
+                <MarkdownEditor @bind-Value="_bioDraft"
+                                Label="Bio"
+                                Placeholder="Tell visitors about Clan Ordo..."
+                                Lines="8"/>
+                <div class="x-stack gap-2 push-right">
+                    <MudButton OnClick="@CancelBio" Variant="Variant.Outlined">Cancel</MudButton>
+                    <MudButton OnClick="@SaveBioAsync"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Disabled="@_saving">
+                        @(_saving ? "Saving..." : "Save")
+                    </MudButton>
+                </div>
             }
-        </div>
-        
-    </MudPaper>
+            else
+            {
+                <MudPaper Outlined="true" Class="bio-body pa-4">
+                    @if (!string.IsNullOrWhiteSpace(_home.BioHtml))
+                    {
+                        <div class="markdown-body">@((MarkupString)_home.BioHtml)</div>
+                    }
+                    else
+                    {
+                        <MudText Color="Color.Tertiary">
+                            No bio yet. <AuthorizeView Roles="@Roles.Admin"><span>Click the pencil to add one.</span></AuthorizeView>
+                        </MudText>
+                    }
+                </MudPaper>
+            }
+        </section>
+
+        <section class="featured-section y-stack gap-3">
+            <div class="x-stack align-center">
+                <MudText Typo="Typo.h5" Class="fill-space">Featured Log</MudText>
+                <AuthorizeView Roles="@Roles.Admin">
+                    @if (!_editingFeatured)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       OnClick="@StartEditFeatured"
+                                       UserAttributes="@(new Dictionary<string, object?> { { "aria-label", "Choose featured log" } })"/>
+                    }
+                </AuthorizeView>
+            </div>
+
+            @if (_editingFeatured)
+            {
+                <MudAutocomplete T="WikiPageDto"
+                                 Value="_featuredDraft"
+                                 ValueChanged="@(v => _featuredDraft = v)"
+                                 SearchFunc="@SearchPagesAsync"
+                                 ToStringFunc="@(p => p?.Title ?? string.Empty)"
+                                 Label="Featured log"
+                                 Placeholder="Search by title..."
+                                 Variant="Variant.Outlined"
+                                 Clearable="true"
+                                 CoerceText="false"
+                                 CoerceValue="false"/>
+                <div class="x-stack gap-2 push-right">
+                    <MudButton OnClick="@CancelFeatured" Variant="Variant.Outlined">Cancel</MudButton>
+                    <MudButton OnClick="@SaveFeaturedAsync"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Disabled="@_saving">
+                        @(_saving ? "Saving..." : "Save")
+                    </MudButton>
+                </div>
+            }
+            else if (_home.FeaturedLog is { } featured)
+            {
+                <a href="@($"/logs/{featured.Slug}")" class="featured-card">
+                    <MudPaper Outlined="true" Class="pa-4 y-stack gap-2">
+                        <MudText Typo="Typo.h6" Class="featured-title">@featured.Title</MudText>
+                        @if (!string.IsNullOrWhiteSpace(featured.Summary))
+                        {
+                            <MudText Color="Color.Tertiary">@featured.Summary</MudText>
+                        }
+                        <div class="x-stack gap-2 align-center featured-meta">
+                            <MudText Typo="Typo.caption" Color="Color.Tertiary">by @featured.CreatorName</MudText>
+                        </div>
+                    </MudPaper>
+                </a>
+            }
+            else
+            {
+                <MudPaper Outlined="true" Class="pa-4">
+                    <MudText Color="Color.Tertiary">No featured log selected.</MudText>
+                </MudPaper>
+            }
+        </section>
+
+        <section class="recent-section y-stack gap-3">
+            <MudText Typo="Typo.h5">Recent Events</MudText>
+
+            @if (_home.RecentEvents.Count == 0)
+            {
+                <MudPaper Outlined="true" Class="pa-4">
+                    <MudText Color="Color.Tertiary">No timeline events yet.</MudText>
+                </MudPaper>
+            }
+            else
+            {
+                <MudCarousel TData="TimelineEventDto"
+                             Class="recent-carousel"
+                             Style="height:240px"
+                             ShowArrows="true"
+                             ShowBullets="true"
+                             AutoCycle="true"
+                             AutoCycleTime="@TimeSpan.FromSeconds(8)"
+                             EnableSwipeGesture="true">
+                    @foreach (TimelineEventDto ev in _home.RecentEvents)
+                    {
+                        <MudCarouselItem Transition="Transition.Fade">
+                            <a href="@($"/timeline/{ev.Id}")" class="event-slide">
+                                <div class="event-slide-body y-stack gap-2 py-6">
+                                    <MudText Typo="Typo.overline" Color="Color.Tertiary">@ev.DisplayDate</MudText>
+                                    <MudText Typo="Typo.h5" Class="event-slide-title">@ev.Title</MudText>
+                                    @if (!string.IsNullOrWhiteSpace(ev.Summary))
+                                    {
+                                        <MudText Class="event-slide-summary">@ev.Summary</MudText>
+                                    }
+                                </div>
+                            </a>
+                        </MudCarouselItem>
+                    }
+                </MudCarousel>
+            }
+        </section>
+    }
 </div>
