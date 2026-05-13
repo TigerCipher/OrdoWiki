@@ -1,11 +1,8 @@
 @page "/timeline/{Id:guid}"
-@using Microsoft.AspNetCore.Authorization
 @using OrdoWiki.Data.Auth
 @using OrdoWiki.Web.Components.Shared
 
 @rendermode InteractiveServer
-
-@attribute [Authorize]
 
 <PageTitle>OrdoWiki | Timeline | @_event.Title</PageTitle>
 

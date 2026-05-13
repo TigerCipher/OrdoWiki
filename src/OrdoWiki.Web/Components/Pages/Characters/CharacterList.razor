@@ -4,18 +4,18 @@
 
 @rendermode InteractiveServer
 
-@attribute [Authorize]
-
 <PageTitle>OrdoWiki | Characters</PageTitle>
 
 <SectionContent SectionName="page-header">
     <div class="x-stack gap-2 align-center">
         <MudText Typo="Typo.h4" Class="fill-space">Characters</MudText>
-        <MudButton Href="/characters/mine"
-                   Variant="Variant.Outlined"
-                   StartIcon="@Icons.Material.Filled.Person">
-            My characters
-        </MudButton>
+        <AuthorizeView>
+            <MudButton Href="/characters/mine"
+                       Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.Person">
+                My characters
+            </MudButton>
+        </AuthorizeView>
     </div>
 </SectionContent>
 

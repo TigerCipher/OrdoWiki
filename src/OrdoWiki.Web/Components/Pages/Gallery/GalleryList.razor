@@ -6,8 +6,6 @@
 
 @rendermode InteractiveServer
 
-@attribute [Authorize]
-
 <PageTitle>OrdoWiki | Gallery</PageTitle>
 
 <SectionContent SectionName="page-header">
@@ -55,13 +53,15 @@
             }
         </MudSelect>
 
-        <MudButton Class="push-right"
-                   OnClick="@OpenUploadAsync"
-                   Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   StartIcon="@Icons.Material.Filled.Upload">
-            Upload
-        </MudButton>
+        <AuthorizeView>
+            <MudButton Class="push-right"
+                       OnClick="@OpenUploadAsync"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Upload">
+                Upload
+            </MudButton>
+        </AuthorizeView>
     </div>
 
     @if (_loading)
