@@ -10,7 +10,7 @@
     <div class="TimelineViewerHeader x-stack gap-2">
         <MudText Typo="Typo.h4" Class="fill-space">@_event.Title</MudText>
         <AuthorizeView Policy="@Policies.CanEdit">
-            <MudButton Href="@($"/timeline/{_event.Id}/edit")"
+            <MudButton Href="@($"/timeline/{Id}/edit")"
                        StartIcon="@Icons.Material.Filled.Edit"
                        Color="Color.Primary"
                        Variant="Variant.Filled">
