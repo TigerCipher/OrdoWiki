@@ -139,6 +139,43 @@ window.ordoEditor = {
         ta.dispatchEvent(new Event("input", { bubbles: true }));
     },
 
+    // Inserts a footnote reference at the cursor and appends `[^N]: ...` to
+    // the end of the document. Picks the next free `N` by scanning for any
+    // existing `[^N]:` definitions.
+    insertFootnote: (elementId, defaultText) => {
+        const ta = document.getElementById(elementId);
+        if (!ta) return;
+
+        // Find the highest existing footnote number, default to 0 if none.
+        const defs = ta.value.matchAll(/^\[\^(\d+)\]:/gm);
+        let next = 1;
+        for (const m of defs) {
+            const n = parseInt(m[1], 10);
+            if (n >= next) next = n + 1;
+        }
+
+        const marker = `[^${next}]`;
+        const start = ta.selectionStart ?? 0;
+        const end = ta.selectionEnd ?? 0;
+        const before = ta.value.substring(0, start);
+        const after = ta.value.substring(end);
+
+        // Insert the reference at the cursor.
+        let next_value = before + marker + after;
+
+        // Append the definition at the bottom, separated by a blank line.
+        const trailingNewlines = next_value.endsWith("\n\n") ? "" : next_value.endsWith("\n") ? "\n" : "\n\n";
+        const definition = `[^${next}]: ${defaultText}`;
+        next_value = next_value + trailingNewlines + definition;
+
+        ta.value = next_value;
+        ta.focus();
+        // Place caret right after the inserted marker so they can keep typing.
+        const newCursor = before.length + marker.length;
+        ta.selectionStart = ta.selectionEnd = newCursor;
+        ta.dispatchEvent(new Event("input", { bubbles: true }));
+    },
+
     // Inserts arbitrary text at a captured (start, end) range without going
     // through C# string manipulation. Used by the image upload flow, where
     // the cursor was captured before a dialog stole focus.

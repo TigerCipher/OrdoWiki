@@ -51,6 +51,10 @@
                        Size="Size.Small"
                        OnClick="@StrikethroughAsync"
                        UserAttributes="@Attrs("Strikethrough")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.FormatColorFill"
+                       Size="Size.Small"
+                       OnClick="@HighlightAsync"
+                       UserAttributes="@Attrs("Highlight")"/>
 
         <MudDivider Vertical="true" FlexItem="true" Class="divider"/>
 
@@ -73,10 +77,38 @@
                        Size="Size.Small"
                        OnClick="@NumberedListAsync"
                        UserAttributes="@Attrs("Numbered list")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.Checklist"
+                       Size="Size.Small"
+                       OnClick="@TaskListAsync"
+                       UserAttributes="@Attrs("Task list")"/>
+
+        <MudDivider Vertical="true" FlexItem="true" Class="divider"/>
+
         <MudIconButton Icon="@Icons.Material.Filled.FormatQuote"
                        Size="Size.Small"
                        OnClick="@QuoteAsync"
                        UserAttributes="@Attrs("Block quote")"/>
+        <MudMenu Icon="@Icons.Material.Filled.Campaign"
+                 Size="Size.Small"
+                 Dense="true"
+                 AriaLabel="Callout"
+                 ActivationEvent="@MouseEvent.LeftClick">
+            <MudMenuItem OnClick="@(() => CalloutAsync("note"))">
+                <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" Class="mr-2"/> Note
+            </MudMenuItem>
+            <MudMenuItem OnClick="@(() => CalloutAsync("tip"))">
+                <MudIcon Icon="@Icons.Material.Filled.Lightbulb" Size="Size.Small" Class="mr-2"/> Tip
+            </MudMenuItem>
+            <MudMenuItem OnClick="@(() => CalloutAsync("important"))">
+                <MudIcon Icon="@Icons.Material.Filled.PriorityHigh" Size="Size.Small" Class="mr-2"/> Important
+            </MudMenuItem>
+            <MudMenuItem OnClick="@(() => CalloutAsync("warning"))">
+                <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Class="mr-2"/> Warning
+            </MudMenuItem>
+            <MudMenuItem OnClick="@(() => CalloutAsync("caution"))">
+                <MudIcon Icon="@Icons.Material.Filled.ReportProblem" Size="Size.Small" Class="mr-2"/> Caution
+            </MudMenuItem>
+        </MudMenu>
 
         <MudDivider Vertical="true" FlexItem="true" Class="divider"/>
 
@@ -99,6 +131,17 @@
                        Size="Size.Small"
                        OnClick="@HorizontalRuleAsync"
                        UserAttributes="@Attrs("Horizontal rule")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.ExpandMore"
+                       Size="Size.Small"
+                       OnClick="@DetailsAsync"
+                       UserAttributes="@Attrs("Collapsible section")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.Bookmark"
+                       Size="Size.Small"
+                       OnClick="@FootnoteAsync"
+                       UserAttributes="@Attrs("Footnote")"/>
+
+        <MudDivider Vertical="true" FlexItem="true" Class="divider"/>
+
         <MudIconButton Icon="@Icons.Material.Filled.SubdirectoryArrowLeft"
                        Size="Size.Small"
                        OnClick="@ParagraphAsync"

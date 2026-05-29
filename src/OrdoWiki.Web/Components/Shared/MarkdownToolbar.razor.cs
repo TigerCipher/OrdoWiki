@@ -58,8 +58,14 @@ public partial class MarkdownToolbar
     private Task NumberedListAsync()
         => JsRuntime.InvokeVoidAsync("ordoEditor.prefixLines", EditorId, string.Empty, true).AsTask();
 
+    private Task TaskListAsync()
+        => JsRuntime.InvokeVoidAsync("ordoEditor.prefixLines", EditorId, "- [ ] ", false).AsTask();
+
     private Task QuoteAsync()
         => JsRuntime.InvokeVoidAsync("ordoEditor.prefixLines", EditorId, "> ", false).AsTask();
+
+    private Task HighlightAsync()
+        => JsRuntime.InvokeVoidAsync("ordoEditor.wrapSelection", EditorId, "==", "==", "highlighted").AsTask();
 
     private Task SetHeadingAsync(int level)
     {
@@ -90,6 +96,33 @@ public partial class MarkdownToolbar
 
     private Task LinkAsync()
         => JsRuntime.InvokeVoidAsync("ordoEditor.insertLink", EditorId, "link text", "https://").AsTask();
+
+    // GitHub-style callouts: rendered as a colored box with an icon. Five flavors.
+    private Task CalloutAsync(string kind)
+    {
+        string upper = kind.ToUpperInvariant();
+        string body = $"> [!{upper}]\n> {DefaultCalloutBody(kind)}";
+        return JsRuntime.InvokeVoidAsync("ordoEditor.insertBlock", EditorId, body).AsTask();
+    }
+
+    private static string DefaultCalloutBody(string kind) => kind.ToLowerInvariant() switch
+    {
+        "note" => "Useful information that users should know, even when skimming.",
+        "tip" => "Helpful advice for doing things better or more easily.",
+        "important" => "Key information users need to know to achieve their goal.",
+        "warning" => "Urgent info that needs immediate user attention to avoid problems.",
+        "caution" => "Advises about risks or negative outcomes of certain actions.",
+        _ => "…",
+    };
+
+    private Task DetailsAsync()
+    {
+        const string block = "<details>\n<summary>Click to expand</summary>\n\nHidden content here.\n\n</details>";
+        return JsRuntime.InvokeVoidAsync("ordoEditor.insertBlock", EditorId, block).AsTask();
+    }
+
+    private Task FootnoteAsync()
+        => JsRuntime.InvokeVoidAsync("ordoEditor.insertFootnote", EditorId, "Add the footnote text here.").AsTask();
 
     private async Task OpenImageUploadAsync()
     {
