@@ -1,12 +1,10 @@
 <MudDialog Class="MarkdownEditorDialog" DefaultFocus="DefaultFocus.FirstChild">
     <TitleContent>
-        <div class="x-stack align-center gap-2">
-            <MudText Typo="Typo.h6" Class="grow">@Label</MudText>
-            @if (_uploading)
-            {
-                <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary"/>
-            }
-        </div>
+        <MarkdownToolbar @ref="_toolbar"
+                         EditorId="@_editorId"
+                         Label="@Label"
+                         SourceType="@SourceType"
+                         SourceId="@SourceId"/>
     </TitleContent>
     <DialogContent>
         <div class="split">

@@ -1,0 +1,25 @@
+.MarkdownToolbar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.MarkdownToolbar .grow {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.MarkdownToolbar .format-row {
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
+    column-gap: 2px;
+    padding: 4px 8px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: var(--mud-default-borderradius);
+}
+
+.MarkdownToolbar .divider {
+    height: 24px;
+    margin: 0 4px;
+}

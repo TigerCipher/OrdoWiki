@@ -1,0 +1,111 @@
+@using OrdoWiki.Web.Components.Shared.Dialogs
+
+<div class="MarkdownToolbar">
+    <div class="x-stack align-center gap-2 title-row">
+        @if (!string.IsNullOrEmpty(Label))
+        {
+            <MudText Typo="Typo.subtitle2" Class="grow">@Label</MudText>
+        }
+        else
+        {
+            <div class="grow"></div>
+        }
+        @if (_uploading)
+        {
+            <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary"/>
+        }
+        @if (ShowFullscreen)
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Fullscreen"
+                           Size="Size.Small"
+                           OnClick="@OnFullscreen"
+                           UserAttributes="@Attrs("Expand editor")"/>
+        }
+    </div>
+
+    <div class="format-row x-stack align-center">
+        <MudMenu Icon="@Icons.Material.Filled.Title"
+                 Size="Size.Small"
+                 Dense="true"
+                 AriaLabel="Heading"
+                 ActivationEvent="@MouseEvent.LeftClick">
+            <MudMenuItem OnClick="@(() => SetHeadingAsync(1))">Heading 1</MudMenuItem>
+            <MudMenuItem OnClick="@(() => SetHeadingAsync(2))">Heading 2</MudMenuItem>
+            <MudMenuItem OnClick="@(() => SetHeadingAsync(3))">Heading 3</MudMenuItem>
+            <MudMenuItem OnClick="@(() => SetHeadingAsync(4))">Heading 4</MudMenuItem>
+            <MudMenuItem OnClick="@(() => SetHeadingAsync(5))">Heading 5</MudMenuItem>
+            <MudMenuItem OnClick="@(() => SetHeadingAsync(6))">Heading 6</MudMenuItem>
+        </MudMenu>
+
+        <MudDivider Vertical="true" FlexItem="true" Class="divider"/>
+
+        <MudIconButton Icon="@Icons.Material.Filled.FormatBold"
+                       Size="Size.Small"
+                       OnClick="@BoldAsync"
+                       UserAttributes="@Attrs("Bold")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.FormatItalic"
+                       Size="Size.Small"
+                       OnClick="@ItalicAsync"
+                       UserAttributes="@Attrs("Italic")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.StrikethroughS"
+                       Size="Size.Small"
+                       OnClick="@StrikethroughAsync"
+                       UserAttributes="@Attrs("Strikethrough")"/>
+
+        <MudDivider Vertical="true" FlexItem="true" Class="divider"/>
+
+        <MudIconButton Icon="@Icons.Material.Filled.Link"
+                       Size="Size.Small"
+                       OnClick="@LinkAsync"
+                       UserAttributes="@Attrs("Insert link")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.Image"
+                       Size="Size.Small"
+                       OnClick="@OpenImageUploadAsync"
+                       UserAttributes="@Attrs("Insert image")"/>
+
+        <MudDivider Vertical="true" FlexItem="true" Class="divider"/>
+
+        <MudIconButton Icon="@Icons.Material.Filled.FormatListBulleted"
+                       Size="Size.Small"
+                       OnClick="@BulletListAsync"
+                       UserAttributes="@Attrs("Bulleted list")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.FormatListNumbered"
+                       Size="Size.Small"
+                       OnClick="@NumberedListAsync"
+                       UserAttributes="@Attrs("Numbered list")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.FormatQuote"
+                       Size="Size.Small"
+                       OnClick="@QuoteAsync"
+                       UserAttributes="@Attrs("Block quote")"/>
+
+        <MudDivider Vertical="true" FlexItem="true" Class="divider"/>
+
+        <MudIconButton Icon="@Icons.Material.Filled.Code"
+                       Size="Size.Small"
+                       OnClick="@InlineCodeAsync"
+                       UserAttributes="@Attrs("Inline code")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.DataObject"
+                       Size="Size.Small"
+                       OnClick="@CodeBlockAsync"
+                       UserAttributes="@Attrs("Code block")"/>
+
+        <MudDivider Vertical="true" FlexItem="true" Class="divider"/>
+
+        <MudIconButton Icon="@Icons.Material.Filled.TableChart"
+                       Size="Size.Small"
+                       OnClick="@TableAsync"
+                       UserAttributes="@Attrs("Insert table")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.HorizontalRule"
+                       Size="Size.Small"
+                       OnClick="@HorizontalRuleAsync"
+                       UserAttributes="@Attrs("Horizontal rule")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.SubdirectoryArrowLeft"
+                       Size="Size.Small"
+                       OnClick="@ParagraphAsync"
+                       UserAttributes="@Attrs("New paragraph")"/>
+        <MudIconButton Icon="@Icons.Material.Filled.FormatIndentIncrease"
+                       Size="Size.Small"
+                       OnClick="@IndentParagraphAsync"
+                       UserAttributes="@Attrs("Indent paragraph (first line)")"/>
+    </div>
+</div>

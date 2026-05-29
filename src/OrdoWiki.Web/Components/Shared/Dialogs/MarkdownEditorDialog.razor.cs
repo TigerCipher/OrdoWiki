@@ -13,7 +13,7 @@ public partial class MarkdownEditorDialog
     private readonly string _dropInputId = $"md-drop-dlg-{Guid.NewGuid():N}";
     private string _value = string.Empty;
     private string _renderedHtml = string.Empty;
-    private bool _uploading;
+    private MarkdownToolbar? _toolbar;
 
     [CascadingParameter]
     public IMudDialogInstance MudDialog { get; set; } = null!;
@@ -77,8 +77,7 @@ public partial class MarkdownEditorDialog
         // The browser places the caret at the drop location, so this reads the right spot.
         CursorPosition cursor = await GetCursorAsync();
 
-        _uploading = true;
-        StateHasChanged();
+        _toolbar?.SetUploading(true);
         try
         {
             await using Stream stream = file.OpenReadStream(MediaLimits.MaxImageBytes);
@@ -91,26 +90,17 @@ public partial class MarkdownEditorDialog
                 return;
             }
 
-            await InsertAtAsync(cursor, $"![]({response.Value.StoragePath})");
+            await JsRuntime.InvokeVoidAsync(
+                "ordoEditor.insertAtRange",
+                _editorId,
+                cursor.Start,
+                cursor.End,
+                $"![]({response.Value.StoragePath})");
         }
         finally
         {
-            _uploading = false;
-            StateHasChanged();
+            _toolbar?.SetUploading(false);
         }
-    }
-
-    private async Task InsertAtAsync(CursorPosition cursor, string text)
-    {
-        string before = _value[..Math.Min(cursor.Start, _value.Length)];
-        string after = cursor.End <= _value.Length ? _value[cursor.End..] : string.Empty;
-        string updated = before + text + after;
-
-        _value = updated;
-        _renderedHtml = Markdown.Render(updated);
-
-        StateHasChanged();
-        await JsRuntime.InvokeVoidAsync("ordoEditor.setCursor", _editorId, before.Length + text.Length);
     }
 
     private async Task<CursorPosition> GetCursorAsync()

@@ -1,19 +1,11 @@
 <div class="MarkdownEditor y-stack gap-2">
-    <div class="x-stack toolbar align-center">
-        <MudText Typo="Typo.subtitle2" Class="grow">@Label</MudText>
-        @if (_uploading)
-        {
-            <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary"/>
-        }
-        <MudIconButton Icon="@Icons.Material.Filled.Image"
-                       Size="Size.Small"
-                       OnClick="@OpenImageUploadAsync"
-                       UserAttributes="@(new Dictionary<string, object?> { { "aria-label", "Insert image" }, { "title", "Insert image" } })"/>
-        <MudIconButton Icon="@Icons.Material.Filled.Fullscreen"
-                       Size="Size.Small"
-                       OnClick="@OpenFullscreenAsync"
-                       UserAttributes="@(new Dictionary<string, object?> { { "aria-label", "Expand editor" }, { "title", "Expand editor" } })"/>
-    </div>
+    <MarkdownToolbar @ref="_toolbar"
+                     EditorId="@_editorId"
+                     Label="@Label"
+                     SourceType="@SourceType"
+                     SourceId="@SourceId"
+                     ShowFullscreen="true"
+                     OnFullscreen="@OpenFullscreenAsync"/>
 
     <div class="split">
         <MudTextField T="string"

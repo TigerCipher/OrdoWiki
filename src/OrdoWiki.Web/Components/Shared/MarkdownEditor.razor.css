@@ -1,14 +1,3 @@
-.MarkdownEditor {
-}
-
-.MarkdownEditor .toolbar {
-    align-items: center;
-}
-
-.MarkdownEditor .grow {
-    flex: 1 1 auto;
-}
-
 /* Fixed-size split. Both `minmax(0, 1fr)` axes (rows AND columns) are critical:
      - columns: bare `1fr` lets a wide preview track steal width and collapse
        the editor's textarea to ~1 char.
