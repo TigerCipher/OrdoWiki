@@ -12,7 +12,8 @@ public class CharacterService(
     ApplicationDbContext context,
     IUserService userService,
     IMediaService mediaService,
-    ITagService tagService) : ICharacterService
+    ITagService tagService,
+    IRelatedItemsService relatedItemsService) : ICharacterService
 {
     public async Task<ApiResponse<CharacterDto>> GetCharacterByIdAsync(Guid id)
     {
@@ -205,6 +206,8 @@ public class CharacterService(
 
         ApiResponse<bool> editCheck = await CanEditCharacterAsync(character.Id);
         if (!editCheck.Success) return Forbidden<bool>(editCheck.Error);
+
+        await relatedItemsService.DeleteAllForAsync(Data.Entities.RelatedItemKind.Character, character.Id);
 
         context.Characters.Remove(character);
         await context.SaveChangesAsync();

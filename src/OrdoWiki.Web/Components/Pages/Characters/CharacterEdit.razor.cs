@@ -1,6 +1,7 @@
 namespace OrdoWiki.Web.Components.Pages.Characters;
 
 using Data.Auth;
+using Data.Entities;
 using Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -16,12 +17,16 @@ public partial class CharacterEdit
     private bool _saving;
     private int? _imageCap;
     private IReadOnlyList<string> _tagNames = [];
+    private RelatedItemsDto _related = new();
 
     [Parameter, EditorRequired]
     public required string Slug { get; set; }
 
     [Inject]
     private ICharacterService CharacterService { get; set; } = null!;
+
+    [Inject]
+    private IRelatedItemsService RelatedItemsService { get; set; } = null!;
 
     [Inject]
     private NavigationManager Navigation { get; set; } = null!;
@@ -49,6 +54,7 @@ public partial class CharacterEdit
         _character = response;
         _originalName = _character.Name;
         _tagNames = _character.Tags.Select(t => t.Name).ToList();
+        _related = await RelatedItemsService.GetForAsync(RelatedItemKind.Character, _character.Id);
 
         ApiResponse<bool> editCheck = await CharacterService.CanEditCharacterAsync(_character.Id);
         _canEdit = editCheck.Success && editCheck.Value;
@@ -83,6 +89,15 @@ public partial class CharacterEdit
                 return;
             }
 
+            ApiResponse<RelatedItemsDto> relResponse = await RelatedItemsService.SetForAsync(
+                RelatedItemKind.Character, _character.Id, BuildRelatedRequest());
+
+            if (!relResponse.Success)
+            {
+                Snackbar.Add($"Saved character, but failed to save related items: {relResponse.Error}", Severity.Warning);
+                return;
+            }
+
             Snackbar.Add("Character saved", Severity.Success);
 
             if (response.Value.Slug != Slug)
@@ -99,6 +114,13 @@ public partial class CharacterEdit
             _saving = false;
         }
     }
+
+    private SetRelatedItemsRequest BuildRelatedRequest() => new()
+    {
+        CharacterIds = _related.Characters.Select(r => r.Id).ToList(),
+        LogIds = _related.Logs.Select(r => r.Id).ToList(),
+        TimelineEventIds = _related.TimelineEvents.Select(r => r.Id).ToList(),
+    };
 
     private async Task DeleteAsync()
     {

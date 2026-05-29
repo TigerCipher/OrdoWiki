@@ -1,5 +1,6 @@
 namespace OrdoWiki.Web.Components.Pages.Timeline;
 
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -9,12 +10,16 @@ public partial class TimelineViewer
     private string _renderedHtml = string.Empty;
     private bool _showEditedRow;
     private bool _loading = true;
+    private RelatedItemsDto _related = new();
 
     [Parameter, EditorRequired]
     public required Guid Id { get; set; }
 
     [Inject]
     private ITimelineService TimelineService { get; set; } = null!;
+
+    [Inject]
+    private IRelatedItemsService RelatedItemsService { get; set; } = null!;
 
     [Inject]
     private IMarkdownService Markdown { get; set; } = null!;
@@ -40,6 +45,7 @@ public partial class TimelineViewer
         _event = response;
         _renderedHtml = Markdown.Render(_event.MarkdownBody);
         _showEditedRow = _event.UpdatedAt - _event.CreatedAt > TimeSpan.FromSeconds(5);
+        _related = await RelatedItemsService.GetForAsync(RelatedItemKind.TimelineEvent, Id);
         _loading = false;
     }
 }

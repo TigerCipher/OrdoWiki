@@ -79,5 +79,10 @@
         {
             <MudText Typo="Typo.body2" Color="Color.Tertiary">No content yet.</MudText>
         }
+
+        @if (!_related.IsEmpty)
+        {
+            <SeeAlsoSection Value="_related"/>
+        }
     }
 </div>

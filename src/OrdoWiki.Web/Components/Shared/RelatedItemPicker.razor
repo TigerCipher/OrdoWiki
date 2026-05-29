@@ -1,0 +1,43 @@
+@using OrdoWiki.Data.Entities
+
+<div class="RelatedItemPicker y-stack gap-1">
+    <MudText Typo="Typo.caption" Color="Color.Tertiary">@Label</MudText>
+
+    <MudPaper Outlined="true" Class="picker pa-2">
+        <div class="x-stack align-center wrap gap-1">
+            @foreach (RelatedItemRef item in _selected)
+            {
+                <MudChip T="string"
+                         Color="Color.Secondary"
+                         Variant="Variant.Filled"
+                         Size="Size.Small"
+                         OnClose="@(() => RemoveAsync(item))"
+                         CloseIcon="@Icons.Material.Filled.Close">
+                    @item.Label
+                </MudChip>
+            }
+
+            <MudAutocomplete T="RelatedItemRef"
+                             @ref="_input"
+                             Value="null"
+                             ValueChanged="OnPickedAsync"
+                             SearchFunc="SearchAsync"
+                             ToStringFunc="@(r => r?.Label ?? string.Empty)"
+                             Placeholder="@(_selected.Count == 0 ? Placeholder : "Add another…")"
+                             Variant="Variant.Text"
+                             Margin="Margin.Dense"
+                             Class="picker-input"
+                             Adornment="Adornment.Start"
+                             AdornmentIcon="@Icons.Material.Filled.Search"
+                             AdornmentColor="Color.Tertiary"
+                             OpenOnFocus="true"
+                             MinCharacters="0"
+                             MaxItems="50"
+                             ResetValueOnEmptyText="true"
+                             CoerceText="false"
+                             CoerceValue="false"
+                             DebounceInterval="200"
+                             ShowProgressIndicator="true"/>
+        </div>
+    </MudPaper>
+</div>

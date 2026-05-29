@@ -1,6 +1,7 @@
 @page "/timeline/{Id:guid}/edit"
 @using Microsoft.AspNetCore.Authorization
 @using OrdoWiki.Data.Auth
+@using OrdoWiki.Data.Entities
 @using OrdoWiki.Web.Components.Shared
 
 @rendermode InteractiveServer
@@ -49,6 +50,10 @@
         <MarkdownEditor @bind-Value="_body"
                         Label="Description"
                         Placeholder="What happened? (markdown supported)"/>
+
+        <RelatedItemsEditor @bind-Value="_related"
+                            SelfKind="RelatedItemKind.TimelineEvent"
+                            SelfId="@Id"/>
 
         <div class="x-stack gap-2">
             <MudButton Color="Color.Error"

@@ -1,5 +1,6 @@
 @page "/characters/new"
 @using Microsoft.AspNetCore.Authorization
+@using OrdoWiki.Data.Entities
 @using OrdoWiki.Web.Components.Shared
 
 @rendermode InteractiveServer
@@ -59,6 +60,9 @@
         <MarkdownEditor @bind-Value="@_body"
                         Label="Backstory"
                         Placeholder="Tell us about this character (markdown supported)"/>
+
+        <RelatedItemsEditor @bind-Value="_related"
+                            SelfKind="RelatedItemKind.Character"/>
 
         <MudButton Class="push-right"
                    Color="Color.Primary"

@@ -56,6 +56,10 @@
                         SourceType="MediaSourceType.WikiPage"
                         SourceId="@_page.Id"/>
 
+        <RelatedItemsEditor @bind-Value="_related"
+                            SelfKind="RelatedItemKind.Log"
+                            SelfId="@_page.Id"/>
+
         <MudTextField T="string"
                       @bind-Value="@_editSummary"
                       Label="Edit Summary"

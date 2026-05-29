@@ -27,6 +27,7 @@ public class ApplicationDbContext(
     public DbSet<CharacterTag> CharacterTags => Set<CharacterTag>();
     public DbSet<MediaAssetTag> MediaAssetTags => Set<MediaAssetTag>();
     public DbSet<TimelineEventTag> TimelineEventTags => Set<TimelineEventTag>();
+    public DbSet<RelatedItem> RelatedItems => Set<RelatedItem>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

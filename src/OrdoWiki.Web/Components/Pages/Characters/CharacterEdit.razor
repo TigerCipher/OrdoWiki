@@ -58,6 +58,10 @@
                         SourceType="MediaSourceType.Character"
                         SourceId="@_character.Id"/>
 
+        <RelatedItemsEditor @bind-Value="_related"
+                            SelfKind="RelatedItemKind.Character"
+                            SelfId="@_character.Id"/>
+
         <div class="x-stack gap-2">
             <MudButton Color="Color.Error"
                        Variant="Variant.Outlined"

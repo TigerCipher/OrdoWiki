@@ -1,5 +1,6 @@
-﻿namespace OrdoWiki.Web.Components.Pages.Wiki;
+namespace OrdoWiki.Web.Components.Pages.Wiki;
 
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Shared.Dialogs;
@@ -11,12 +12,16 @@ public partial class LogViewer
     private string _renderedHtml = string.Empty;
     private bool _showEditedRow;
     private bool _loading = true;
+    private RelatedItemsDto _related = new();
 
     [Parameter, EditorRequired]
     public required string Slug { get; set; }
 
     [Inject]
     private IPageService PageService { get; set; } = null!;
+
+    [Inject]
+    private IRelatedItemsService RelatedItemsService { get; set; } = null!;
 
     [Inject]
     private IOrdoDialogs Dialogs { get; set; } = null!;
@@ -48,6 +53,7 @@ public partial class LogViewer
         // Created+initial-revision are written within milliseconds of each other; only
         // show the "last edited" row when the page has been edited after creation.
         _showEditedRow = _revision.EditedAt - _page.CreatedAt > TimeSpan.FromSeconds(5);
+        _related = await RelatedItemsService.GetForAsync(RelatedItemKind.Log, _page.Id);
 
         _loading = false;
     }

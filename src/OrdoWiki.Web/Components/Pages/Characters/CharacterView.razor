@@ -68,6 +68,11 @@
             <MudText Typo="Typo.body2" Color="Color.Tertiary">No backstory yet.</MudText>
         }
 
+        @if (!_related.IsEmpty)
+        {
+            <SeeAlsoSection Value="_related"/>
+        }
+
         <MudDivider/>
 
         <MudText Typo="Typo.h6">Gallery</MudText>

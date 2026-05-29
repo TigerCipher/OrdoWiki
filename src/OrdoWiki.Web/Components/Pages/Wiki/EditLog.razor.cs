@@ -1,5 +1,6 @@
-﻿namespace OrdoWiki.Web.Components.Pages.Wiki;
+namespace OrdoWiki.Web.Components.Pages.Wiki;
 
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Web.Models.Requests;
@@ -14,12 +15,16 @@ public partial class EditLog
     private string _editSummary = string.Empty;
     private string _markdownBody = string.Empty;
     private IReadOnlyList<string> _tagNames = [];
+    private RelatedItemsDto _related = new();
 
     [Parameter, EditorRequired]
     public required string Slug { get; set; }
 
     [Inject]
     private IPageService PageService { get; set; } = null!;
+
+    [Inject]
+    private IRelatedItemsService RelatedItemsService { get; set; } = null!;
 
     [Inject]
     private NavigationManager Navigation { get; set; } = null!;
@@ -43,6 +48,7 @@ public partial class EditLog
         _markdownBody = _revision.MarkdownBody;
         _originalTitle = _page.Title;
         _tagNames = _page.Tags.Select(t => t.Name).ToList();
+        _related = await RelatedItemsService.GetForAsync(RelatedItemKind.Log, _page.Id);
         _loading = false;
     }
 
@@ -64,10 +70,25 @@ public partial class EditLog
         if (!response)
         {
             Snackbar.Add($"Failed to save page - {response.Error}", Severity.Error);
+            return;
         }
-        else
+
+        ApiResponse<RelatedItemsDto> relResponse = await RelatedItemsService.SetForAsync(
+            RelatedItemKind.Log, _page.Id, BuildRelatedRequest());
+
+        if (!relResponse.Success)
         {
-            Snackbar.Add("Page saved", Severity.Success);
+            Snackbar.Add($"Saved page, but failed to save related items: {relResponse.Error}", Severity.Warning);
+            return;
         }
+
+        Snackbar.Add("Page saved", Severity.Success);
     }
+
+    private SetRelatedItemsRequest BuildRelatedRequest() => new()
+    {
+        CharacterIds = _related.Characters.Select(r => r.Id).ToList(),
+        LogIds = _related.Logs.Select(r => r.Id).ToList(),
+        TimelineEventIds = _related.TimelineEvents.Select(r => r.Id).ToList(),
+    };
 }

@@ -1,5 +1,6 @@
 namespace OrdoWiki.Web.Components.Pages.Characters;
 
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -9,12 +10,16 @@ public partial class CharacterView
     private string _renderedHtml = string.Empty;
     private bool _canEdit;
     private bool _loading = true;
+    private RelatedItemsDto _related = new();
 
     [Parameter, EditorRequired]
     public required string Slug { get; set; }
 
     [Inject]
     private ICharacterService CharacterService { get; set; } = null!;
+
+    [Inject]
+    private IRelatedItemsService RelatedItemsService { get; set; } = null!;
 
     [Inject]
     private IMarkdownService Markdown { get; set; } = null!;
@@ -38,6 +43,7 @@ public partial class CharacterView
 
         _character = response;
         _renderedHtml = Markdown.Render(_character.MarkdownBody);
+        _related = await RelatedItemsService.GetForAsync(RelatedItemKind.Character, _character.Id);
 
         ApiResponse<bool> editCheck = await CharacterService.CanEditCharacterAsync(_character.Id);
         _canEdit = editCheck.Success && editCheck.Value;

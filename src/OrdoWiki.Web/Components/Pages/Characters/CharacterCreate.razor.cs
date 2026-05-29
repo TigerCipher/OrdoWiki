@@ -1,5 +1,6 @@
 namespace OrdoWiki.Web.Components.Pages.Characters;
 
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Web.Models.Requests;
@@ -13,9 +14,13 @@ public partial class CharacterCreate
     private bool _loading = true;
     private bool _canCreate;
     private bool _saving;
+    private RelatedItemsDto _related = new();
 
     [Inject]
     private ICharacterService CharacterService { get; set; } = null!;
+
+    [Inject]
+    private IRelatedItemsService RelatedItemsService { get; set; } = null!;
 
     [Inject]
     private NavigationManager Navigation { get; set; } = null!;
@@ -55,6 +60,19 @@ public partial class CharacterCreate
             {
                 Snackbar.Add($"Failed to create character: {response.Error}", Severity.Error);
                 return;
+            }
+
+            if (!_related.IsEmpty)
+            {
+                await RelatedItemsService.SetForAsync(
+                    RelatedItemKind.Character,
+                    response.Value.Id,
+                    new SetRelatedItemsRequest
+                    {
+                        CharacterIds = _related.Characters.Select(r => r.Id).ToList(),
+                        LogIds = _related.Logs.Select(r => r.Id).ToList(),
+                        TimelineEventIds = _related.TimelineEvents.Select(r => r.Id).ToList(),
+                    });
             }
 
             Snackbar.Add("Character created", Severity.Success);

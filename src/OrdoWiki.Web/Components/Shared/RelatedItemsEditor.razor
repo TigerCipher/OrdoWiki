@@ -1,0 +1,26 @@
+@using OrdoWiki.Data.Entities
+
+<div class="RelatedItemsEditor y-stack gap-3">
+    <MudText Typo="Typo.subtitle1">Related items</MudText>
+
+    <RelatedItemPicker Kind="RelatedItemKind.Character"
+                       Label="Related characters"
+                       Placeholder="Search characters…"
+                       Value="@Value.Characters"
+                       ValueChanged="@(v => OnChanged(v, Value.Logs, Value.TimelineEvents))"
+                       ExcludeId="@(SelfKind == RelatedItemKind.Character ? SelfId : null)"/>
+
+    <RelatedItemPicker Kind="RelatedItemKind.Log"
+                       Label="Related logs"
+                       Placeholder="Search logs…"
+                       Value="@Value.Logs"
+                       ValueChanged="@(v => OnChanged(Value.Characters, v, Value.TimelineEvents))"
+                       ExcludeId="@(SelfKind == RelatedItemKind.Log ? SelfId : null)"/>
+
+    <RelatedItemPicker Kind="RelatedItemKind.TimelineEvent"
+                       Label="Related events"
+                       Placeholder="Search events…"
+                       Value="@Value.TimelineEvents"
+                       ValueChanged="@(v => OnChanged(Value.Characters, Value.Logs, v))"
+                       ExcludeId="@(SelfKind == RelatedItemKind.TimelineEvent ? SelfId : null)"/>
+</div>

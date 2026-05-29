@@ -1,0 +1,13 @@
+.RelatedItemPicker .picker {
+    background: var(--color-surface);
+    min-height: 2.75rem;
+}
+
+.RelatedItemPicker .picker .wrap {
+    flex-wrap: wrap;
+}
+
+.RelatedItemPicker .picker-input {
+    flex: 1;
+    min-width: 12rem;
+}

@@ -15,6 +15,7 @@ public class TimelineService(
     IUserService userService,
     IMandoCalendarService calendar,
     ITagService tagService,
+    IRelatedItemsService relatedItemsService,
     AuthenticationStateProvider authState,
     IAuthorizationService authorization) : ITimelineService
 {
@@ -249,6 +250,8 @@ public class TimelineService(
 
         TimelineEvent? ev = await context.TimelineEvents.SingleOrDefaultAsync(e => e.Id == id);
         if (ev is null) return NotFound<bool>();
+
+        await relatedItemsService.DeleteAllForAsync(Data.Entities.RelatedItemKind.TimelineEvent, id);
 
         context.TimelineEvents.Remove(ev);
         await context.SaveChangesAsync();

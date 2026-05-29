@@ -1,5 +1,6 @@
 namespace OrdoWiki.Web.Components.Pages.Timeline;
 
+using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Web.Models.Requests;
@@ -16,12 +17,16 @@ public partial class TimelineEdit
     private bool _loading = true;
     private bool _saving;
     private IReadOnlyList<string> _tagNames = [];
+    private RelatedItemsDto _related = new();
 
     [Parameter, EditorRequired]
     public required Guid Id { get; set; }
 
     [Inject]
     private ITimelineService TimelineService { get; set; } = null!;
+
+    [Inject]
+    private IRelatedItemsService RelatedItemsService { get; set; } = null!;
 
     [Inject]
     private IDialogService Dialog { get; set; } = null!;
@@ -53,6 +58,7 @@ public partial class TimelineEdit
         _month = ev.MandoMonth;
         _day = ev.MandoDay;
         _tagNames = ev.Tags.Select(t => t.Name).ToList();
+        _related = await RelatedItemsService.GetForAsync(RelatedItemKind.TimelineEvent, Id);
         _loading = false;
     }
 
@@ -79,17 +85,34 @@ public partial class TimelineEdit
             DisplayOverride = _displayOverride,
             Tags = _tagNames,
         });
-        _saving = false;
 
         if (!response.Success)
         {
+            _saving = false;
             Snackbar.Add($"Failed to save event: {response.Error}", Severity.Error);
+            return;
+        }
+
+        ApiResponse<RelatedItemsDto> relResponse = await RelatedItemsService.SetForAsync(
+            RelatedItemKind.TimelineEvent, Id, BuildRelatedRequest());
+        _saving = false;
+
+        if (!relResponse.Success)
+        {
+            Snackbar.Add($"Saved event, but failed to save related items: {relResponse.Error}", Severity.Warning);
             return;
         }
 
         Snackbar.Add("Event saved.", Severity.Success);
         Navigation.NavigateTo("/timeline");
     }
+
+    private SetRelatedItemsRequest BuildRelatedRequest() => new()
+    {
+        CharacterIds = _related.Characters.Select(r => r.Id).ToList(),
+        LogIds = _related.Logs.Select(r => r.Id).ToList(),
+        TimelineEventIds = _related.TimelineEvents.Select(r => r.Id).ToList(),
+    };
 
     private async Task DeleteAsync()
     {
