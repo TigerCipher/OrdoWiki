@@ -82,7 +82,7 @@ public class GalleryService(
         return Ok(users.Select(u => MapToDto(u, roles.GetValueOrDefault(u.Id))).ToList());
     }
 
-    public async Task<ApiResponse<bool>> DeleteStandaloneAsync(Guid assetId)
+    public async Task<ApiResponse<bool>> DeleteAsync(Guid assetId)
     {
         ApiResponse<UserDto> userResponse = await userService.GetCurrentUserAsync();
         if (!userResponse) return Unauthorized<bool>(userResponse.Error);
@@ -94,10 +94,16 @@ public class GalleryService(
         MediaAsset? asset = await context.MediaAssets.SingleOrDefaultAsync(a => a.Id == assetId);
         if (asset is null) return NotFound<bool>();
 
-        // Attached assets must be removed via the page that owns them — refuse here as
-        // defense in depth (UI already shows a different path for these).
-        if (asset.SourceType != MediaSourceType.Standalone)
-            return BadRequest<bool>("This image is attached to a page or character — remove it from there instead.");
+        // Characters have a dedicated gallery editor — direct gallery delete would
+        // bypass the OrderIndex/CharacterImage row management. Avatars and banners
+        // are also managed elsewhere. Standalone, WikiPage, and TimelineEvent
+        // images have no inline manager, so the gallery is the delete path.
+        if (asset.SourceType is MediaSourceType.Character
+            or MediaSourceType.Avatar
+            or MediaSourceType.Banner)
+        {
+            return BadRequest<bool>("This image is managed elsewhere — remove it from its source page.");
+        }
 
         await context.MediaAssetTags.Where(j => j.MediaAssetId == assetId).ExecuteDeleteAsync();
         context.MediaAssets.Remove(asset);

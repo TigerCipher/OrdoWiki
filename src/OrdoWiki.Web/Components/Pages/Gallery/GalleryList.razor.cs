@@ -143,18 +143,44 @@ public partial class GalleryList
 
     private async Task DeleteAsync(GalleryItemDto item)
     {
-        // Attached images live on a page or character — bounce the user to that
-        // page's editor instead of deleting the asset out from under it.
-        if (item.Source is { } src)
+        // Characters have their own gallery editor — bounce the user there instead
+        // of nuking a CharacterImage row from under it.
+        if (item.Asset.SourceType == MediaSourceType.Character && item.Source is { } charSrc)
         {
             bool? goEdit = await DialogService.ShowMessageBoxAsync(
-                $"Image attached to {src.Kind.ToLowerInvariant()}",
-                $"This image belongs to the {src.Kind.ToLowerInvariant()} \"{src.Name}\" and can only be removed by editing that page.",
-                yesText: $"Edit {src.Name}",
+                "Image attached to character",
+                $"This image belongs to the character \"{charSrc.Name}\" and is managed from that character's edit page.",
+                yesText: $"Edit {charSrc.Name}",
                 cancelText: "Close");
 
             if (goEdit == true)
-                Navigation.NavigateTo($"{src.Url}/edit");
+                Navigation.NavigateTo($"{charSrc.Url}/edit");
+            return;
+        }
+
+        // Logs and timeline events have no inline image manager — the gallery is
+        // the delete path. Warn that deleting will break any inline reference,
+        // and offer a shortcut to the source page so the user can clean up the
+        // markdown first.
+        if (item.Source is { } inlineSrc)
+        {
+            string kind = inlineSrc.Kind.ToLowerInvariant();
+            bool? choice = await DialogService.ShowMessageBoxAsync(
+                $"Delete image used in this {kind}?",
+                $"This image is inline in the {kind} \"{inlineSrc.Name}\". Deleting it will break the reference wherever it appears in that {kind}'s markdown.",
+                yesText: "Delete anyway",
+                noText: $"Edit {kind} first",
+                cancelText: "Cancel");
+
+            if (choice == false)
+            {
+                Navigation.NavigateTo($"{inlineSrc.Url}/edit");
+                return;
+            }
+
+            if (choice != true) return;
+
+            await PerformDeleteAsync(item);
             return;
         }
 
@@ -166,7 +192,12 @@ public partial class GalleryList
 
         if (confirm != true) return;
 
-        ApiResponse<bool> response = await GalleryService.DeleteStandaloneAsync(item.Asset.Id);
+        await PerformDeleteAsync(item);
+    }
+
+    private async Task PerformDeleteAsync(GalleryItemDto item)
+    {
+        ApiResponse<bool> response = await GalleryService.DeleteAsync(item.Asset.Id);
         if (!response.Success)
         {
             Snackbar.Add($"Failed to delete: {response.Error}", Severity.Error);
