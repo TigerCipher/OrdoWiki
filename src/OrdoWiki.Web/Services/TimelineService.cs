@@ -188,7 +188,7 @@ public class TimelineService(
         DateTime now = DateTime.UtcNow;
         TimelineEvent ev = new()
         {
-            Id = Guid.NewGuid(),
+            Id = request.Id == Guid.Empty ? Guid.NewGuid() : request.Id,
             Title = request.Title.Trim(),
             Summary = string.IsNullOrWhiteSpace(request.Summary) ? null : request.Summary!.Trim(),
             MarkdownBody = string.IsNullOrWhiteSpace(request.MarkdownBody) ? null : request.MarkdownBody,

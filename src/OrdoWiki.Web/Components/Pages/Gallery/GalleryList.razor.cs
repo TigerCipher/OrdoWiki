@@ -141,6 +141,42 @@ public partial class GalleryList
         return Task.FromResult(matches);
     }
 
+    private async Task DeleteAsync(GalleryItemDto item)
+    {
+        // Attached images live on a page or character — bounce the user to that
+        // page's editor instead of deleting the asset out from under it.
+        if (item.Source is { } src)
+        {
+            bool? goEdit = await DialogService.ShowMessageBoxAsync(
+                $"Image attached to {src.Kind.ToLowerInvariant()}",
+                $"This image belongs to the {src.Kind.ToLowerInvariant()} \"{src.Name}\" and can only be removed by editing that page.",
+                yesText: $"Edit {src.Name}",
+                cancelText: "Close");
+
+            if (goEdit == true)
+                Navigation.NavigateTo($"{src.Url}/edit");
+            return;
+        }
+
+        bool? confirm = await DialogService.ShowMessageBoxAsync(
+            "Delete image",
+            "Permanently delete this image? This cannot be undone.",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (confirm != true) return;
+
+        ApiResponse<bool> response = await GalleryService.DeleteStandaloneAsync(item.Asset.Id);
+        if (!response.Success)
+        {
+            Snackbar.Add($"Failed to delete: {response.Error}", Severity.Error);
+            return;
+        }
+
+        Snackbar.Add("Image deleted", Severity.Success);
+        await LoadAsync();
+    }
+
     private async Task OpenLightboxAsync(GalleryItemDto item)
     {
         DialogParameters parameters = new()

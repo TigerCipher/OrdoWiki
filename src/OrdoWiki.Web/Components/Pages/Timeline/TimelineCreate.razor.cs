@@ -7,6 +7,9 @@ using Web.Models.Requests;
 
 public partial class TimelineCreate
 {
+    // Generated up front so images uploaded inside the editor attach to this event
+    // from the very first upload, instead of being orphaned standalone.
+    private readonly Guid _eventId = Guid.NewGuid();
     private string _title = string.Empty;
     private string _summary = string.Empty;
     private string _body = string.Empty;
@@ -43,6 +46,7 @@ public partial class TimelineCreate
         _saving = true;
         ApiResponse<TimelineEventDto> response = await TimelineService.CreateAsync(new CreateTimelineEventRequest
         {
+            Id = _eventId,
             Title = _title,
             Summary = _summary,
             MarkdownBody = _body,

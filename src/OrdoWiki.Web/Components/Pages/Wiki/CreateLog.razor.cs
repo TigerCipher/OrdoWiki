@@ -7,6 +7,9 @@ using Web.Models.Requests;
 
 public partial class CreateLog
 {
+    // Generated up front so images uploaded inside the editor attach to this page
+    // from the very first upload, instead of being orphaned standalone.
+    private readonly Guid _pageId = Guid.NewGuid();
     private string _title = string.Empty;
     private string _slug = string.Empty;
     private string _summary = string.Empty;
@@ -44,6 +47,7 @@ public partial class CreateLog
 
         ApiResponse<WikiPageDto> response = await PageService.CreatePageAsync(new CreatePageRequest
         {
+            Id = _pageId,
             Title = _title,
             MarkdownBody = _content,
             Summary = summary,

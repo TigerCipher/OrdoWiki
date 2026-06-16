@@ -135,7 +135,7 @@ public class CharacterService(
 
             Character character = new()
             {
-                Id = Guid.NewGuid(),
+                Id = request.Id == Guid.Empty ? Guid.NewGuid() : request.Id,
                 Slug = slug,
                 Name = request.Name.Trim(),
                 Summary = request.Summary?.Trim(),

@@ -1,6 +1,7 @@
 namespace OrdoWiki.Web.Services;
 
 using Data;
+using Data.Auth;
 using Data.Entities;
 using Helpers;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,8 @@ using Models;
 
 public class GalleryService(
     ApplicationDbContext context,
-    IUserService userService) : IGalleryService
+    IUserService userService,
+    IMediaService mediaService) : IGalleryService
 {
     public async Task<ApiResponse<PagedResult<GalleryItemDto>>> GetGalleryAsync(GalleryFilter filter)
     {
@@ -80,6 +82,36 @@ public class GalleryService(
         return Ok(users.Select(u => MapToDto(u, roles.GetValueOrDefault(u.Id))).ToList());
     }
 
+    public async Task<ApiResponse<bool>> DeleteStandaloneAsync(Guid assetId)
+    {
+        ApiResponse<UserDto> userResponse = await userService.GetCurrentUserAsync();
+        if (!userResponse) return Unauthorized<bool>(userResponse.Error);
+
+        UserDto user = userResponse;
+        if (!IsPrivileged(user.Role))
+            return Forbidden<bool>("You don't have permission to delete gallery images.");
+
+        MediaAsset? asset = await context.MediaAssets.SingleOrDefaultAsync(a => a.Id == assetId);
+        if (asset is null) return NotFound<bool>();
+
+        // Attached assets must be removed via the page that owns them — refuse here as
+        // defense in depth (UI already shows a different path for these).
+        if (asset.SourceType != MediaSourceType.Standalone)
+            return BadRequest<bool>("This image is attached to a page or character — remove it from there instead.");
+
+        await context.MediaAssetTags.Where(j => j.MediaAssetId == assetId).ExecuteDeleteAsync();
+        context.MediaAssets.Remove(asset);
+        await context.SaveChangesAsync();
+
+        mediaService.TryDeleteFile(asset.StoragePath);
+        return Ok(true);
+    }
+
+    private static bool IsPrivileged(string? role) =>
+        string.Equals(role, Roles.Admin, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(role, Roles.Designer, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(role, Roles.Editor, StringComparison.OrdinalIgnoreCase);
+
     private async Task<Dictionary<Guid, SourceLink>> ResolveSourcesAsync(IReadOnlyList<MediaAsset> assets)
     {
         Guid[] characterIds = assets
@@ -88,6 +120,10 @@ public class GalleryService(
 
         Guid[] pageIds = assets
             .Where(a => a.SourceType == MediaSourceType.WikiPage && a.SourceId.HasValue)
+            .Select(a => a.SourceId!.Value).Distinct().ToArray();
+
+        Guid[] eventIds = assets
+            .Where(a => a.SourceType == MediaSourceType.TimelineEvent && a.SourceId.HasValue)
             .Select(a => a.SourceId!.Value).Distinct().ToArray();
 
         Dictionary<Guid, SourceLink> map = new();
@@ -110,6 +146,16 @@ public class GalleryService(
                 .ToListAsync();
             foreach (WikiPage p in pages)
                 map[p.Id] = new SourceLink("Page", p.Title, $"/logs/{p.Slug}");
+        }
+
+        if (eventIds.Length > 0)
+        {
+            List<TimelineEvent> events = await context.TimelineEvents
+                .AsNoTracking()
+                .Where(e => eventIds.Contains(e.Id))
+                .ToListAsync();
+            foreach (TimelineEvent e in events)
+                map[e.Id] = new SourceLink("Event", e.Title, $"/timeline/{e.Id}");
         }
 
         return map;

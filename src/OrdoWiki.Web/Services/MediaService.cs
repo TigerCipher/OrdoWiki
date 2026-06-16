@@ -148,6 +148,31 @@ public class MediaService(
         }
     }
 
+    public void TryDeleteFile(string storagePath)
+    {
+        if (string.IsNullOrWhiteSpace(storagePath)) return;
+
+        // StoragePath is a web path like "/uploads/2026/06/abc123.webp". Strip the
+        // "/uploads/" prefix and resolve against UploadsRoot. Refuse anything that
+        // escapes the root after canonicalization — defends against a malformed row.
+        const string prefix = "/uploads/";
+        if (!storagePath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
+
+        string relative = storagePath[prefix.Length..].Replace('/', Path.DirectorySeparatorChar);
+        string root = Path.GetFullPath(UploadsRoot);
+        string target = Path.GetFullPath(Path.Combine(root, relative));
+
+        if (!target.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        try
+        {
+            if (File.Exists(target)) File.Delete(target);
+        }
+        catch (IOException) { /* leave the orphan — the DB row is gone */ }
+        catch (UnauthorizedAccessException) { }
+    }
+
     private string UploadsRoot
     {
         get

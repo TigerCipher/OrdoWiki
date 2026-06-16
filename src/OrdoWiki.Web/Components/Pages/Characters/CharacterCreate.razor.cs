@@ -7,6 +7,9 @@ using Web.Models.Requests;
 
 public partial class CharacterCreate
 {
+    // Generated up front so images uploaded inside the editor attach to this
+    // character from the very first upload, instead of being orphaned standalone.
+    private readonly Guid _characterId = Guid.NewGuid();
     private string _name = string.Empty;
     private string _slug = string.Empty;
     private string _summary = string.Empty;
@@ -50,6 +53,7 @@ public partial class CharacterCreate
         {
             ApiResponse<CharacterDto> response = await CharacterService.CreateCharacterAsync(new CreateCharacterRequest
             {
+                Id = _characterId,
                 Name = _name,
                 Summary = string.IsNullOrWhiteSpace(_summary) ? null : _summary,
                 MarkdownBody = _body,

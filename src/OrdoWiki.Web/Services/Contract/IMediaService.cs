@@ -19,4 +19,6 @@ public interface IMediaService
         string contentType,
         long sizeBytes,
         CancellationToken cancellationToken = default);
+
+    void TryDeleteFile(string storagePath);
 }

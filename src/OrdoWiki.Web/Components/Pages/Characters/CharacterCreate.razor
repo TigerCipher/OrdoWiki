@@ -59,7 +59,9 @@
 
         <MarkdownEditor @bind-Value="@_body"
                         Label="Backstory"
-                        Placeholder="Tell us about this character (markdown supported)"/>
+                        Placeholder="Tell us about this character (markdown supported)"
+                        SourceType="MediaSourceType.Character"
+                        SourceId="@_characterId"/>
 
         <RelatedItemsEditor @bind-Value="_related"
                             SelfKind="RelatedItemKind.Character"/>

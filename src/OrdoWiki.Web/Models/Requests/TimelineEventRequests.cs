@@ -2,6 +2,9 @@ namespace OrdoWiki.Web.Models.Requests;
 
 public sealed class CreateTimelineEventRequest
 {
+    // Optional client-supplied ID so images uploaded during the create flow can be
+    // attached to this event from the start (instead of being orphaned standalone).
+    public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Summary { get; set; }
     public string? MarkdownBody { get; set; }

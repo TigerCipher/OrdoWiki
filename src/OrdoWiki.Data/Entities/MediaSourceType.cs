@@ -7,4 +7,5 @@ public enum MediaSourceType
     Character = 2,
     Avatar = 3,
     Banner = 4,
+    TimelineEvent = 5,
 }

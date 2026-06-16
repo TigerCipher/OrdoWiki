@@ -71,7 +71,7 @@ public class PageService(
 
             WikiPage page = new()
             {
-                Id = Guid.NewGuid(),
+                Id = request.Id == Guid.Empty ? Guid.NewGuid() : request.Id,
                 Title = request.Title.Trim(),
                 Slug = slug,
                 CreatedAt = createdAt,

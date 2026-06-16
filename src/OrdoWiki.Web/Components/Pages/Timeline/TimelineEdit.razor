@@ -49,7 +49,9 @@
 
         <MarkdownEditor @bind-Value="_body"
                         Label="Description"
-                        Placeholder="What happened? (markdown supported)"/>
+                        Placeholder="What happened? (markdown supported)"
+                        SourceType="MediaSourceType.TimelineEvent"
+                        SourceId="@Id"/>
 
         <RelatedItemsEditor @bind-Value="_related"
                             SelfKind="RelatedItemKind.TimelineEvent"

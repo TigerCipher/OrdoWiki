@@ -22,6 +22,7 @@
             <MudChip T="MediaSourceType?" Value="@((MediaSourceType?)null)">All</MudChip>
             <MudChip T="MediaSourceType?" Value="@((MediaSourceType?)MediaSourceType.WikiPage)">Pages</MudChip>
             <MudChip T="MediaSourceType?" Value="@((MediaSourceType?)MediaSourceType.Character)">Characters</MudChip>
+            <MudChip T="MediaSourceType?" Value="@((MediaSourceType?)MediaSourceType.TimelineEvent)">Timeline</MudChip>
             <MudChip T="MediaSourceType?" Value="@((MediaSourceType?)MediaSourceType.Standalone)">Standalone</MudChip>
         </MudChipSet>
 
@@ -92,6 +93,11 @@
                                                Color="Color.Primary"
                                                aria-label="Edit tags"
                                                OnClick="@(() => EditTagsAsync(item))"/>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Size="Size.Small"
+                                               Color="Color.Error"
+                                               aria-label="Delete image"
+                                               OnClick="@(() => DeleteAsync(item))"/>
                             </AuthorizeView>
                         </div>
                         @if (item.Source is not null)

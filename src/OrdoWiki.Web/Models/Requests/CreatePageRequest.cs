@@ -2,6 +2,9 @@
 
 public class CreatePageRequest
 {
+    // Optional client-supplied ID so images uploaded during the create flow can be
+    // attached to this page from the start (instead of being orphaned standalone).
+    public Guid Id { get; set; }
     public required string Title { get; set; }
     public string? Summary { get; set; }
     public required string MarkdownBody { get; set; }
