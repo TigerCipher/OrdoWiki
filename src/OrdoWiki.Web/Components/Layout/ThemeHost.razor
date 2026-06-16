@@ -2,7 +2,6 @@
 
 <MudThemeProvider Theme="_theme" IsDarkMode="@ThemeState.IsDarkMode"/>
 
-@* Inline (not HeadContent) — interactive HeadContent updates have been unreliable for the theme swap. *@
+@* Inline (not HeadContent) — interactive HeadContent updates were not reliably propagating the theme swap to the browser. *@
 <style id="ordo-theme-vars"
-       data-mode="@(ThemeState.IsDarkMode ? "dark" : "light")"
-       data-toggles="@ThemeState.ToggleCount">@((MarkupString)_customCss)</style>
+       data-mode="@(ThemeState.IsDarkMode ? "dark" : "light")">@((MarkupString)_customCss)</style>

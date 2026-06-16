@@ -17,15 +17,7 @@ public class ThemeState
         }
     }
 
-    // Diagnostic — incremented on every Toggle call so we can prove the click
-    // actually reached this service (vs. the renderer not picking up the change).
-    public int ToggleCount { get; private set; }
-
-    public void Toggle()
-    {
-        ToggleCount++;
-        IsDarkMode = !IsDarkMode;
-    }
+    public void Toggle() => IsDarkMode = !IsDarkMode;
 
     public void Set(bool isDark) => IsDarkMode = isDark;
 }
