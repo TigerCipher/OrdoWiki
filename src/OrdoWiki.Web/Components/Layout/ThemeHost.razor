@@ -2,9 +2,7 @@
 
 <MudThemeProvider Theme="_theme" IsDarkMode="@ThemeState.IsDarkMode"/>
 
-@if (!string.IsNullOrEmpty(_customCss))
-{
-    <HeadContent>
-        <style id="ordo-theme-vars">@((MarkupString)_customCss)</style>
-    </HeadContent>
-}
+@* Inline (not HeadContent) — interactive HeadContent updates have been unreliable for the theme swap. *@
+<style id="ordo-theme-vars"
+       data-mode="@(ThemeState.IsDarkMode ? "dark" : "light")"
+       data-toggles="@ThemeState.ToggleCount">@((MarkupString)_customCss)</style>
