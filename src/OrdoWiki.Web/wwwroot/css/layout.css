@@ -140,7 +140,9 @@
 
     .reader-aside {
         position: sticky;
-        top: var(--space-4);
+        /* Sit just below the fixed MudAppBar so the panel stays visible as the
+           user scrolls instead of tucking behind it. */
+        top: calc(var(--appbar-height) + var(--space-4));
         align-self: start;
     }
 }
