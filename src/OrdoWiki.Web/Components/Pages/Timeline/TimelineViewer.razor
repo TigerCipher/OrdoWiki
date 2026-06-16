@@ -20,7 +20,7 @@
     </div>
 </SectionContent>
 
-<div class="TimelineViewer y-stack gap-4">
+<div class="TimelineViewer reader-grid">
 
     @if (_loading)
     {
@@ -28,70 +28,74 @@
     }
     else
     {
-        <div class="meta y-stack gap-1">
-            <div class="meta-row x-stack gap-2 align-center">
-                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Color="Color.Tertiary"/>
-                <MudText Typo="Typo.subtitle2">@_event.DisplayDate</MudText>
-            </div>
-            <div class="meta-row x-stack gap-2">
-                <MudText Typo="Typo.caption" Color="Color.Tertiary">Recorded by</MudText>
-                <AuthorName User="_event.CreatedBy"/>
-                <MudText Typo="Typo.caption" Color="Color.Tertiary">on</MudText>
-                <LocalTime DateTime="_event.CreatedAt"/>
-            </div>
-
-            @if (_showEditedRow)
-            {
-                <div class="meta-row x-stack gap-2">
-                    <MudText Typo="Typo.caption" Color="Color.Tertiary">Last edited</MudText>
-                    <LocalTime DateTime="_event.UpdatedAt"/>
+        <div class="reader-main y-stack gap-4">
+            <div class="meta y-stack gap-1">
+                <div class="meta-row x-stack gap-2 align-center">
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Color="Color.Tertiary"/>
+                    <MudText Typo="Typo.subtitle2">@_event.DisplayDate</MudText>
                 </div>
-            }
-        </div>
+                <div class="meta-row x-stack gap-2">
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary">Recorded by</MudText>
+                    <AuthorName User="_event.CreatedBy"/>
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary">on</MudText>
+                    <LocalTime DateTime="_event.CreatedAt"/>
+                </div>
 
-        @if (_event.Tags.Count > 0)
-        {
-            <div class="tags x-stack gap-1 align-center wrap">
-                @foreach (TagDto tag in _event.Tags)
+                @if (_showEditedRow)
                 {
-                    <MudChip T="string"
-                             Color="Color.Secondary"
-                             Size="Size.Small"
-                             Variant="Variant.Outlined"
-                             Href="@($"/timeline?tag={tag.Slug}")">
-                        @tag.Name
-                    </MudChip>
+                    <div class="meta-row x-stack gap-2">
+                        <MudText Typo="Typo.caption" Color="Color.Tertiary">Last edited</MudText>
+                        <LocalTime DateTime="_event.UpdatedAt"/>
+                    </div>
                 }
             </div>
-        }
 
-        @if (!string.IsNullOrWhiteSpace(_event.Summary))
-        {
-            <MudPaper Outlined="true" Class="summary pa-3">
-                <MudText Typo="Typo.body1">@_event.Summary</MudText>
-            </MudPaper>
-        }
+            @if (_event.Tags.Count > 0)
+            {
+                <div class="tags x-stack gap-1 align-center wrap">
+                    @foreach (TagDto tag in _event.Tags)
+                    {
+                        <MudChip T="string"
+                                 Color="Color.Secondary"
+                                 Size="Size.Small"
+                                 Variant="Variant.Outlined"
+                                 Href="@($"/timeline?tag={tag.Slug}")">
+                            @tag.Name
+                        </MudChip>
+                    }
+                </div>
+            }
 
-        @if (!string.IsNullOrWhiteSpace(_renderedHtml))
-        {
-            <div class="markdown-body">@((MarkupString)_renderedHtml)</div>
-        }
-        else
-        {
-            <MudText Typo="Typo.body2" Color="Color.Tertiary">No description.</MudText>
-        }
+            @if (!string.IsNullOrWhiteSpace(_event.Summary))
+            {
+                <MudPaper Outlined="true" Class="summary pa-3">
+                    <MudText Typo="Typo.body1">@_event.Summary</MudText>
+                </MudPaper>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_renderedHtml))
+            {
+                <div class="markdown-body">@((MarkupString)_renderedHtml)</div>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Color="Color.Tertiary">No description.</MudText>
+            }
+
+            <div>
+                <MudButton Href="/timeline"
+                           Variant="Variant.Outlined"
+                           StartIcon="@Icons.Material.Filled.ArrowBack">
+                    Back to timeline
+                </MudButton>
+            </div>
+        </div>
 
         @if (!_related.IsEmpty)
         {
-            <SeeAlsoSection Value="_related"/>
+            <aside class="reader-aside">
+                <SeeAlsoSection Value="_related"/>
+            </aside>
         }
-
-        <div>
-            <MudButton Href="/timeline"
-                       Variant="Variant.Outlined"
-                       StartIcon="@Icons.Material.Filled.ArrowBack">
-                Back to timeline
-            </MudButton>
-        </div>
     }
 </div>

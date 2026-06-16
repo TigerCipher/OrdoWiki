@@ -28,6 +28,7 @@
     --space-12: 3rem;
 
     --container-max: 1200px;
+    --reader-max: 72ch;
     --appbar-height: 64px;
 
     --font-h1: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);

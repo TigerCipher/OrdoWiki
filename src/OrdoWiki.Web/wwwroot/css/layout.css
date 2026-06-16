@@ -114,3 +114,37 @@
     padding-inline: var(--space-4);
     box-sizing: border-box;
 }
+
+/* Reader layout: constrains long-form content to a comfortable reading width
+   (Google-Docs-ish) and, on wide screens, lifts the "see also" aside into a
+   right-hand sticky column. Below the breakpoint — or when there's no aside —
+   it collapses to a single centered column. */
+.reader-grid {
+    display: grid;
+    grid-template-columns: minmax(0, var(--reader-max));
+    gap: var(--space-6);
+    justify-content: center;
+}
+
+.reader-main,
+.reader-aside {
+    min-width: 0;
+}
+
+@media (min-width: 1280px) {
+    .reader-grid:has(.reader-aside) {
+        grid-template-columns: minmax(0, var(--reader-max)) minmax(0, 20rem);
+        gap: var(--space-8);
+        justify-content: start;
+    }
+
+    .reader-aside {
+        position: sticky;
+        top: var(--space-4);
+        align-self: start;
+    }
+}
+
+:root {
+    --reader-max: 72ch;
+}

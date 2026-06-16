@@ -60,7 +60,10 @@ public partial class ThemeHost : IDisposable
         string? bg = dark ? _siteTheme.DarkBackgroundUrl : _siteTheme.LightBackgroundUrl;
         if (!string.IsNullOrEmpty(bg))
         {
-            sb.AppendLine("body {");
+            // Target html (not body) so the image always covers the full viewport
+            // even on short pages — `background-attachment: fixed` is still clipped
+            // to the element's box, and body can be shorter than 100vh.
+            sb.AppendLine("html {");
             sb.Append("  background-image: url('").Append(bg).AppendLine("');");
             sb.AppendLine("  background-size: cover;");
             sb.AppendLine("  background-position: center;");

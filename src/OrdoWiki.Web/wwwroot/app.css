@@ -2,28 +2,15 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+/* Background image is owned by ThemeHost (driven by the site theme's
+   BackgroundUrl). app.css only provides the fallback color underneath in case
+   no theme bg is set. */
 body {
     background-color: transparent;
 }
 
 html {
     background-color: var(--color-bg);
-}
-
-@media (min-width: 769px) {
-    html {
-        background-image: url('./img/After_Party.jpg');
-        background-attachment: fixed;
-        background-position: center top;
-        background-size: cover;
-    }
-}
-
-/* Large desktop — full image */
-@media (min-width: 1280px) {
-    html {
-        background-image: url('./img/After_Party.jpg');
-    }
 }
 
 

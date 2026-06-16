@@ -20,62 +20,66 @@
     </div>
 </SectionContent>
 
-<div class="CharacterView y-stack gap-4">
+<div class="CharacterView reader-grid">
     @if (_loading)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
     }
     else
     {
-        <div class="meta y-stack gap-1">
-            <div class="meta-row x-stack gap-2">
-                <MudText Typo="Typo.caption" Color="Color.Tertiary">Owned by</MudText>
-                <AuthorName User="_character.Owner"/>
-                <MudText Typo="Typo.caption" Color="Color.Tertiary">— created</MudText>
-                <LocalTime DateTime="_character.CreatedAt"/>
+        <div class="reader-main y-stack gap-4">
+            <div class="meta y-stack gap-1">
+                <div class="meta-row x-stack gap-2">
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary">Owned by</MudText>
+                    <AuthorName User="_character.Owner"/>
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary">— created</MudText>
+                    <LocalTime DateTime="_character.CreatedAt"/>
+                </div>
             </div>
+
+            @if (_character.Tags.Count > 0)
+            {
+                <div class="tags x-stack gap-1 align-center wrap">
+                    @foreach (TagDto tag in _character.Tags)
+                    {
+                        <MudChip T="string"
+                                 Color="Color.Secondary"
+                                 Size="Size.Small"
+                                 Variant="Variant.Outlined"
+                                 Href="@($"/characters?tag={tag.Slug}")">
+                            @tag.Name
+                        </MudChip>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_character.Summary))
+            {
+                <MudPaper Outlined="true" Class="summary pa-3">
+                    <MudText Typo="Typo.body1">@_character.Summary</MudText>
+                </MudPaper>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_renderedHtml))
+            {
+                <div class="markdown-body">@((MarkupString)_renderedHtml)</div>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Color="Color.Tertiary">No backstory yet.</MudText>
+            }
+
+            <MudDivider/>
+
+            <MudText Typo="Typo.h6">Gallery</MudText>
+            <CharacterGallery Images="_character.Images"/>
         </div>
-
-        @if (_character.Tags.Count > 0)
-        {
-            <div class="tags x-stack gap-1 align-center wrap">
-                @foreach (TagDto tag in _character.Tags)
-                {
-                    <MudChip T="string"
-                             Color="Color.Secondary"
-                             Size="Size.Small"
-                             Variant="Variant.Outlined"
-                             Href="@($"/characters?tag={tag.Slug}")">
-                        @tag.Name
-                    </MudChip>
-                }
-            </div>
-        }
-
-        @if (!string.IsNullOrWhiteSpace(_character.Summary))
-        {
-            <MudPaper Outlined="true" Class="summary pa-3">
-                <MudText Typo="Typo.body1">@_character.Summary</MudText>
-            </MudPaper>
-        }
-
-        @if (!string.IsNullOrWhiteSpace(_renderedHtml))
-        {
-            <div class="markdown-body">@((MarkupString)_renderedHtml)</div>
-        }
-        else
-        {
-            <MudText Typo="Typo.body2" Color="Color.Tertiary">No backstory yet.</MudText>
-        }
 
         @if (!_related.IsEmpty)
         {
-            <SeeAlsoSection Value="_related"/>
+            <aside class="reader-aside">
+                <SeeAlsoSection Value="_related"/>
+            </aside>
         }
-
-        <MudDivider/>
-
-        <MudText Typo="Typo.h6">Gallery</MudText>
-        <CharacterGallery Images="_character.Images"/>
     }
 </div>
