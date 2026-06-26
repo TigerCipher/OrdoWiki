@@ -1,0 +1,75 @@
+@page "/logs/{Slug}/history/{RevisionId:guid}"
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+<PageTitle>OrdoWiki | Revision | @_page.Title</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <div class="LogRevisionViewerHeader x-stack gap-2 align-center">
+        <MudText Typo="Typo.h4" Class="fill-space">@_page.Title</MudText>
+        <MudButton Href="@($"/logs/{_page.Slug}/history")"
+                   StartIcon="@Icons.Material.Filled.History"
+                   Variant="Variant.Text">
+            All revisions
+        </MudButton>
+        <MudButton Href="@($"/logs/{_page.Slug}")"
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   Variant="Variant.Text">
+            Current
+        </MudButton>
+    </div>
+</SectionContent>
+
+<div class="LogRevisionViewer reader-grid">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else
+    {
+        <div class="reader-main y-stack gap-4">
+            <MudAlert Severity="@(_isCurrent ? Severity.Info : Severity.Warning)"
+                      Variant="Variant.Outlined"
+                      NoIcon="false">
+                <div class="x-stack gap-2 align-center wrap">
+                    @if (_isCurrent)
+                    {
+                        <MudText Typo="Typo.body2">This is the <strong>current</strong> revision.</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2">
+                            You are viewing a <strong>historical</strong> revision.
+                            The page may have been edited since.
+                        </MudText>
+                    }
+                </div>
+            </MudAlert>
+
+            <div class="meta y-stack gap-1">
+                <div class="meta-row x-stack gap-2">
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary">Edited by</MudText>
+                    <AuthorName User="_revision.Editor"/>
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary">on</MudText>
+                    <LocalTime DateTime="_revision.EditedAt"/>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(_revision.EditSummary))
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Tertiary">
+                        Summary: @_revision.EditSummary
+                    </MudText>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_renderedHtml))
+            {
+                <div class="markdown-body">@((MarkupString)_renderedHtml)</div>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Color="Color.Tertiary">No content in this revision.</MudText>
+            }
+        </div>
+    }
+</div>

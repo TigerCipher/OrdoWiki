@@ -88,7 +88,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy(Policies.CanEdit, p => p.RequireRole(Roles.Admin, Roles.Designer, Roles.Editor))
-    .AddPolicy(Policies.CanDesign, p => p.RequireRole(Roles.Admin, Roles.Designer));
+    .AddPolicy(Policies.CanDesign, p => p.RequireRole(Roles.Admin, Roles.Designer))
+    .AddPolicy(Policies.IsAdmin, p => p.RequireRole(Roles.Admin));
 
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");

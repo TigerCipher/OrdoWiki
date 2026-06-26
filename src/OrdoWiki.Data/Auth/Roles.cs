@@ -30,4 +30,5 @@ public static class Policies
 {
     public const string CanEdit = nameof(CanEdit);
     public const string CanDesign = nameof(CanDesign);
+    public const string IsAdmin = nameof(IsAdmin);
 }

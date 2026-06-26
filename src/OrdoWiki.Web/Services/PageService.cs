@@ -1,6 +1,7 @@
 ﻿namespace OrdoWiki.Web.Services;
 
 using Data;
+using Data.Auth;
 using Data.Entities;
 using Exceptions;
 using Helpers;
@@ -164,6 +165,101 @@ public class PageService(
         {
             return BadRequest<WikiPageDto>(ex.Message);
         }
+    }
+
+    public async Task<ApiResponse<List<PageRevisionDto>>> GetRevisionsAsync(Guid pageId)
+    {
+        bool pageExists = await context.WikiPages.AsNoTracking().AnyAsync(p => p.Id == pageId);
+        if (!pageExists) return NotFound<List<PageRevisionDto>>();
+
+        List<PageRevision> revisions = await context.PageRevisions
+            .AsNoTracking()
+            .Include(r => r.Editor)
+            .Where(r => r.PageId == pageId)
+            .OrderByDescending(r => r.EditedAt)
+            .ToListAsync();
+
+        Dictionary<string, string?> roles = await userService.GetHighestRolesAsync(
+            revisions.Select(r => r.EditedById));
+
+        // Bodies can be large; strip them from the list payload. The compare/view
+        // pages load the specific revisions they need via GetRevisionAsync.
+        List<PageRevisionDto> dtos = revisions.Select(r => new PageRevisionDto
+        {
+            Id = r.Id,
+            PageId = r.PageId,
+            MarkdownBody = string.Empty,
+            EditSummary = r.EditSummary,
+            EditedAt = DateTime.SpecifyKind(r.EditedAt, DateTimeKind.Utc),
+            EditedById = r.EditedById,
+            Editor = r.Editor is null ? null : MapToDto(r.Editor, roles.GetValueOrDefault(r.EditedById)),
+        }).ToList();
+
+        return Ok(dtos);
+    }
+
+    public async Task<ApiResponse<PageRevisionDto>> GetRevisionAsync(Guid revisionId)
+    {
+        PageRevision? revision = await context.PageRevisions
+            .AsNoTracking()
+            .Include(r => r.Editor)
+            .SingleOrDefaultAsync(r => r.Id == revisionId);
+        if (revision is null) return NotFound<PageRevisionDto>();
+
+        Dictionary<string, string?> roles = await userService.GetHighestRolesAsync([revision.EditedById]);
+
+        return Ok(new PageRevisionDto
+        {
+            Id = revision.Id,
+            PageId = revision.PageId,
+            MarkdownBody = revision.MarkdownBody,
+            EditSummary = revision.EditSummary,
+            EditedAt = DateTime.SpecifyKind(revision.EditedAt, DateTimeKind.Utc),
+            EditedById = revision.EditedById,
+            Editor = revision.Editor is null ? null : MapToDto(revision.Editor, roles.GetValueOrDefault(revision.EditedById)),
+        });
+    }
+
+    public async Task<ApiResponse<WikiPageDto>> RestoreRevisionAsync(Guid revisionId)
+    {
+        ApiResponse<UserDto> userResponse = await userService.GetCurrentUserAsync();
+        if (!userResponse) return BadRequest<WikiPageDto>($"User not found - {userResponse.Error}");
+        UserDto user = userResponse;
+
+        if (!string.Equals(user.Role, Roles.Admin, StringComparison.OrdinalIgnoreCase))
+            return Forbidden<WikiPageDto>("Only an admin can restore a prior revision.");
+
+        PageRevision? source = await context.PageRevisions
+            .AsNoTracking()
+            .SingleOrDefaultAsync(r => r.Id == revisionId);
+        if (source is null) return NotFound<WikiPageDto>();
+
+        WikiPage? page = await context.WikiPages.SingleOrDefaultAsync(p => p.Id == source.PageId);
+        if (page is null) return NotFound<WikiPageDto>();
+
+        // Restoring the current revision is a no-op; treat as success so the UI
+        // doesn't have to special-case it.
+        if (page.CurrentRevisionId == revisionId)
+            return await GetPageByIdAsync(page.Id);
+
+        DateTime now = DateTime.UtcNow;
+        string summary = $"Restored revision from {source.EditedAt:yyyy-MM-dd HH:mm} UTC";
+
+        PageRevision revision = new()
+        {
+            Id = Guid.NewGuid(),
+            PageId = page.Id,
+            MarkdownBody = source.MarkdownBody,
+            EditSummary = summary,
+            EditedAt = now,
+            EditedById = user.Id,
+        };
+
+        context.PageRevisions.Add(revision);
+        page.CurrentRevisionId = revision.Id;
+        await context.SaveChangesAsync();
+
+        return await GetPageByIdAsync(page.Id);
     }
 
     public async Task<ApiResponse<List<WikiPageDto>>> GetPagesAsync(Guid? tagId = null)

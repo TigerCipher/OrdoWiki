@@ -1,0 +1,85 @@
+.LogCompare .diff-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+}
+
+.LogCompare .diff-summary-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.LogCompare .diff-paper {
+    overflow-x: auto;
+}
+
+/* Four-column grid: [old-#][old-text][new-#][new-text]. The number columns
+   stay narrow with content-fit; the text columns split the rest evenly. */
+.LogCompare .diff-grid {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.LogCompare .diff-row {
+    display: contents;
+}
+
+.LogCompare .diff-cell {
+    padding: 2px 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    border-top: 1px solid var(--color-border);
+}
+
+.LogCompare .diff-row:first-child .diff-cell {
+    border-top: 0;
+}
+
+.LogCompare .diff-cell-num {
+    color: var(--color-muted);
+    text-align: right;
+    user-select: none;
+    background-color: var(--color-surface);
+    min-width: 3ch;
+}
+
+.LogCompare .diff-header .diff-cell {
+    background-color: var(--color-surface);
+    font-weight: 600;
+    color: var(--color-muted);
+    font-family: inherit;
+    font-size: 0.85rem;
+}
+
+.LogCompare .diff-cell-inserted {
+    background-color: rgba(46, 160, 67, 0.15);
+}
+
+.LogCompare .diff-cell-deleted {
+    background-color: rgba(248, 81, 73, 0.15);
+}
+
+.LogCompare .diff-cell-modified {
+    background-color: rgba(187, 128, 9, 0.12);
+}
+
+.LogCompare .diff-cell-imaginary {
+    background-color: rgba(125, 125, 125, 0.06);
+}
+
+.LogCompare ::deep .diff-word-inserted {
+    background-color: rgba(46, 160, 67, 0.4);
+    border-radius: 2px;
+    padding: 0 2px;
+}
+
+.LogCompare ::deep .diff-word-deleted {
+    background-color: rgba(248, 81, 73, 0.4);
+    border-radius: 2px;
+    padding: 0 2px;
+    text-decoration: line-through;
+}

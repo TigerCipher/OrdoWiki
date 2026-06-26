@@ -10,6 +10,11 @@
 <SectionContent SectionName="page-header">
     <div class="LogViewerHeader x-stack gap-2">
         <MudText Typo="Typo.h4" Class="fill-space">@_page.Title</MudText>
+        <MudButton Href="@($"/logs/{_page.Slug}/history")"
+                   StartIcon="@Icons.Material.Filled.History"
+                   Variant="Variant.Text">
+            History
+        </MudButton>
         <AuthorizeView Policy="@Policies.CanEdit">
             <MudButton Href="@($"/logs/{_page.Slug}/edit")"
                        StartIcon="@Icons.Material.Filled.Edit"

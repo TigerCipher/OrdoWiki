@@ -1,0 +1,124 @@
+@page "/logs/{Slug}/history"
+@using OrdoWiki.Data.Auth
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+<PageTitle>OrdoWiki | History | @_page.Title</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <div class="LogHistoryHeader x-stack gap-2 align-center">
+        <MudText Typo="Typo.h4" Class="fill-space">History — @_page.Title</MudText>
+        <MudButton Href="@($"/logs/{_page.Slug}")"
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   Variant="Variant.Text">
+            Back to page
+        </MudButton>
+    </div>
+</SectionContent>
+
+<div class="LogHistory">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (_revisions.Count == 0)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Tertiary">No revisions yet.</MudText>
+    }
+    else
+    {
+        <MudPaper Outlined="true" Class="action-bar pa-3 mb-3 x-stack align-center gap-2">
+            <MudText Typo="Typo.body2" Color="Color.Tertiary">
+                Select two revisions to compare.
+                @if (_selected.Count > 0)
+                {
+                    <span> (@_selected.Count selected)</span>
+                }
+            </MudText>
+            <MudSpacer/>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Disabled="@(_selected.Count != 2)"
+                       StartIcon="@Icons.Material.Filled.CompareArrows"
+                       OnClick="CompareSelected">
+                Compare selected
+            </MudButton>
+        </MudPaper>
+
+        <MudPaper Outlined="true">
+            <MudTable T="PageRevisionDto"
+                      Items="_revisions"
+                      Hover="true"
+                      Dense="true"
+                      Breakpoint="Breakpoint.None">
+                <HeaderContent>
+                    <MudTh Style="width: 56px;">Compare</MudTh>
+                    <MudTh>When</MudTh>
+                    <MudTh>Editor</MudTh>
+                    <MudTh>Summary</MudTh>
+                    <MudTh Style="width: 220px;"></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <MudCheckBox T="bool"
+                                     Value="@_selected.Contains(context.Id)"
+                                     ValueChanged="@(checkedNow => ToggleSelected(context.Id, checkedNow))"
+                                     Dense="true"/>
+                    </MudTd>
+                    <MudTd>
+                        <div class="x-stack gap-2 align-center">
+                            <LocalTime DateTime="context.EditedAt"/>
+                            @if (context.Id == _page.CurrentRevisionId)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled">Current</MudChip>
+                            }
+                        </div>
+                    </MudTd>
+                    <MudTd>
+                        <AuthorName User="context.Editor"/>
+                    </MudTd>
+                    <MudTd>
+                        @if (string.IsNullOrWhiteSpace(context.EditSummary))
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Tertiary">(no summary)</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2">@context.EditSummary</MudText>
+                        }
+                    </MudTd>
+                    <MudTd>
+                        <div class="x-stack gap-1 justify-end">
+                            <MudButton Variant="Variant.Text"
+                                       Size="Size.Small"
+                                       Href="@($"/logs/{_page.Slug}/history/{context.Id}")">
+                                View
+                            </MudButton>
+                            @if (context.Id != _page.CurrentRevisionId)
+                            {
+                                <MudButton Variant="Variant.Text"
+                                           Size="Size.Small"
+                                           StartIcon="@Icons.Material.Filled.CompareArrows"
+                                           Href="@BuildDiffHrefAgainstCurrent(context.Id)">
+                                    Diff
+                                </MudButton>
+                                <AuthorizeView Policy="@Policies.IsAdmin" Context="authContext">
+                                    <Authorized>
+                                        <MudButton Variant="Variant.Text"
+                                                   Size="Size.Small"
+                                                   Color="Color.Warning"
+                                                   StartIcon="@Icons.Material.Filled.RestoreFromTrash"
+                                                   OnClick="@(() => RestoreAsync(context))">
+                                            Restore
+                                        </MudButton>
+                                    </Authorized>
+                                </AuthorizeView>
+                            }
+                        </div>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    }
+</div>

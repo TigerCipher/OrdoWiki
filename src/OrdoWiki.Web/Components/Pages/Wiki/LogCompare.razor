@@ -1,0 +1,96 @@
+@page "/logs/{Slug}/compare"
+@using DiffPlex.DiffBuilder.Model
+@using OrdoWiki.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+<PageTitle>OrdoWiki | Compare | @_page.Title</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <div class="LogCompareHeader x-stack gap-2 align-center">
+        <MudText Typo="Typo.h4" Class="fill-space">Compare — @_page.Title</MudText>
+        <MudButton Href="@($"/logs/{_page.Slug}/history")"
+                   StartIcon="@Icons.Material.Filled.History"
+                   Variant="Variant.Text">
+            All revisions
+        </MudButton>
+        <MudButton Href="@($"/logs/{_page.Slug}")"
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   Variant="Variant.Text">
+            Back to page
+        </MudButton>
+    </div>
+</SectionContent>
+
+<div class="LogCompare">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (_diff is null)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Tertiary">Couldn't load the diff.</MudText>
+    }
+    else
+    {
+        <MudPaper Outlined="true" Class="pa-3 mb-3">
+            <div class="diff-summary">
+                <div class="diff-summary-col">
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary">Older</MudText>
+                    <div class="x-stack gap-2 align-center wrap">
+                        <AuthorName User="_from!.Editor"/>
+                        <LocalTime DateTime="_from!.EditedAt"/>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(_from!.EditSummary))
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Tertiary">@_from!.EditSummary</MudText>
+                    }
+                </div>
+                <div class="diff-summary-col">
+                    <MudText Typo="Typo.caption" Color="Color.Tertiary">Newer</MudText>
+                    <div class="x-stack gap-2 align-center wrap">
+                        <AuthorName User="_to!.Editor"/>
+                        <LocalTime DateTime="_to!.EditedAt"/>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(_to!.EditSummary))
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Tertiary">@_to!.EditSummary</MudText>
+                    }
+                </div>
+            </div>
+        </MudPaper>
+
+        @if (!_hasChanges)
+        {
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                These two revisions are identical.
+            </MudAlert>
+        }
+        else
+        {
+            <MudPaper Outlined="true" Class="diff-paper">
+                <div class="diff-grid" role="table" aria-label="Side-by-side diff">
+                    <div class="diff-row diff-header" role="row">
+                        <div class="diff-cell diff-cell-num" role="columnheader"></div>
+                        <div class="diff-cell" role="columnheader">Older</div>
+                        <div class="diff-cell diff-cell-num" role="columnheader"></div>
+                        <div class="diff-cell" role="columnheader">Newer</div>
+                    </div>
+                    @for (int i = 0; i < _diff!.OldText.Lines.Count; i++)
+                    {
+                        DiffPiece oldLine = _diff.OldText.Lines[i];
+                        DiffPiece newLine = i < _diff.NewText.Lines.Count
+                            ? _diff.NewText.Lines[i]
+                            : new DiffPiece { Type = ChangeType.Imaginary };
+                        <div class="diff-row" role="row">
+                            <div class="diff-cell diff-cell-num" role="cell">@RenderLineNumber(oldLine)</div>
+                            <div class="@CellClass(oldLine.Type)" role="cell">@RenderLine(oldLine)</div>
+                            <div class="diff-cell diff-cell-num" role="cell">@RenderLineNumber(newLine)</div>
+                            <div class="@CellClass(newLine.Type)" role="cell">@RenderLine(newLine)</div>
+                        </div>
+                    }
+                </div>
+            </MudPaper>
+        }
+    }
+</div>
