@@ -115,10 +115,11 @@
     box-sizing: border-box;
 }
 
-/* Reader layout: constrains long-form content to a comfortable reading width
-   (Google-Docs-ish) and, on wide screens, lifts the "see also" aside into a
-   right-hand sticky column. Below the breakpoint — or when there's no aside —
-   it collapses to a single centered column. */
+/* Reader layout: when an aside is present and the viewport is wide enough,
+   place the body and the "see also" panel on a 16-part proportional grid as
+   per the artist's spec: 2 padding | 8 body | 2 spacer | 3 aside | 1 padding.
+   Below the breakpoint — or when there's no aside — it collapses to a single
+   centered column with the comfortable reading-width cap. */
 .reader-grid {
     display: grid;
     grid-template-columns: minmax(0, var(--reader-max));
@@ -133,12 +134,17 @@
 
 @media (min-width: 1280px) {
     .reader-grid:has(.reader-aside) {
-        grid-template-columns: minmax(0, var(--reader-max)) minmax(0, 20rem);
-        gap: var(--space-8);
-        justify-content: start;
+        grid-template-columns: 2fr minmax(0, 8fr) 2fr minmax(0, 3fr) 1fr;
+        gap: 0;
+        justify-content: stretch;
     }
 
-    .reader-aside {
+    .reader-grid:has(.reader-aside) .reader-main {
+        grid-column: 2;
+    }
+
+    .reader-grid:has(.reader-aside) .reader-aside {
+        grid-column: 4;
         position: sticky;
         /* Sit just below the fixed MudAppBar so the panel stays visible as the
            user scrolls instead of tucking behind it. */

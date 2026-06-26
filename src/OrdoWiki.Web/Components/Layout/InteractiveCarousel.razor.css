@@ -1,3 +1,7 @@
+.InteractiveCarousel {
+    margin-bottom: var(--space-6);
+}
+
 .InteractiveCarousel .empty {
     height: 300px;
     display: flex;
