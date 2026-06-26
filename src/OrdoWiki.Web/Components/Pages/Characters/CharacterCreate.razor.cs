@@ -1,5 +1,6 @@
 namespace OrdoWiki.Web.Components.Pages.Characters;
 
+using Data.Auth;
 using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -17,10 +18,15 @@ public partial class CharacterCreate
     private bool _loading = true;
     private bool _canCreate;
     private bool _saving;
+    private bool _canAssignOwner;
+    private UserDto? _owner;
     private RelatedItemsDto _related = new();
 
     [Inject]
     private ICharacterService CharacterService { get; set; } = null!;
+
+    [Inject]
+    private IUserService UserService { get; set; } = null!;
 
     [Inject]
     private IRelatedItemsService RelatedItemsService { get; set; } = null!;
@@ -37,7 +43,26 @@ public partial class CharacterCreate
 
         ApiResponse<bool> response = await CharacterService.CanCreateCharacterAsync();
         _canCreate = response.Success && response.Value;
+
+        ApiResponse<UserDto> me = await UserService.GetCurrentUserAsync();
+        if (me.Success)
+        {
+            _owner = me.Value;
+            _canAssignOwner =
+                string.Equals(me.Value.Role, Roles.Admin, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(me.Value.Role, Roles.Designer, StringComparison.OrdinalIgnoreCase);
+        }
+
         _loading = false;
+    }
+
+    private Task<IEnumerable<UserDto>> SearchOwnersAsync(string? value, CancellationToken cancellationToken)
+        => SearchUsersAsync(value);
+
+    private async Task<IEnumerable<UserDto>> SearchUsersAsync(string? value)
+    {
+        List<UserDto> matches = await UserService.SearchUsersAsync(value);
+        return matches;
     }
 
     private async Task SaveAsync()
@@ -58,6 +83,7 @@ public partial class CharacterCreate
                 Summary = string.IsNullOrWhiteSpace(_summary) ? null : _summary,
                 MarkdownBody = _body,
                 Slug = string.IsNullOrWhiteSpace(_slug) ? null : _slug,
+                OwnerId = _canAssignOwner ? _owner?.Id : null,
             });
 
             if (!response)

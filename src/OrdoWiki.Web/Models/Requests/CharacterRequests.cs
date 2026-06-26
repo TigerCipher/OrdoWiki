@@ -10,6 +10,10 @@ public class CreateCharacterRequest
     public required string MarkdownBody { get; set; }
     public string? Slug { get; set; }
     public IReadOnlyList<string>? Tags { get; set; }
+
+    // Admin/Designer can create a character on behalf of another user. Ignored
+    // when the caller doesn't have that privilege — server falls back to self.
+    public string? OwnerId { get; set; }
 }
 
 public class EditCharacterRequest

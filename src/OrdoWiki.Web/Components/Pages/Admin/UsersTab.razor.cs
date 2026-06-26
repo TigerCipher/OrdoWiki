@@ -43,7 +43,11 @@ public partial class UsersTab
         Loading = true;
         StateHasChanged();
 
-        List<ApplicationUser> users = await Db.Users.AsNoTracking().OrderBy(u => u.UserName).ToListAsync();
+        // Ghost users have their own admin tab — keep them out of the real-user list.
+        List<ApplicationUser> users = await Db.Users.AsNoTracking()
+            .Where(u => !u.IsGhost)
+            .OrderBy(u => u.UserName)
+            .ToListAsync();
         List<UserRow> rows = new(users.Count);
         foreach (ApplicationUser u in users)
         {

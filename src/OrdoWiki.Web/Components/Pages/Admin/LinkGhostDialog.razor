@@ -1,0 +1,83 @@
+@using MudBlazor
+@using OrdoWiki.Web.Models.Requests
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Link ghost to real user</MudText>
+    </TitleContent>
+    <DialogContent>
+        <div class="y-stack gap-3">
+            <MudText>
+                Reassign everything <strong>@(Ghost.DisplayName ?? Ghost.Username)</strong> owns to a real user.
+                The ghost will be deleted afterwards.
+            </MudText>
+            <MudAutocomplete T="UserDto"
+                             Value="_target"
+                             ValueChanged="@(v => _target = v)"
+                             SearchFunc="SearchUsersAsync"
+                             ToStringFunc="@(u => u?.DisplayName ?? u?.Username ?? string.Empty)"
+                             Label="Real user"
+                             Placeholder="Search by display name or username"
+                             Variant="Variant.Outlined"
+                             Clearable="true"
+                             CoerceText="false"
+                             CoerceValue="false"/>
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Dense="true">@_error</MudAlert>
+            }
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel" Disabled="@_saving">Cancel</MudButton>
+        <MudButton OnClick="@LinkAsync"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Disabled="@(_saving || _target is null)">
+            @(_saving ? "Linking..." : "Link")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Mud { get; set; } = null!;
+    [Inject] private IGhostUserService GhostUserService { get; set; } = null!;
+    [Inject] private IUserService UserService { get; set; } = null!;
+
+    [Parameter] public UserDto Ghost { get; set; } = null!;
+
+    private UserDto? _target;
+    private string? _error;
+    private bool _saving;
+
+    private async Task<IEnumerable<UserDto>> SearchUsersAsync(string? value, CancellationToken cancellationToken)
+    {
+        List<UserDto> matches = await UserService.SearchUsersAsync(value);
+        // Don't allow linking to the ghost itself or to other ghosts.
+        return matches.Where(u => !u.IsGhost && u.Id != Ghost.Id);
+    }
+
+    private async Task LinkAsync()
+    {
+        if (_target is null) return;
+
+        _saving = true;
+        _error = null;
+        ApiResponse<bool> response = await GhostUserService.LinkAsync(new LinkGhostUserRequest
+        {
+            GhostId = Ghost.Id,
+            RealUserId = _target.Id,
+        });
+        _saving = false;
+
+        if (!response.Success)
+        {
+            _error = response.Error;
+            return;
+        }
+
+        Mud.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => Mud.Cancel();
+}

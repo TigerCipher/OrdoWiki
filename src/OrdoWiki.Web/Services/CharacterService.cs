@@ -117,6 +117,19 @@ public class CharacterService(
 
             UserDto user = userResponse;
 
+            // Admin/Designer can assign ownership to another user (creating a
+            // character on behalf of a friend who hasn't logged in yet). Editor
+            // and Reader cannot — the field is ignored for them.
+            string ownerId = user.Id;
+            if (!string.IsNullOrEmpty(request.OwnerId)
+                && request.OwnerId != user.Id
+                && CanAssignOwnership(user.Role))
+            {
+                bool exists = await context.Users.AsNoTracking().AnyAsync(u => u.Id == request.OwnerId);
+                if (!exists) return BadRequest<CharacterDto>("Selected owner does not exist.");
+                ownerId = request.OwnerId;
+            }
+
             if (!IsPrivileged(user.Role))
             {
                 int existing = await context.Characters.CountAsync(c => c.OwnerId == user.Id);
@@ -140,7 +153,7 @@ public class CharacterService(
                 Name = request.Name.Trim(),
                 Summary = request.Summary?.Trim(),
                 MarkdownBody = request.MarkdownBody ?? string.Empty,
-                OwnerId = user.Id,
+                OwnerId = ownerId,
                 CreatedAt = now,
                 UpdatedAt = now,
             };
@@ -371,6 +384,10 @@ public class CharacterService(
         string.Equals(role, Roles.Admin, StringComparison.OrdinalIgnoreCase) ||
         string.Equals(role, Roles.Designer, StringComparison.OrdinalIgnoreCase) ||
         string.Equals(role, Roles.Editor, StringComparison.OrdinalIgnoreCase);
+
+    private static bool CanAssignOwnership(string? role) =>
+        string.Equals(role, Roles.Admin, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(role, Roles.Designer, StringComparison.OrdinalIgnoreCase);
 
     private async Task<string> EnsureUniqueSlugAsync(string baseSlug)
     {

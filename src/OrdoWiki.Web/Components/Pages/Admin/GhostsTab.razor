@@ -1,0 +1,40 @@
+<MudPaper Elevation="0" Outlined="true" Class="pa-3 y-stack gap-3">
+    <div class="x-stack align-center gap-2">
+        <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="fill-space">
+            Placeholder accounts for friends who haven't signed up yet. They own content but can't sign in.
+            When the friend joins, link the ghost to their real account and everything transfers over.
+        </MudText>
+        <MudButton OnClick="@OpenCreateAsync"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add">
+            New ghost
+        </MudButton>
+    </div>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (_ghosts.Count == 0)
+    {
+        <MudText Color="Color.Tertiary">No ghost users yet.</MudText>
+    }
+    else
+    {
+        <MudDataGrid T="UserDto" Items="@_ghosts" Hover="true" Dense="true">
+            <Columns>
+                <PropertyColumn Property="x => x.DisplayName" Title="Display name"/>
+                <PropertyColumn Property="x => x.Username" Title="Username"/>
+                <TemplateColumn Title="Actions" Sortable="false" Filterable="false">
+                    <CellTemplate>
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.BottomLeft">
+                            <MudMenuItem OnClick="@(() => OpenLinkAsync(context.Item))">Link to real user…</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => DeleteAsync(context.Item))">Delete</MudMenuItem>
+                        </MudMenu>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    }
+</MudPaper>

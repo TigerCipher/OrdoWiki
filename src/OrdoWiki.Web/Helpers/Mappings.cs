@@ -12,7 +12,8 @@ public static class Mappings
             DisplayName = user.DisplayName,
             AvatarPath = user.AvatarPath,
             Role = role,
-            IsPasswordResetRequired = user.IsPasswordResetRequired
+            IsPasswordResetRequired = user.IsPasswordResetRequired,
+            IsGhost = user.IsGhost,
         };
 
     public static WikiPageDto MapToDto(

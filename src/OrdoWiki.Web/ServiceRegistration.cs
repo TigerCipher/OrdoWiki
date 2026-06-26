@@ -21,6 +21,7 @@ public static class ServiceRegistration
         services.AddScoped<SiteThemeState>();
         services.AddScoped<IHomePageService, HomePageService>();
         services.AddScoped<IRelatedItemsService, RelatedItemsService>();
+        services.AddScoped<IGhostUserService, GhostUserService>();
         services.AddScoped<IOrdoDialogs, OrdoDialogs>();
         services.AddScoped<ITimeZoneService, TimeZoneService>();
         services.AddScoped<ThemeState>();

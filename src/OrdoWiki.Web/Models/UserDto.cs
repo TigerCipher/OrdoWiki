@@ -8,4 +8,5 @@ public class UserDto
     public string? AvatarPath { get; set; }
     public string? Role { get; set; }
     public bool IsPasswordResetRequired { get; set; }
+    public bool IsGhost { get; set; }
 }

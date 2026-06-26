@@ -62,5 +62,26 @@ public class UserService(
                 g => Roles.PickHighest(g.Select(x => x.RoleName)));
     }
 
+    public async Task<List<UserDto>> SearchUsersAsync(string? query, int limit = 20)
+    {
+        IQueryable<ApplicationUser> q = context.Users.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            string trimmed = query.Trim();
+            q = q.Where(u =>
+                (u.DisplayName != null && EF.Functions.ILike(u.DisplayName, $"%{trimmed}%"))
+                || EF.Functions.ILike(u.UserName!, $"%{trimmed}%"));
+        }
+
+        List<ApplicationUser> users = await q
+            .OrderBy(u => u.DisplayName ?? u.UserName)
+            .Take(Math.Clamp(limit, 1, 100))
+            .ToListAsync();
+
+        Dictionary<string, string?> roles = await GetHighestRolesAsync(users.Select(u => u.Id));
+        return users.Select(u => MapToDto(u, roles.GetValueOrDefault(u.Id))).ToList();
+    }
+
     private record UserRoleRow(string UserId, string? RoleName);
 }

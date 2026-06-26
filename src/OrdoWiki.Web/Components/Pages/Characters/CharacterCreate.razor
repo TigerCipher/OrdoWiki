@@ -47,6 +47,31 @@
                           Variant="Variant.Outlined"/>
         </div>
 
+        @if (_canAssignOwner)
+        {
+            <MudAutocomplete T="UserDto"
+                             Value="_owner"
+                             ValueChanged="@(v => _owner = v)"
+                             SearchFunc="SearchOwnersAsync"
+                             ToStringFunc="@(u => u?.DisplayName ?? u?.Username ?? string.Empty)"
+                             Label="Owner"
+                             Placeholder="Who this character belongs to"
+                             Variant="Variant.Outlined"
+                             Clearable="false"
+                             CoerceText="false"
+                             CoerceValue="false">
+                <ItemTemplate Context="user">
+                    <div class="x-stack align-center gap-2">
+                        <span>@(user.DisplayName ?? user.Username)</span>
+                        @if (user.IsGhost)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Tertiary">ghost</MudChip>
+                        }
+                    </div>
+                </ItemTemplate>
+            </MudAutocomplete>
+        }
+
         <MudTextField T="string"
                       @bind-Value="@_summary"
                       Label="Summary"

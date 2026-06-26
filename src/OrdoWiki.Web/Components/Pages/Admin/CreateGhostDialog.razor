@@ -1,0 +1,59 @@
+@using MudBlazor
+@using OrdoWiki.Web.Models.Requests
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Create ghost user</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField T="string"
+                      @bind-Value="_displayName"
+                      Label="Display name"
+                      Variant="Variant.Outlined"
+                      Placeholder="Friend's name as it'll appear on their content"
+                      Immediate="true"/>
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Dense="true" Class="mt-2">@_error</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel" Disabled="@_saving">Cancel</MudButton>
+        <MudButton OnClick="@SaveAsync"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Disabled="@(_saving || string.IsNullOrWhiteSpace(_displayName))">
+            @(_saving ? "Creating..." : "Create")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Mud { get; set; } = null!;
+    [Inject] private IGhostUserService GhostUserService { get; set; } = null!;
+
+    private string _displayName = string.Empty;
+    private string? _error;
+    private bool _saving;
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _error = null;
+        ApiResponse<UserDto> response = await GhostUserService.CreateAsync(new CreateGhostUserRequest
+        {
+            DisplayName = _displayName,
+        });
+        _saving = false;
+
+        if (!response.Success)
+        {
+            _error = response.Error;
+            return;
+        }
+
+        Mud.Close(DialogResult.Ok(response.Value));
+    }
+
+    private void Cancel() => Mud.Cancel();
+}
