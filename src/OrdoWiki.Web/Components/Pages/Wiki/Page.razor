@@ -59,7 +59,8 @@
             <PropertyColumn Property="x => x.Title" Title="Title"/>
             <PropertyColumn Property="x => x.CreatorName" Title="Creator"/>
             <PropertyColumn Property="x => x.Summary" Title="Summary"/>
-            <PropertyColumn Property="x => x.CreatedAt" Title="Created" Format="g"/>
+            <PropertyColumn Property="x => x.CreatedAt" Title="Created" Format="g"
+                            InitialDirection="SortDirection.Descending"/>
             <PropertyColumn Property="x => x.CurrentRevision!.EditedAt" Title="Last Modified" Format="g" Hidden="true"/>
             <PropertyColumn Property="x => x.CurrentRevision!.Editor!.DisplayName" Title="Last Author" Hidden="true"/>
             <TemplateColumn>
