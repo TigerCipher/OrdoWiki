@@ -8,3 +8,10 @@ public sealed class GalleryItemDto
 }
 
 public sealed record SourceLink(string Kind, string Name, string Url);
+
+public sealed class DeleteImpactDto
+{
+    public List<string> AffectedCharacterNames { get; set; } = [];
+
+    public bool HasImpact => AffectedCharacterNames.Count > 0;
+}

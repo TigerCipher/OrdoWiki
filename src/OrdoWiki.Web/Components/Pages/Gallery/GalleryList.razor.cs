@@ -211,15 +211,32 @@ public partial class GalleryList
             return;
         }
 
+        // No SourceLink — Standalone (or an orphaned source). Even so, picker
+        // cloning can leave CharacterImage joins behind on a Standalone row, so
+        // we check actual impact before showing the plain confirm.
+        DeleteImpactDto impact = await GalleryService.GetDeleteImpactAsync(item.Asset.Id);
+        string message = impact.HasImpact
+            ? "Permanently delete this image?\n\n" + BuildImpactWarning(impact)
+            : "Permanently delete this image? This cannot be undone.";
+
         ConfirmDialog.ConfirmChoice? plainChoice = await ShowConfirmAsync(
             title: "Delete image",
-            message: "Permanently delete this image? This cannot be undone.",
+            message: message,
             primaryText: "Delete",
             primaryColor: Color.Error);
 
         if (plainChoice != ConfirmDialog.ConfirmChoice.Primary) return;
 
         await PerformDeleteAsync(item);
+    }
+
+    private static string BuildImpactWarning(DeleteImpactDto impact)
+    {
+        if (impact.AffectedCharacterNames.Count == 0) return string.Empty;
+
+        string list = string.Join(", ", impact.AffectedCharacterNames.Select(n => $"\"{n}\""));
+        string verb = impact.AffectedCharacterNames.Count == 1 ? "will lose" : "will each lose";
+        return $"Character {list} {verb} this image.";
     }
 
     private async Task<ConfirmDialog.ConfirmChoice?> ShowConfirmAsync(

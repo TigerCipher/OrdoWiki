@@ -90,6 +90,27 @@ public class GalleryService(
         return Ok(users.Select(u => MapToDto(u, roles.GetValueOrDefault(u.Id))).ToList());
     }
 
+    public async Task<DeleteImpactDto> GetDeleteImpactAsync(Guid assetId)
+    {
+        MediaAsset? asset = await context.MediaAssets
+            .AsNoTracking()
+            .SingleOrDefaultAsync(a => a.Id == assetId);
+        if (asset is null) return new DeleteImpactDto();
+
+        List<string> characterNames = await context.CharacterImages
+            .AsNoTracking()
+            .Where(i => i.MediaAssetId == assetId)
+            .Select(i => i.Character.Name)
+            .Distinct()
+            .OrderBy(n => n)
+            .ToListAsync();
+
+        return new DeleteImpactDto
+        {
+            AffectedCharacterNames = characterNames,
+        };
+    }
+
     public async Task<ApiResponse<bool>> DeleteAsync(Guid assetId, bool force = false)
     {
         ApiResponse<UserDto> userResponse = await userService.GetCurrentUserAsync();
@@ -99,7 +120,9 @@ public class GalleryService(
         if (!IsPrivileged(user.Role))
             return Forbidden<bool>("You don't have permission to delete gallery images.");
 
-        MediaAsset? asset = await context.MediaAssets.SingleOrDefaultAsync(a => a.Id == assetId);
+        MediaAsset? asset = await context.MediaAssets
+            .AsNoTracking()
+            .SingleOrDefaultAsync(a => a.Id == assetId);
         if (asset is null) return NotFound<bool>();
 
         // Characters have a dedicated gallery editor — direct gallery delete would

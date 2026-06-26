@@ -4,6 +4,7 @@ using Data;
 using Data.Entities;
 using Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
@@ -197,16 +198,22 @@ public class MediaService(
 
     public async Task DeleteAssetAsync(Guid assetId, CancellationToken cancellationToken = default)
     {
-        MediaAsset? asset = await context.MediaAssets
-            .SingleOrDefaultAsync(a => a.Id == assetId, cancellationToken);
-        if (asset is null) return;
+        // Stay off the change tracker entirely. The Blazor Server circuit
+        // shares one scoped DbContext across user actions, so a CharacterImage
+        // that got tracked earlier (e.g., from the picker's Add+SaveChanges)
+        // can still be Unchanged in memory even after we ExecuteDelete its row.
+        // Calling Remove(asset) would then trigger EF's cascade check against
+        // those stale tracked dependents and throw on the required FK.
+        string? storagePath = await context.MediaAssets
+            .AsNoTracking()
+            .Where(a => a.Id == assetId)
+            .Select(a => a.StoragePath)
+            .SingleOrDefaultAsync(cancellationToken);
+        if (storagePath is null) return;
 
-        string storagePath = asset.StoragePath;
-
-        // Clear any joins pointing at this asset before the row goes. The
-        // CharacterImage FK is Restrict, so leaving even one row dangling
-        // aborts the delete. Tags use Cascade in theory but we clean them up
-        // explicitly anyway to stay symmetric.
+        // CharacterImage FK is Restrict, so the joins have to go before the
+        // asset row. Tags Cascade in theory but we clean them up explicitly
+        // for symmetry.
         await context.MediaAssetTags
             .Where(j => j.MediaAssetId == assetId)
             .ExecuteDeleteAsync(cancellationToken);
@@ -215,8 +222,21 @@ public class MediaService(
             .Where(i => i.MediaAssetId == assetId)
             .ExecuteDeleteAsync(cancellationToken);
 
-        context.MediaAssets.Remove(asset);
-        await context.SaveChangesAsync(cancellationToken);
+        await context.MediaAssets
+            .Where(a => a.Id == assetId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        // Detach any now-stale tracker entries so a later SaveChanges in this
+        // circuit doesn't fail trying to fixup relationships to deleted rows.
+        foreach (EntityEntry entry in context.ChangeTracker.Entries()
+            .Where(e =>
+                (e.Entity is MediaAsset m && m.Id == assetId)
+                || (e.Entity is CharacterImage c && c.MediaAssetId == assetId)
+                || (e.Entity is MediaAssetTag t && t.MediaAssetId == assetId))
+            .ToList())
+        {
+            entry.State = EntityState.Detached;
+        }
 
         // Only blow away the file if no surviving MediaAsset still references it
         // (picker-cloned attachments share a StoragePath).
