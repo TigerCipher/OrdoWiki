@@ -275,14 +275,28 @@ public class CharacterService(
     {
         CharacterImage? image = await context.CharacterImages
             .Include(i => i.Character)
+            .Include(i => i.MediaAsset)
             .SingleOrDefaultAsync(i => i.Id == imageId);
         if (image is null) return NotFound<bool>();
 
         ApiResponse<bool> editCheck = await CanEditCharacterAsync(image.CharacterId);
         if (!editCheck.Success) return Forbidden<bool>(editCheck.Error);
 
+        // Each character image owns its underlying MediaAsset 1:1 (a fresh upload
+        // per AddImage call). Removing the join row alone would orphan the asset
+        // in the gallery, so we drop the asset + its tags + the file too.
+        Guid assetId = image.MediaAssetId;
+        string storagePath = image.MediaAsset.StoragePath;
+
+        // Drop the join row first so the FK Restrict on MediaAsset doesn't fire
+        // when we delete the asset itself.
         context.CharacterImages.Remove(image);
         await context.SaveChangesAsync();
+
+        await context.MediaAssetTags.Where(j => j.MediaAssetId == assetId).ExecuteDeleteAsync();
+        await context.MediaAssets.Where(a => a.Id == assetId).ExecuteDeleteAsync();
+
+        mediaService.TryDeleteFile(storagePath);
         return Ok(true);
     }
 

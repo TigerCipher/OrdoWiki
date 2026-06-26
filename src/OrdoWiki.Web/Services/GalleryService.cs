@@ -82,7 +82,7 @@ public class GalleryService(
         return Ok(users.Select(u => MapToDto(u, roles.GetValueOrDefault(u.Id))).ToList());
     }
 
-    public async Task<ApiResponse<bool>> DeleteAsync(Guid assetId)
+    public async Task<ApiResponse<bool>> DeleteAsync(Guid assetId, bool force = false)
     {
         ApiResponse<UserDto> userResponse = await userService.GetCurrentUserAsync();
         if (!userResponse) return Unauthorized<bool>(userResponse.Error);
@@ -98,16 +98,27 @@ public class GalleryService(
         // bypass the OrderIndex/CharacterImage row management. Avatars and banners
         // are also managed elsewhere. Standalone, WikiPage, and TimelineEvent
         // images have no inline manager, so the gallery is the delete path.
-        if (asset.SourceType is MediaSourceType.Character
+        bool managedElsewhere = asset.SourceType is MediaSourceType.Character
             or MediaSourceType.Avatar
-            or MediaSourceType.Banner)
-        {
+            or MediaSourceType.Banner;
+
+        if (managedElsewhere && !force)
             return BadRequest<bool>("This image is managed elsewhere — remove it from its source page.");
+
+        if (managedElsewhere && !string.Equals(user.Role, Roles.Admin, StringComparison.OrdinalIgnoreCase))
+            return Forbidden<bool>("Only an admin can force-delete an image attached to another entity.");
+
+        // For Character-attached assets, clear the join row first so the FK
+        // Restrict on CharacterImage.MediaAsset doesn't fire when we drop the
+        // asset. Avatars/banners reference the asset via SetNull, so they don't
+        // need explicit cleanup — the FK will null out on delete.
+        if (asset.SourceType == MediaSourceType.Character)
+        {
+            await context.CharacterImages.Where(i => i.MediaAssetId == assetId).ExecuteDeleteAsync();
         }
 
         await context.MediaAssetTags.Where(j => j.MediaAssetId == assetId).ExecuteDeleteAsync();
-        context.MediaAssets.Remove(asset);
-        await context.SaveChangesAsync();
+        await context.MediaAssets.Where(a => a.Id == assetId).ExecuteDeleteAsync();
 
         mediaService.TryDeleteFile(asset.StoragePath);
         return Ok(true);

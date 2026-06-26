@@ -8,5 +8,5 @@ public interface IGalleryService
 
     Task<ApiResponse<List<UserDto>>> GetUploadersAsync();
 
-    Task<ApiResponse<bool>> DeleteAsync(Guid assetId);
+    Task<ApiResponse<bool>> DeleteAsync(Guid assetId, bool force = false);
 }

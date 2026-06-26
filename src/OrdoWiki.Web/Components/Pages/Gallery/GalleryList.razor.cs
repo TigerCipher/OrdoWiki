@@ -1,5 +1,6 @@
 namespace OrdoWiki.Web.Components.Pages.Gallery;
 
+using Data.Auth;
 using Data.Entities;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -15,6 +16,7 @@ public partial class GalleryList
     private TagDto? _selectedTag;
     private bool _loading = true;
     private int _pageCount = 1;
+    private bool _isAdmin;
 
     [SupplyParameterFromQuery(Name = "tag")]
     public string? TagSlug { get; set; }
@@ -34,9 +36,16 @@ public partial class GalleryList
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
 
+    [Inject]
+    private IUserService UserService { get; set; } = null!;
+
     protected override async Task OnInitializedAsync()
     {
         if (!RendererInfo.IsInteractive) return;
+
+        ApiResponse<UserDto> userResponse = await UserService.GetCurrentUserAsync();
+        _isAdmin = userResponse.Success
+            && string.Equals(userResponse.Value.Role, Roles.Admin, StringComparison.OrdinalIgnoreCase);
 
         ApiResponse<List<UserDto>> uploadersResponse = await GalleryService.GetUploadersAsync();
         if (uploadersResponse) _uploaders = uploadersResponse.Value;
@@ -143,18 +152,36 @@ public partial class GalleryList
 
     private async Task DeleteAsync(GalleryItemDto item)
     {
-        // Characters have their own gallery editor — bounce the user there instead
-        // of nuking a CharacterImage row from under it.
+        // Characters have their own gallery editor — non-admins are bounced
+        // there. Admins get an explicit force-delete primary in danger color.
         if (item.Asset.SourceType == MediaSourceType.Character && item.Source is { } charSrc)
         {
-            bool? goEdit = await DialogService.ShowMessageBoxAsync(
-                "Image attached to character",
-                $"This image belongs to the character \"{charSrc.Name}\" and is managed from that character's edit page.",
-                yesText: $"Edit {charSrc.Name}",
-                cancelText: "Close");
+            (string Primary, Color PrimaryColor, string? Secondary) layout = _isAdmin
+                ? ("Delete anyway", Color.Error, $"Edit {charSrc.Name}")
+                : ($"Edit {charSrc.Name}", Color.Primary, (string?)null);
 
-            if (goEdit == true)
+            ConfirmDialog.ConfirmChoice? choice = await ShowConfirmAsync(
+                title: "Image attached to character",
+                message: $"This image belongs to the character \"{charSrc.Name}\" and is managed from that character's edit page.",
+                primaryText: layout.Primary,
+                primaryColor: layout.PrimaryColor,
+                secondaryText: layout.Secondary);
+
+            if (choice is null) return;
+
+            // Whichever slot held "Edit X" navigates to the character edit page.
+            bool wantEdit = _isAdmin
+                ? choice == ConfirmDialog.ConfirmChoice.Secondary
+                : choice == ConfirmDialog.ConfirmChoice.Primary;
+
+            if (wantEdit)
+            {
                 Navigation.NavigateTo($"{charSrc.Url}/edit");
+                return;
+            }
+
+            if (_isAdmin && choice == ConfirmDialog.ConfirmChoice.Primary)
+                await PerformDeleteAsync(item, force: true);
             return;
         }
 
@@ -165,39 +192,68 @@ public partial class GalleryList
         if (item.Source is { } inlineSrc)
         {
             string kind = inlineSrc.Kind.ToLowerInvariant();
-            bool? choice = await DialogService.ShowMessageBoxAsync(
-                $"Delete image used in this {kind}?",
-                $"This image is inline in the {kind} \"{inlineSrc.Name}\". Deleting it will break the reference wherever it appears in that {kind}'s markdown.",
-                yesText: "Delete anyway",
-                noText: $"Edit {kind} first",
-                cancelText: "Cancel");
+            ConfirmDialog.ConfirmChoice? choice = await ShowConfirmAsync(
+                title: $"Delete image used in this {kind}?",
+                message: $"This image is inline in the {kind} \"{inlineSrc.Name}\". Deleting it will break the reference wherever it appears in that {kind}'s markdown.",
+                primaryText: "Delete anyway",
+                primaryColor: Color.Error,
+                secondaryText: $"Edit {kind} first");
 
-            if (choice == false)
+            if (choice == ConfirmDialog.ConfirmChoice.Secondary)
             {
                 Navigation.NavigateTo($"{inlineSrc.Url}/edit");
                 return;
             }
 
-            if (choice != true) return;
+            if (choice != ConfirmDialog.ConfirmChoice.Primary) return;
 
             await PerformDeleteAsync(item);
             return;
         }
 
-        bool? confirm = await DialogService.ShowMessageBoxAsync(
-            "Delete image",
-            "Permanently delete this image? This cannot be undone.",
-            yesText: "Delete",
-            cancelText: "Cancel");
+        ConfirmDialog.ConfirmChoice? plainChoice = await ShowConfirmAsync(
+            title: "Delete image",
+            message: "Permanently delete this image? This cannot be undone.",
+            primaryText: "Delete",
+            primaryColor: Color.Error);
 
-        if (confirm != true) return;
+        if (plainChoice != ConfirmDialog.ConfirmChoice.Primary) return;
 
         await PerformDeleteAsync(item);
     }
 
-    private async Task PerformDeleteAsync(GalleryItemDto item)
+    private async Task<ConfirmDialog.ConfirmChoice?> ShowConfirmAsync(
+        string title, string message,
+        string primaryText, Color primaryColor,
+        string? secondaryText = null)
     {
-        ApiResponse<bool> response = await GalleryService.DeleteAsync(item.Asset.Id);
+        DialogParameters parameters = new()
+        {
+            { nameof(ConfirmDialog.Title), title },
+            { nameof(ConfirmDialog.Message), message },
+            { nameof(ConfirmDialog.PrimaryText), primaryText },
+            { nameof(ConfirmDialog.PrimaryColor), primaryColor },
+            { nameof(ConfirmDialog.SecondaryText), secondaryText },
+            { nameof(ConfirmDialog.CancelText), "Cancel" },
+        };
+
+        DialogOptions options = new()
+        {
+            CloseButton = false,
+            BackdropClick = false,
+            MaxWidth = MaxWidth.ExtraSmall,
+            FullWidth = true,
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(title, parameters, options);
+        DialogResult? result = await dialog.Result;
+        if (result is null || result.Canceled) return null;
+        return result.Data as ConfirmDialog.ConfirmChoice?;
+    }
+
+    private async Task PerformDeleteAsync(GalleryItemDto item, bool force = false)
+    {
+        ApiResponse<bool> response = await GalleryService.DeleteAsync(item.Asset.Id, force);
         if (!response.Success)
         {
             Snackbar.Add($"Failed to delete: {response.Error}", Severity.Error);

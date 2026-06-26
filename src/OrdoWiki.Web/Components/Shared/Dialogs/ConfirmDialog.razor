@@ -1,0 +1,40 @@
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>@Message</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@OnCancel" Variant="Variant.Text">@CancelText</MudButton>
+        @if (!string.IsNullOrEmpty(SecondaryText))
+        {
+            <MudButton OnClick="@OnSecondary"
+                       Variant="Variant.Outlined"
+                       Color="@SecondaryColor">@SecondaryText</MudButton>
+        }
+        <MudButton OnClick="@OnPrimary"
+                   Variant="Variant.Filled"
+                   Color="@PrimaryColor">@PrimaryText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Mud { get; set; } = null!;
+
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Message { get; set; } = string.Empty;
+    [Parameter] public string PrimaryText { get; set; } = "OK";
+    [Parameter] public Color PrimaryColor { get; set; } = Color.Primary;
+    [Parameter] public string? SecondaryText { get; set; }
+    [Parameter] public Color SecondaryColor { get; set; } = Color.Default;
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+
+    private void OnPrimary() => Mud.Close(DialogResult.Ok(ConfirmChoice.Primary));
+    private void OnSecondary() => Mud.Close(DialogResult.Ok(ConfirmChoice.Secondary));
+    private void OnCancel() => Mud.Cancel();
+
+    public enum ConfirmChoice { Primary, Secondary }
+}
