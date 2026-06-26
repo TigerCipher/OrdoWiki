@@ -22,6 +22,11 @@ public interface ICharacterService
         long sizeBytes,
         CancellationToken cancellationToken = default);
 
+    Task<ApiResponse<CharacterImageDto>> AttachExistingImageAsync(
+        Guid characterId,
+        Guid sourceAssetId,
+        CancellationToken cancellationToken = default);
+
     Task<ApiResponse<bool>> RemoveImageAsync(Guid imageId);
     Task<ApiResponse<bool>> ReorderImagesAsync(ReorderCharacterImagesRequest request);
     Task<ApiResponse<CharacterImageDto>> UpdateImageCaptionAsync(UpdateImageCaptionRequest request);

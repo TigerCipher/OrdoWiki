@@ -1,0 +1,36 @@
+@using MudBlazor
+@using OrdoWiki.Web.Components.Shared
+
+<MudDialog Class="PickImageDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Pick from gallery</MudText>
+    </TitleContent>
+    <DialogContent>
+        <GalleryPicker OnPicked="OnPicked"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="@Confirm"
+                   Disabled="@(_picked is null)">
+            Use this image
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Mud { get; set; } = null!;
+
+    private GalleryItemDto? _picked;
+
+    private void OnPicked(GalleryItemDto item) => _picked = item;
+
+    private void Confirm()
+    {
+        if (_picked is null) return;
+        Mud.Close(DialogResult.Ok(_picked));
+    }
+
+    private void Cancel() => Mud.Cancel();
+}

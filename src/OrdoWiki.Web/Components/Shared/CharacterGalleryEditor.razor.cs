@@ -3,6 +3,7 @@ namespace OrdoWiki.Web.Components.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
+using OrdoWiki.Web.Components.Shared.Dialogs;
 using OrdoWiki.Web.Services;
 using Web.Models.Requests;
 
@@ -30,6 +31,9 @@ public partial class CharacterGalleryEditor
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = null!;
 
     private bool _atCap => MaxImages.HasValue && Images.Count >= MaxImages.Value;
 
@@ -68,6 +72,49 @@ public partial class CharacterGalleryEditor
                 Images.Add(response.Value);
             }
 
+            await OnChanged.InvokeAsync();
+        }
+        finally
+        {
+            _uploading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenPickerAsync()
+    {
+        if (_atCap)
+        {
+            Snackbar.Add($"Image limit of {MaxImages} reached.", Severity.Warning);
+            return;
+        }
+
+        DialogOptions options = new()
+        {
+            CloseButton = true,
+            BackdropClick = false,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<PickImageDialog>("Pick from gallery", options);
+        DialogResult? result = await dialog.Result;
+        if (result is not { Canceled: false, Data: GalleryItemDto picked }) return;
+
+        _uploading = true;
+        StateHasChanged();
+        try
+        {
+            ApiResponse<CharacterImageDto> response = await CharacterService.AttachExistingImageAsync(
+                CharacterId, picked.Asset.Id);
+
+            if (!response)
+            {
+                Snackbar.Add($"Failed to attach image: {response.Error}", Severity.Error);
+                return;
+            }
+
+            Images.Add(response.Value);
             await OnChanged.InvokeAsync();
         }
         finally

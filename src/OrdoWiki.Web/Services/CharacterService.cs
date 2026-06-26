@@ -284,6 +284,58 @@ public class CharacterService(
         return Ok(MapToDto(saved));
     }
 
+    public async Task<ApiResponse<CharacterImageDto>> AttachExistingImageAsync(
+        Guid characterId,
+        Guid sourceAssetId,
+        CancellationToken cancellationToken = default)
+    {
+        Character? character = await context.Characters
+            .Include(c => c.Images)
+            .SingleOrDefaultAsync(c => c.Id == characterId, cancellationToken);
+        if (character is null) return NotFound<CharacterImageDto>();
+
+        ApiResponse<UserDto> userResponse = await userService.GetCurrentUserAsync();
+        if (!userResponse) return Unauthorized<CharacterImageDto>(userResponse.Error);
+
+        UserDto user = userResponse;
+
+        if (!CanEdit(user, character))
+            return Forbidden<CharacterImageDto>("You cannot edit this character.");
+
+        if (!IsPrivileged(user.Role) && character.Images.Count >= CharacterCaps.ReaderMaxImagesPerCharacter)
+            return Forbidden<CharacterImageDto>(
+                $"This character already has the maximum of {CharacterCaps.ReaderMaxImagesPerCharacter} images.");
+
+        ApiResponse<MediaAssetDto> attachResponse = await mediaService.AttachExistingAsync(
+            sourceAssetId, MediaSourceType.Character, character.Id, cancellationToken);
+        if (!attachResponse) return BadRequest<CharacterImageDto>(attachResponse.Error ?? "Could not attach image.");
+
+        MediaAssetDto asset = attachResponse;
+
+        int nextOrder = character.Images.Count == 0
+            ? 0
+            : character.Images.Max(i => i.OrderIndex) + 1;
+
+        CharacterImage row = new()
+        {
+            Id = Guid.NewGuid(),
+            CharacterId = character.Id,
+            MediaAssetId = asset.Id,
+            OrderIndex = nextOrder,
+        };
+
+        context.CharacterImages.Add(row);
+        await context.SaveChangesAsync(cancellationToken);
+
+        CharacterImage? saved = await context.CharacterImages
+            .AsNoTracking()
+            .Include(i => i.MediaAsset)
+            .SingleOrDefaultAsync(i => i.Id == row.Id, cancellationToken);
+        if (saved is null) return NotFound<CharacterImageDto>();
+
+        return Ok(MapToDto(saved));
+    }
+
     public async Task<ApiResponse<bool>> RemoveImageAsync(Guid imageId)
     {
         CharacterImage? image = await context.CharacterImages
@@ -295,21 +347,15 @@ public class CharacterService(
         ApiResponse<bool> editCheck = await CanEditCharacterAsync(image.CharacterId);
         if (!editCheck.Success) return Forbidden<bool>(editCheck.Error);
 
-        // Each character image owns its underlying MediaAsset 1:1 (a fresh upload
-        // per AddImage call). Removing the join row alone would orphan the asset
-        // in the gallery, so we drop the asset + its tags + the file too.
+        // Drop the join row first so the FK Restrict on CharacterImage.MediaAsset
+        // doesn't fire when we delete the asset. Then ref-counted delete handles
+        // the asset row, tags, and file (file only removed if no picker-cloned
+        // attachments still reference it).
         Guid assetId = image.MediaAssetId;
-        string storagePath = image.MediaAsset.StoragePath;
-
-        // Drop the join row first so the FK Restrict on MediaAsset doesn't fire
-        // when we delete the asset itself.
         context.CharacterImages.Remove(image);
         await context.SaveChangesAsync();
 
-        await context.MediaAssetTags.Where(j => j.MediaAssetId == assetId).ExecuteDeleteAsync();
-        await context.MediaAssets.Where(a => a.Id == assetId).ExecuteDeleteAsync();
-
-        mediaService.TryDeleteFile(storagePath);
+        await mediaService.DeleteAssetAsync(assetId);
         return Ok(true);
     }
 

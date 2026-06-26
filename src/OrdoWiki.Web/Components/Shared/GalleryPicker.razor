@@ -1,0 +1,110 @@
+@using MudBlazor
+
+<div class="GalleryPicker y-stack gap-3">
+    <div class="x-stack gap-3 align-center">
+        <MudSelect T="TagDto"
+                   Value="_selectedTag"
+                   ValueChanged="OnTagChangedAsync"
+                   Label="Tag"
+                   Variant="Variant.Outlined"
+                   Margin="Margin.Dense"
+                   Clearable="true"
+                   Class="tag-filter">
+            <MudSelectItem T="TagDto" Value="@((TagDto?)null)">All tags</MudSelectItem>
+            @foreach (TagDto tag in _allTags)
+            {
+                <MudSelectItem T="TagDto" Value="@tag">@tag.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </div>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (_items.Count == 0)
+    {
+        <MudText Color="Color.Tertiary">No images found.</MudText>
+    }
+    else
+    {
+        <div class="grid">
+            @foreach (GalleryItemDto item in _items)
+            {
+                bool selected = _selected?.Asset.Id == item.Asset.Id;
+                <button type="button"
+                        class="tile @(selected ? "selected" : "")"
+                        @onclick="@(() => Select(item))">
+                    <img src="@item.Asset.StoragePath" alt="@item.Asset.OriginalName" loading="lazy"/>
+                </button>
+            }
+        </div>
+
+        @if (_pageCount > 1)
+        {
+            <div class="x-stack justify-center">
+                <MudPagination Count="_pageCount" Selected="_filter.Page" SelectedChanged="OnPageChangedAsync"/>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private readonly GalleryFilter _filter = new() { PageSize = 24 };
+    private List<GalleryItemDto> _items = [];
+    private IReadOnlyList<TagDto> _allTags = [];
+    private TagDto? _selectedTag;
+    private GalleryItemDto? _selected;
+    private bool _loading = true;
+    private int _pageCount = 1;
+
+    [Inject] private IGalleryService GalleryService { get; set; } = null!;
+    [Inject] private ITagService TagService { get; set; } = null!;
+
+    [Parameter] public EventCallback<GalleryItemDto> OnPicked { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!RendererInfo.IsInteractive) return;
+        _allTags = await TagService.GetAllAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        ApiResponse<PagedResult<GalleryItemDto>> response = await GalleryService.GetGalleryAsync(_filter);
+        _loading = false;
+        if (!response.Success)
+        {
+            _items = [];
+            _pageCount = 1;
+            return;
+        }
+        PagedResult<GalleryItemDto> page = response;
+        _items = page.Items.ToList();
+        _pageCount = Math.Max(1, page.TotalPages);
+    }
+
+    private async Task OnTagChangedAsync(TagDto? tag)
+    {
+        _selectedTag = tag;
+        _filter.TagId = tag?.Id;
+        _filter.Page = 1;
+        await LoadAsync();
+    }
+
+    private async Task OnPageChangedAsync(int page)
+    {
+        _filter.Page = page;
+        await LoadAsync();
+    }
+
+    private void Select(GalleryItemDto item)
+    {
+        _selected = item;
+        OnPicked.InvokeAsync(item);
+    }
+
+    public GalleryItemDto? Selected => _selected;
+}

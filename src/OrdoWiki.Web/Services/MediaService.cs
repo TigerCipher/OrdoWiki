@@ -148,6 +148,84 @@ public class MediaService(
         }
     }
 
+    public async Task<ApiResponse<MediaAssetDto>> AttachExistingAsync(
+        Guid sourceAssetId,
+        MediaSourceType sourceType,
+        Guid? sourceId,
+        CancellationToken cancellationToken = default)
+    {
+        MediaAsset? source = await context.MediaAssets
+            .AsNoTracking()
+            .SingleOrDefaultAsync(a => a.Id == sourceAssetId, cancellationToken);
+        if (source is null) return NotFound<MediaAssetDto>();
+
+        ApiResponse<UserDto> userResponse = await userService.GetCurrentUserAsync();
+        if (!userResponse) return Unauthorized<MediaAssetDto>(userResponse.Error);
+
+        // Clone every file-level field; just rewrite the attachment (source) and
+        // who-attached-it. The physical file is shared via StoragePath.
+        MediaAsset clone = new()
+        {
+            Id = Guid.NewGuid(),
+            StoragePath = source.StoragePath,
+            OriginalName = source.OriginalName,
+            ContentType = source.ContentType,
+            SizeBytes = source.SizeBytes,
+            Width = source.Width,
+            Height = source.Height,
+            UploadedById = userResponse.Value.Id,
+            UploadedAt = DateTime.UtcNow,
+            SourceType = sourceType,
+            SourceId = sourceId,
+        };
+        context.MediaAssets.Add(clone);
+
+        // Copy tag joins so the clone inherits the source's tags. They can
+        // diverge after.
+        List<Guid> tagIds = await context.MediaAssetTags
+            .AsNoTracking()
+            .Where(j => j.MediaAssetId == sourceAssetId)
+            .Select(j => j.TagId)
+            .ToListAsync(cancellationToken);
+
+        foreach (Guid tagId in tagIds)
+            context.MediaAssetTags.Add(new MediaAssetTag { MediaAssetId = clone.Id, TagId = tagId });
+
+        await context.SaveChangesAsync(cancellationToken);
+        return Ok(MapToDto(clone));
+    }
+
+    public async Task DeleteAssetAsync(Guid assetId, CancellationToken cancellationToken = default)
+    {
+        MediaAsset? asset = await context.MediaAssets
+            .SingleOrDefaultAsync(a => a.Id == assetId, cancellationToken);
+        if (asset is null) return;
+
+        string storagePath = asset.StoragePath;
+
+        // Clear any joins pointing at this asset before the row goes. The
+        // CharacterImage FK is Restrict, so leaving even one row dangling
+        // aborts the delete. Tags use Cascade in theory but we clean them up
+        // explicitly anyway to stay symmetric.
+        await context.MediaAssetTags
+            .Where(j => j.MediaAssetId == assetId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        await context.CharacterImages
+            .Where(i => i.MediaAssetId == assetId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        context.MediaAssets.Remove(asset);
+        await context.SaveChangesAsync(cancellationToken);
+
+        // Only blow away the file if no surviving MediaAsset still references it
+        // (picker-cloned attachments share a StoragePath).
+        bool stillReferenced = await context.MediaAssets
+            .AsNoTracking()
+            .AnyAsync(a => a.StoragePath == storagePath, cancellationToken);
+        if (!stillReferenced) TryDeleteFile(storagePath);
+    }
+
     public void TryDeleteFile(string storagePath)
     {
         if (string.IsNullOrWhiteSpace(storagePath)) return;

@@ -10,6 +10,13 @@
                    accept=".jpg,.jpeg,.png,.webp,.gif"
                    multiple
                    OnChange="@OnFilesPickedAsync"/>
+        <MudButton OnClick="@OpenPickerAsync"
+                   Variant="Variant.Outlined"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.PhotoLibrary"
+                   Disabled="@(_uploading || _atCap)">
+            Pick from gallery
+        </MudButton>
         <MudButton HtmlTag="label"
                    Variant="Variant.Filled"
                    Color="Color.Primary"

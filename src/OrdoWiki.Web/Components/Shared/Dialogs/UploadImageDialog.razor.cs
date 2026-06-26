@@ -13,6 +13,8 @@ public partial class UploadImageDialog
     private string _altText = string.Empty;
     private string? _error;
     private bool _uploading;
+    private int _tabIndex;
+    private GalleryItemDto? _picked;
 
     [CascadingParameter]
     public IMudDialogInstance MudDialog { get; set; } = null!;
@@ -25,6 +27,9 @@ public partial class UploadImageDialog
 
     [Inject]
     private IMediaService MediaService { get; set; } = null!;
+
+    private bool _canConfirm => _tabIndex == 0 ? _file is not null : _picked is not null;
+    private string _confirmLabel => _tabIndex == 0 ? "Upload & insert" : "Attach & insert";
 
     private void OnFilePicked(InputFileChangeEventArgs e)
     {
@@ -46,6 +51,14 @@ public partial class UploadImageDialog
         _file = picked;
     }
 
+    private void OnPickedFromGallery(GalleryItemDto item)
+    {
+        _picked = item;
+        _error = null;
+    }
+
+    private Task ConfirmAsync() => _tabIndex == 0 ? UploadAsync() : AttachAsync();
+
     private async Task UploadAsync()
     {
         if (_file is null) return;
@@ -57,6 +70,32 @@ public partial class UploadImageDialog
             await using Stream stream = _file.OpenReadStream(MediaLimits.MaxImageBytes);
             ApiResponse<MediaAssetDto> response = await MediaService.UploadImageAsync(
                 stream, _file.Name, _file.ContentType, _file.Size, SourceType, SourceId);
+
+            if (!response)
+            {
+                _error = response.Error;
+                return;
+            }
+
+            ImageInsertResult result = new(response.Value.StoragePath, _altText.Trim());
+            MudDialog.Close(DialogResult.Ok(result));
+        }
+        finally
+        {
+            _uploading = false;
+        }
+    }
+
+    private async Task AttachAsync()
+    {
+        if (_picked is null) return;
+
+        _error = null;
+        _uploading = true;
+        try
+        {
+            ApiResponse<MediaAssetDto> response = await MediaService.AttachExistingAsync(
+                _picked.Asset.Id, SourceType, SourceId);
 
             if (!response)
             {

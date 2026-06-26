@@ -17,11 +17,19 @@ public class GalleryService(
         int page = Math.Max(1, filter.Page);
         int pageSize = Math.Clamp(filter.PageSize, 1, 100);
 
+        // Picker-cloned attachments share a StoragePath with the source. The
+        // gallery view shows one row per file — the oldest UploadedAt for that
+        // path wins as the canonical row.
+        IQueryable<Guid> canonicalIds = context.MediaAssets
+            .GroupBy(a => a.StoragePath)
+            .Select(g => g.OrderBy(a => a.UploadedAt).ThenBy(a => a.Id).First().Id);
+
         IQueryable<MediaAsset> q = context.MediaAssets
             .AsNoTracking()
             .Include(a => a.UploadedBy)
             .Where(a => a.SourceType != MediaSourceType.Avatar
-                     && a.SourceType != MediaSourceType.Banner);
+                     && a.SourceType != MediaSourceType.Banner)
+            .Where(a => canonicalIds.Contains(a.Id));
 
         if (filter.SourceType is { } src)
             q = q.Where(a => a.SourceType == src);
@@ -108,19 +116,9 @@ public class GalleryService(
         if (managedElsewhere && !string.Equals(user.Role, Roles.Admin, StringComparison.OrdinalIgnoreCase))
             return Forbidden<bool>("Only an admin can force-delete an image attached to another entity.");
 
-        // For Character-attached assets, clear the join row first so the FK
-        // Restrict on CharacterImage.MediaAsset doesn't fire when we drop the
-        // asset. Avatars/banners reference the asset via SetNull, so they don't
-        // need explicit cleanup — the FK will null out on delete.
-        if (asset.SourceType == MediaSourceType.Character)
-        {
-            await context.CharacterImages.Where(i => i.MediaAssetId == assetId).ExecuteDeleteAsync();
-        }
-
-        await context.MediaAssetTags.Where(j => j.MediaAssetId == assetId).ExecuteDeleteAsync();
-        await context.MediaAssets.Where(a => a.Id == assetId).ExecuteDeleteAsync();
-
-        mediaService.TryDeleteFile(asset.StoragePath);
+        // DeleteAssetAsync clears CharacterImage/tag joins and ref-counts the
+        // file (only removed if no other MediaAsset still references it).
+        await mediaService.DeleteAssetAsync(assetId);
         return Ok(true);
     }
 

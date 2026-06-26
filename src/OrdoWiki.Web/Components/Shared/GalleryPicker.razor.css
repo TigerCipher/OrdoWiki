@@ -1,0 +1,39 @@
+.GalleryPicker .tag-filter {
+    min-width: 12rem;
+    max-width: 16rem;
+}
+
+.GalleryPicker .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-2);
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.GalleryPicker .tile {
+    background: none;
+    border: 2px solid var(--color-border, #444);
+    border-radius: 6px;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.12s ease, transform 0.12s ease;
+}
+
+.GalleryPicker .tile:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-accent, #5b9dff);
+}
+
+.GalleryPicker .tile.selected {
+    border-color: var(--mud-palette-primary);
+    box-shadow: 0 0 0 2px var(--mud-palette-primary);
+}
+
+.GalleryPicker .tile img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+}
