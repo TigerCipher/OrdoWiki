@@ -1,5 +1,7 @@
 namespace OrdoWiki.Data.Entities;
 
+using NpgsqlTypes;
+
 public class TimelineEvent
 {
     public Guid Id { get; set; }
@@ -22,4 +24,7 @@ public class TimelineEvent
     public ApplicationUser? CreatedBy { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>Postgres-maintained tsvector over Title + Summary + MarkdownBody. Read-only.</summary>
+    public NpgsqlTsVector SearchVector { get; set; } = null!;
 }

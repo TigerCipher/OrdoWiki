@@ -1,0 +1,74 @@
+@rendermode InteractiveServer
+
+<div class="NavSearch">
+    <MudTextField T="string"
+                  Value="_input"
+                  ValueChanged="OnInputChanged"
+                  Placeholder="Search"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Immediate="true"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  OnKeyDown="OnKeyDownAsync"
+                  OnBlur="OnBlur"
+                  @ref="_field"
+                  Class="search-input"/>
+
+    @if (_open)
+    {
+        <MudPaper Outlined="true" Class="search-dropdown" Elevation="6">
+            @if (_searching)
+            {
+                <div class="pa-3 x-stack gap-2 align-center">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small"/>
+                    <MudText Typo="Typo.body2" Color="Color.Tertiary">Searching…</MudText>
+                </div>
+            }
+            else if (_results.TotalCount == 0)
+            {
+                <div class="pa-3">
+                    <MudText Typo="Typo.body2" Color="Color.Tertiary">No matches.</MudText>
+                </div>
+            }
+            else
+            {
+                @RenderGroup("Logs", _results.Logs)
+                @RenderGroup("Characters", _results.Characters)
+                @RenderGroup("Events", _results.Events)
+            }
+
+            <MudDivider/>
+            <MudButton OnClick="GoToResults"
+                       Variant="Variant.Text"
+                       FullWidth="true"
+                       StartIcon="@Icons.Material.Filled.Search"
+                       Class="see-all">
+                See all results for "@_input"
+            </MudButton>
+        </MudPaper>
+    }
+</div>
+
+@code {
+    private RenderFragment RenderGroup(string label, List<SearchResultDto> items) => __builder =>
+    {
+        if (items.Count == 0) return;
+        <div class="group-header">@label</div>
+        <MudList T="SearchResultDto" Dense="true">
+            @foreach (SearchResultDto r in items)
+            {
+                <MudListItem T="SearchResultDto"
+                             OnClick="@(() => NavigateTo(r.Href))">
+                    <div class="result-row">
+                        <div class="result-title">@r.Title</div>
+                        @if (!string.IsNullOrWhiteSpace(r.Subtitle))
+                        {
+                            <div class="result-subtitle">@r.Subtitle</div>
+                        }
+                    </div>
+                </MudListItem>
+            }
+        </MudList>
+    };
+}

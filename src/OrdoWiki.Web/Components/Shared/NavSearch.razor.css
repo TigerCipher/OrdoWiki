@@ -1,0 +1,54 @@
+.NavSearch {
+    width: 240px;
+    max-width: 100%;
+    position: relative;
+}
+
+.NavSearch ::deep .search-input .mud-input-root {
+    background-color: var(--color-surface);
+}
+
+.NavSearch ::deep .search-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 1100;
+    min-width: 320px;
+    max-width: 480px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background-color: var(--color-surface);
+}
+
+.NavSearch ::deep .group-header {
+    padding: 8px 12px 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-muted);
+    background-color: var(--color-surface);
+}
+
+.NavSearch ::deep .result-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.NavSearch ::deep .result-title {
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.NavSearch ::deep .result-subtitle {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.NavSearch ::deep .see-all {
+    justify-content: center;
+}

@@ -1,0 +1,98 @@
+@page "/search"
+@rendermode InteractiveServer
+
+<PageTitle>OrdoWiki | Search@(string.IsNullOrWhiteSpace(_query) ? "" : " — " + _query)</PageTitle>
+
+<SectionContent SectionName="page-header">
+    <div class="SearchResultsHeader x-stack gap-2 align-center wrap">
+        <MudText Typo="Typo.h4" Class="fill-space">
+            @if (string.IsNullOrWhiteSpace(_query))
+            {
+                <span>Search</span>
+            }
+            else
+            {
+                <span>Results for "@_query"</span>
+            }
+        </MudText>
+    </div>
+</SectionContent>
+
+<div class="SearchResults">
+    <MudPaper Outlined="true" Class="pa-3 mb-3">
+        <MudTextField T="string"
+                      Value="_input"
+                      ValueChanged="OnInputChanged"
+                      Placeholder="Search logs, characters, events…"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Immediate="true"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      OnAdornmentClick="@(() => RunSearchAsync(_input))"
+                      OnKeyDown="OnInputKeyDown"
+                      Clearable="true"/>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (string.IsNullOrWhiteSpace(_query))
+    {
+        <MudText Typo="Typo.body2" Color="Color.Tertiary">Type a search term above to get started.</MudText>
+    }
+    else if (_results.TotalCount == 0)
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+            No matches found.
+        </MudAlert>
+    }
+    else
+    {
+        <MudTabs Outlined="true" Color="Color.Primary" Rounded="true" KeepPanelsAlive="true">
+            <MudTabPanel Text="@($"Logs ({_results.Logs.Count})")">
+                @RenderList(_results.Logs, "log")
+            </MudTabPanel>
+            <MudTabPanel Text="@($"Characters ({_results.Characters.Count})")">
+                @RenderList(_results.Characters, "character")
+            </MudTabPanel>
+            <MudTabPanel Text="@($"Events ({_results.Events.Count})")">
+                @RenderList(_results.Events, "event")
+            </MudTabPanel>
+        </MudTabs>
+    }
+</div>
+
+@code {
+    private RenderFragment RenderList(List<SearchResultDto> items, string singularLabel) => __builder =>
+    {
+        if (items.Count == 0)
+        {
+            <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="pa-3">
+                No @(singularLabel) matches.
+            </MudText>
+        }
+        else
+        {
+            <div class="result-list y-stack gap-2 pa-2">
+                @foreach (SearchResultDto item in items)
+                {
+                    <MudPaper Outlined="true" Class="result-card pa-3">
+                        <MudLink Href="@item.Href" Underline="Underline.Hover">
+                            <MudText Typo="Typo.subtitle1">@item.Title</MudText>
+                        </MudLink>
+                        @if (!string.IsNullOrWhiteSpace(item.Subtitle))
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="mt-1">@item.Subtitle</MudText>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(item.SnippetHtml))
+                        {
+                            <div class="snippet mt-2">@((MarkupString)item.SnippetHtml)</div>
+                        }
+                    </MudPaper>
+                }
+            </div>
+        }
+    };
+}

@@ -16,6 +16,17 @@ public class TimelineEventConfiguration : IEntityTypeConfiguration<TimelineEvent
 
         builder.HasIndex(x => x.EpochDayNumber);
 
+        builder.Property(x => x.SearchVector)
+            .HasColumnType("tsvector")
+            .HasComputedColumnSql(
+                "setweight(to_tsvector('english', title), 'A') || " +
+                "setweight(to_tsvector('english', coalesce(summary, '')), 'B') || " +
+                "setweight(to_tsvector('english', coalesce(markdown_body, '')), 'C')",
+                stored: true);
+
+        builder.HasIndex(x => x.SearchVector)
+            .HasMethod("GIN");
+
         builder.HasOne(x => x.CreatedBy)
             .WithMany()
             .HasForeignKey(x => x.CreatedById)

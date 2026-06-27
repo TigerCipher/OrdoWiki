@@ -13,7 +13,17 @@ public class WikiPageConfiguration : IEntityTypeConfiguration<WikiPage>
         builder.Property(p => p.Title).HasMaxLength(200).IsRequired();
         builder.Property(p => p.Slug).HasMaxLength(200).IsRequired();
         builder.Property(p => p.Summary).HasMaxLength(500);
-        
+
+        builder.Property(p => p.SearchVector)
+            .HasColumnType("tsvector")
+            .HasComputedColumnSql(
+                "setweight(to_tsvector('english', title), 'A') || " +
+                "setweight(to_tsvector('english', coalesce(summary, '')), 'B')",
+                stored: true);
+
+        builder.HasIndex(p => p.SearchVector)
+            .HasMethod("GIN");
+
         builder.HasOne(p => p.CurrentRevision)
             .WithOne()
             .HasForeignKey<WikiPage>(p => p.CurrentRevisionId)

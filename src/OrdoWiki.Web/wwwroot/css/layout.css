@@ -156,3 +156,11 @@
 :root {
     --reader-max: 72ch;
 }
+
+/* NavSearch's start-adornment magnifier sits flush against the input. MudBlazor
+   ships `.mud-input-slot.mud-input-root-adorned-start { padding-inline-start: 0 }`
+   with high specificity, so we match both the class chain and the logical-property
+   name to push the input text away from the icon. */
+.NavSearch .mud-input-slot.mud-input-root-outlined.mud-input-root-adorned-start {
+    padding-inline-start: 8px;
+}

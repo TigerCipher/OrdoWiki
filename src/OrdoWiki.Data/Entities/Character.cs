@@ -1,5 +1,7 @@
 namespace OrdoWiki.Data.Entities;
 
+using NpgsqlTypes;
+
 public class Character
 {
     public Guid Id { get; set; }
@@ -15,4 +17,7 @@ public class Character
     public DateTime UpdatedAt { get; set; }
 
     public ICollection<CharacterImage> Images { get; set; } = [];
+
+    /// <summary>Postgres-maintained tsvector over Name + Summary + MarkdownBody. Read-only.</summary>
+    public NpgsqlTsVector SearchVector { get; set; } = null!;
 }

@@ -1,5 +1,6 @@
 ﻿namespace OrdoWiki.Data.Entities;
 
+using NpgsqlTypes;
 
 public class PageRevision
 {
@@ -11,5 +12,7 @@ public class PageRevision
     public ApplicationUser Editor { get; set; } = null!;
     public Guid PageId { get; set; }
     public WikiPage Page { get; set; } = null!;
-    
+
+    /// <summary>Postgres-maintained tsvector over MarkdownBody. Read-only.</summary>
+    public NpgsqlTsVector SearchVector { get; set; } = null!;
 }

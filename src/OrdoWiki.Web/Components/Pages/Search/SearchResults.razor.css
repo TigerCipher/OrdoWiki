@@ -1,0 +1,26 @@
+.SearchResults .result-list {
+    max-width: 100%;
+}
+
+.SearchResults .result-card {
+    background-color: var(--color-surface);
+    transition: border-color 120ms ease;
+}
+
+.SearchResults .result-card:hover {
+    border-color: var(--color-accent);
+}
+
+.SearchResults .snippet {
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: normal;
+}
+
+.SearchResults ::deep mark {
+    background-color: var(--color-accent);
+    color: var(--color-text);
+    padding: 0 2px;
+    border-radius: 2px;
+}

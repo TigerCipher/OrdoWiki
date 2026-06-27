@@ -20,6 +20,10 @@
             <MudButton Href="/tags" Class="btn-nav">Tags</MudButton>
         </div>
 
+        <div class="hide-mobile ml-2">
+            <NavSearch/>
+        </div>
+
         <MudIconButton Icon="@(ThemeState.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
                        Color="Color.Tertiary"
                        Edge="Edge.End"
@@ -68,6 +72,9 @@
                Variant="DrawerVariant.Temporary"
                Breakpoint="Breakpoint.Md">
         <MudNavMenu>
+            <div class="pa-3">
+                <NavSearch/>
+            </div>
             <AuthorizeView>
                 <Authorized>
                     @{
