@@ -22,7 +22,7 @@ public class TimelineEventConfiguration : IEntityTypeConfiguration<TimelineEvent
             .HasComputedColumnSql(
                 "setweight(to_tsvector('english', title), 'A') || " +
                 "setweight(to_tsvector('english', coalesce(summary, '')), 'B') || " +
-                "setweight(to_tsvector('english', coalesce(markdown_body, '')), 'C')",
+                "setweight(to_tsvector('english', regexp_replace(coalesce(markdown_body, ''), '<[^>]+>', ' ', 'g')), 'C')",
                 stored: true);
 
         builder.HasIndex(x => x.SearchVector)

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Models;
 using NpgsqlTypes;
 
-public class SearchService(ApplicationDbContext context) : ISearchService
+public class SearchService(ApplicationDbContext context, IContentRenderer contentRenderer) : ISearchService
 {
     private const int SnippetWindow = 80;
 
@@ -52,6 +52,7 @@ public class SearchService(ApplicationDbContext context) : ISearchService
                 p.Slug,
                 p.Summary,
                 Body = p.CurrentRevision != null ? p.CurrentRevision.MarkdownBody : null,
+                BodyFormat = p.CurrentRevision != null ? p.CurrentRevision.ContentFormat : ContentFormat.Markdown,
                 TitleRank = p.SearchVector.Rank(EF.Functions.ToTsQuery("english", query)),
                 BodyRank = p.CurrentRevision != null
                     ? p.CurrentRevision.SearchVector.Rank(EF.Functions.ToTsQuery("english", query))
@@ -68,7 +69,7 @@ public class SearchService(ApplicationDbContext context) : ISearchService
                 Subtitle = r.Summary,
                 Href = $"/logs/{r.Slug}",
                 Rank = r.TitleRank + r.BodyRank,
-                SnippetHtml = BuildSnippet(terms, r.Body, r.Summary),
+                SnippetHtml = BuildSnippet(terms, r.BodyFormat, r.Body, r.Summary),
             })
             .OrderByDescending(r => r.Rank)
             .Take(limit)
@@ -87,6 +88,7 @@ public class SearchService(ApplicationDbContext context) : ISearchService
                 c.Slug,
                 c.Summary,
                 c.MarkdownBody,
+                c.ContentFormat,
                 Rank = c.SearchVector.Rank(EF.Functions.ToTsQuery("english", query)),
             })
             .ToListAsync(ct);
@@ -100,7 +102,7 @@ public class SearchService(ApplicationDbContext context) : ISearchService
                 Subtitle = r.Summary,
                 Href = $"/characters/{r.Slug}",
                 Rank = r.Rank,
-                SnippetHtml = BuildSnippet(terms, r.MarkdownBody, r.Summary),
+                SnippetHtml = BuildSnippet(terms, r.ContentFormat, r.MarkdownBody, r.Summary),
             })
             .OrderByDescending(r => r.Rank)
             .Take(limit)
@@ -118,6 +120,7 @@ public class SearchService(ApplicationDbContext context) : ISearchService
                 e.Title,
                 e.Summary,
                 e.MarkdownBody,
+                e.ContentFormat,
                 e.DisplayOverride,
                 e.MandoYear,
                 Rank = e.SearchVector.Rank(EF.Functions.ToTsQuery("english", query)),
@@ -133,7 +136,7 @@ public class SearchService(ApplicationDbContext context) : ISearchService
                 Subtitle = r.DisplayOverride ?? r.Summary,
                 Href = $"/timeline/{r.Id}",
                 Rank = r.Rank,
-                SnippetHtml = BuildSnippet(terms, r.MarkdownBody, r.Summary),
+                SnippetHtml = BuildSnippet(terms, r.ContentFormat, r.MarkdownBody, r.Summary),
             })
             .OrderByDescending(r => r.Rank)
             .Take(limit)
@@ -167,10 +170,14 @@ public class SearchService(ApplicationDbContext context) : ISearchService
         return string.Join(" & ", sanitized);
     }
 
-    private static string? BuildSnippet(string[] terms, string? body, string? summary)
+    private string? BuildSnippet(string[] terms, ContentFormat format, string? body, string? summary)
     {
-        string source = !string.IsNullOrWhiteSpace(body)
-            ? body
+        // For HTML bodies we snippet against the plain-text projection so the
+        // result reads like prose. Summary is treated as markdown (it's a plain
+        // string entered in a MudTextField, never rich HTML).
+        string bodyText = contentRenderer.ExtractPlainText(format, body);
+        string source = !string.IsNullOrWhiteSpace(bodyText)
+            ? bodyText
             : summary ?? string.Empty;
         if (string.IsNullOrWhiteSpace(source) || terms.Length == 0) return null;
 

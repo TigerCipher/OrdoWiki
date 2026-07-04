@@ -10,4 +10,9 @@ public interface IContentRenderer
     /// <summary>Sanitizes untrusted HTML before persistence. Use in the write path
     /// so we never trust the client alone.</summary>
     string SanitizeHtml(string? html);
+
+    /// <summary>Converts a body to newline-preserving plain text suitable for
+    /// diffing or previewing. HTML block boundaries become line breaks so the
+    /// diff viewer shows readable prose instead of raw tags.</summary>
+    string ExtractPlainText(ContentFormat format, string? body);
 }

@@ -1,10 +1,27 @@
 namespace OrdoWiki.Web.Services;
 
+using System.Net;
+using System.Text.RegularExpressions;
 using Data.Entities;
 using Ganss.Xss;
 
-public class ContentRenderer : IContentRenderer
+public partial class ContentRenderer : IContentRenderer
 {
+    [GeneratedRegex(@"<(br|hr)\s*/?>", RegexOptions.IgnoreCase)]
+    private static partial Regex SelfClosingBlockRegex();
+
+    [GeneratedRegex(@"</(p|div|h[1-6]|li|blockquote|tr|pre|figure)>", RegexOptions.IgnoreCase)]
+    private static partial Regex ClosingBlockRegex();
+
+    [GeneratedRegex(@"<[^>]+>")]
+    private static partial Regex AnyTagRegex();
+
+    [GeneratedRegex(@"[ \t]+")]
+    private static partial Regex SpaceRunRegex();
+
+    [GeneratedRegex(@"\n{3,}")]
+    private static partial Regex BlankRunRegex();
+
     private readonly IMarkdownService _markdown;
     private readonly HtmlSanitizer _htmlSanitizer;
 
@@ -31,6 +48,26 @@ public class ContentRenderer : IContentRenderer
         return _htmlSanitizer.Sanitize(html);
     }
 
+    public string ExtractPlainText(ContentFormat format, string? body)
+    {
+        if (string.IsNullOrEmpty(body)) return string.Empty;
+        // Markdown source is already readable — passing it through unchanged means
+        // the diff shows the exact text the user typed (including `**bold**` markers),
+        // which is what a wiki author expects to see line-for-line.
+        if (format == ContentFormat.Markdown) return body;
+
+        // HTML body: block boundaries become newlines so the diff has meaningful
+        // lines to compare instead of one continuous run of characters. Inline
+        // tags get stripped without a newline, entities get decoded, whitespace
+        // collapses.
+        string withBreaks = SelfClosingBlockRegex().Replace(body, "\n");
+        withBreaks = ClosingBlockRegex().Replace(withBreaks, "\n");
+        string stripped = AnyTagRegex().Replace(withBreaks, string.Empty);
+        string decoded = WebUtility.HtmlDecode(stripped);
+        string spaceCollapsed = SpaceRunRegex().Replace(decoded, " ");
+        return BlankRunRegex().Replace(spaceCollapsed, "\n\n").Trim();
+    }
+
     private static HtmlSanitizer BuildEditorSanitizer()
     {
         // The allowlist is scoped to what TipTap's StarterKit + Table + Image + Link
@@ -49,6 +86,8 @@ public class ContentRenderer : IContentRenderer
         s.AllowedAttributes.Add("type");
         s.AllowedAttributes.Add("data-type");
         s.AllowedAttributes.Add("data-checked");
+        s.AllowedAttributes.Add("width");
+        s.AllowedAttributes.Add("height");
 
         s.AllowedTags.Add("details");
         s.AllowedTags.Add("summary");
@@ -63,8 +102,12 @@ public class ContentRenderer : IContentRenderer
         s.AllowedCssProperties.Add("background-color");
         s.AllowedCssProperties.Add("font-weight");
         s.AllowedCssProperties.Add("font-style");
+        s.AllowedCssProperties.Add("font-size");
+        s.AllowedCssProperties.Add("font-family");
         s.AllowedCssProperties.Add("text-decoration");
         s.AllowedCssProperties.Add("width");
+        s.AllowedCssProperties.Add("height");
+        s.AllowedCssProperties.Add("max-width");
 
         return s;
     }

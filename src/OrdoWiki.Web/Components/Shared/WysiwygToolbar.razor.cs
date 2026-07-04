@@ -24,6 +24,27 @@ public partial class WysiwygToolbar
         "#a5d6a7", "#e6ee9c",
     ];
 
+    // (label, css value or null for "clear"). We ship a short list rather than a
+    // full font picker — a wiki author needs sans/serif/mono/handwritten, not 200
+    // Google Fonts. Adding a family = importing its @font-face, which is more scope
+    // than this feature warrants right now.
+    private static readonly (string Label, string? Css)[] FontFamilies =
+    [
+        ("Default", null),
+        ("Sans", "Arial, \"Helvetica Neue\", sans-serif"),
+        ("Serif", "Georgia, \"Times New Roman\", serif"),
+        ("Monospace", "Menlo, Consolas, \"Courier New\", monospace"),
+        ("Handwritten", "\"Segoe Script\", \"Comic Sans MS\", cursive"),
+    ];
+
+    private static readonly (string Label, string? Size)[] FontSizes =
+    [
+        ("Small", "0.85em"),
+        ("Normal", null),
+        ("Large", "1.25em"),
+        ("Huge", "1.75em"),
+    ];
+
     private bool _textColorOpen;
     private bool _highlightOpen;
 
@@ -91,6 +112,18 @@ public partial class WysiwygToolbar
     {
         _highlightOpen = false;
         await Exec("unsetHighlight");
+    }
+
+    private async Task ApplyFontFamily(string? css)
+    {
+        if (css is null) await Exec("unsetFontFamily");
+        else await Exec("setFontFamily", css);
+    }
+
+    private async Task ApplyFontSize(string? size)
+    {
+        if (size is null) await Exec("unsetFontSize");
+        else await Exec("setFontSize", size);
     }
 
     private async Task InsertLinkAsync()

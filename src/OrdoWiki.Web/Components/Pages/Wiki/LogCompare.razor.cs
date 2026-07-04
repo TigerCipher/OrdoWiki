@@ -28,6 +28,9 @@ public partial class LogCompare
     private IPageService PageService { get; set; } = null!;
 
     [Inject]
+    private IContentRenderer Content { get; set; } = null!;
+
+    [Inject]
     private NavigationManager Navigation { get; set; } = null!;
 
     [Inject]
@@ -80,7 +83,12 @@ public partial class LogCompare
             return;
         }
 
-        _diff = SideBySideDiffBuilder.Diff(_from.MarkdownBody ?? string.Empty, _to.MarkdownBody ?? string.Empty);
+        // HTML revisions would otherwise render as one giant line of tags in the
+        // side-by-side view. Extracting plain text (block tags -> newlines) gives
+        // the diff meaningful line boundaries without touching the stored body.
+        string fromText = Content.ExtractPlainText(_from.ContentFormat, _from.MarkdownBody);
+        string toText = Content.ExtractPlainText(_to.ContentFormat, _to.MarkdownBody);
+        _diff = SideBySideDiffBuilder.Diff(fromText, toText);
         _hasChanges = _diff.OldText.Lines.Concat(_diff.NewText.Lines)
             .Any(l => l.Type is ChangeType.Inserted or ChangeType.Deleted or ChangeType.Modified);
 

@@ -17,6 +17,36 @@
             <MudIconButton Icon="@Icons.Material.Filled.FormatUnderlined" Size="Size.Small" OnClick="@(() => Exec("toggleUnderline"))" title="Underline (Ctrl+U)"/>
             <MudIconButton Icon="@Icons.Material.Filled.StrikethroughS" Size="Size.Small" OnClick="@(() => Exec("toggleStrike"))" title="Strikethrough"/>
 
+            <MudMenu Icon="@Icons.Material.Filled.FontDownload"
+                     Size="Size.Small"
+                     Dense="true"
+                     AnchorOrigin="Origin.BottomLeft"
+                     TransformOrigin="Origin.TopLeft">
+                @foreach ((string label, string? css) in FontFamilies)
+                {
+                    string? c = css;
+                    string style = c is null ? "" : $"font-family: {c}";
+                    <MudMenuItem OnClick="@(() => ApplyFontFamily(c))">
+                        <span style="@style">@label</span>
+                    </MudMenuItem>
+                }
+            </MudMenu>
+
+            <MudMenu Icon="@Icons.Material.Filled.FormatSize"
+                     Size="Size.Small"
+                     Dense="true"
+                     AnchorOrigin="Origin.BottomLeft"
+                     TransformOrigin="Origin.TopLeft">
+                @foreach ((string label, string? size) in FontSizes)
+                {
+                    string? s = size;
+                    string style = s is null ? "" : $"font-size: {s}";
+                    <MudMenuItem OnClick="@(() => ApplyFontSize(s))">
+                        <span style="@style">@label</span>
+                    </MudMenuItem>
+                }
+            </MudMenu>
+
             <div class="swatch-picker">
                 <MudIconButton Icon="@Icons.Material.Filled.FormatColorText"
                                Size="Size.Small"

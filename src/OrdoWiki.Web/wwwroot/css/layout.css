@@ -165,6 +165,34 @@
     padding-inline-start: 8px;
 }
 
+/* Custom Image NodeView in wysiwyg.js wraps every <img> with a .resizable-image
+   span and a .resize-handle child that's shown only while the image is the
+   ProseMirror selection. Corner-drag on the handle rewrites the wrapper's width
+   in-place; on mouseup we commit `width: XXXpx` to the node attrs. */
+.tiptap-editor .resizable-image {
+    display: inline-block;
+    position: relative;
+    max-width: 100%;
+}
+
+.tiptap-editor .resizable-image.is-selected {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+.tiptap-editor .resizable-image .resize-handle {
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    width: 12px;
+    height: 12px;
+    background-color: var(--mud-palette-primary);
+    border: 2px solid var(--color-surface);
+    border-radius: 2px;
+    cursor: nwse-resize;
+    z-index: 1;
+}
+
 /* TipTap task list markup — <li><label><input/></label><div><p>text</p></div></li>.
    Default block layout stacks the checkbox above the text; flexing the row keeps
    them on one line. Same rules apply in the editor and the viewer, so we hit both

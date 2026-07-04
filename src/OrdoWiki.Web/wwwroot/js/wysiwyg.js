@@ -28,8 +28,10 @@
             import(cdn("@tiptap/extension-text-style")),
             import(cdn("@tiptap/extension-color")),
             import(cdn("@tiptap/extension-highlight")),
-        ]).then(([core, starter, link, image, table, row, cell, header, taskList, taskItem, textAlign, underline, textStyle, color, highlight]) => ({
+            import(cdn("@tiptap/extension-font-family")),
+        ]).then(([core, starter, link, image, table, row, cell, header, taskList, taskItem, textAlign, underline, textStyle, color, highlight, fontFamily]) => ({
             Editor: core.Editor,
+            Extension: core.Extension,
             StarterKit: starter.default ?? starter.StarterKit,
             Link: link.default ?? link.Link,
             Image: image.default ?? image.Image,
@@ -44,6 +46,7 @@
             TextStyle: textStyle.default ?? textStyle.TextStyle,
             Color: color.default ?? color.Color,
             Highlight: highlight.default ?? highlight.Highlight,
+            FontFamily: fontFamily.default ?? fontFamily.FontFamily,
         }));
         return modulesPromise;
     };
@@ -63,6 +66,147 @@
             .replace(/class="?Mso[^"\s>]*"?/gi, "");
     };
 
+    // TipTap doesn't ship a first-party font-size extension. FontFamily's source is
+    // the template we're copying: an Extension (not a Mark) that adds a fontSize
+    // attribute to the shared textStyle mark via addGlobalAttributes, plus
+    // set/unset commands that mutate the textStyle mark directly. Renaming to a
+    // new mark and then calling setMark('textStyle', ...) — as an earlier version
+    // did — drops the attribute because it lives on a different mark.
+    const buildFontSize = (M) => M.Extension.create({
+        name: "fontSize",
+        addOptions() {
+            return { types: ["textStyle"] };
+        },
+        addGlobalAttributes() {
+            return [{
+                types: this.options.types,
+                attributes: {
+                    fontSize: {
+                        default: null,
+                        parseHTML: (el) => el.style.fontSize?.replace(/['"]+/g, "") || null,
+                        renderHTML: (attrs) => {
+                            if (!attrs.fontSize) return {};
+                            return { style: `font-size: ${attrs.fontSize}` };
+                        },
+                    },
+                },
+            }];
+        },
+        addCommands() {
+            return {
+                setFontSize: (fontSize) => ({ chain }) =>
+                    chain().setMark("textStyle", { fontSize }).run(),
+                unsetFontSize: () => ({ chain }) =>
+                    chain().setMark("textStyle", { fontSize: null }).removeEmptyTextStyle().run(),
+            };
+        },
+    });
+
+    // Extend Image with a width attribute + a wrapping NodeView that renders drag
+    // handles when the image is selected. Keeps the editor a self-contained ESM
+    // module — no community package dependency + no bundler required.
+    const buildResizableImage = (M) => M.Image.extend({
+        addAttributes() {
+            return {
+                ...this.parent?.(),
+                width: {
+                    default: null,
+                    parseHTML: (el) => el.getAttribute("width") || el.style.width || null,
+                    renderHTML: (attrs) => attrs.width ? { style: `width: ${attrs.width}` } : {},
+                },
+            };
+        },
+        addNodeView() {
+            return ({ node, editor, getPos }) => {
+                const wrapper = document.createElement("span");
+                wrapper.className = "resizable-image";
+                wrapper.style.display = "inline-block";
+                wrapper.style.position = "relative";
+                wrapper.style.maxWidth = "100%";
+                if (node.attrs.width) wrapper.style.width = node.attrs.width;
+
+                const img = document.createElement("img");
+                if (node.attrs.src) img.src = node.attrs.src;
+                if (node.attrs.alt) img.alt = node.attrs.alt;
+                if (node.attrs.title) img.title = node.attrs.title;
+                img.style.display = "block";
+                img.style.maxWidth = "100%";
+                img.style.width = "100%";
+                img.draggable = false;
+                wrapper.appendChild(img);
+
+                const handle = document.createElement("span");
+                handle.className = "resize-handle";
+                handle.style.display = "none";
+                wrapper.appendChild(handle);
+
+                let isSelected = false;
+                const setSelected = (selected) => {
+                    isSelected = selected;
+                    wrapper.classList.toggle("is-selected", selected);
+                    handle.style.display = selected ? "block" : "none";
+                };
+
+                // ProseMirror fires selectNode/deselectNode when the atom node is
+                // singly selected — perfect trigger for showing/hiding handles.
+                wrapper.addEventListener("mousedown", (e) => {
+                    if (e.target === handle) return;
+                    if (typeof getPos === "function") {
+                        editor.commands.setNodeSelection(getPos());
+                    }
+                });
+
+                let startX = 0;
+                let startWidth = 0;
+                let dragging = false;
+
+                const onMove = (e) => {
+                    if (!dragging) return;
+                    const dx = e.clientX - startX;
+                    const newWidth = Math.max(60, startWidth + dx);
+                    wrapper.style.width = `${newWidth}px`;
+                };
+
+                const onUp = () => {
+                    if (!dragging) return;
+                    dragging = false;
+                    document.removeEventListener("mousemove", onMove);
+                    document.removeEventListener("mouseup", onUp);
+
+                    if (typeof getPos === "function") {
+                        editor.chain()
+                            .focus()
+                            .setNodeSelection(getPos())
+                            .updateAttributes("image", { width: wrapper.style.width })
+                            .run();
+                    }
+                };
+
+                handle.addEventListener("mousedown", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dragging = true;
+                    startX = e.clientX;
+                    startWidth = wrapper.getBoundingClientRect().width;
+                    document.addEventListener("mousemove", onMove);
+                    document.addEventListener("mouseup", onUp);
+                });
+
+                return {
+                    dom: wrapper,
+                    selectNode: () => setSelected(true),
+                    deselectNode: () => setSelected(false),
+                    update: (updatedNode) => {
+                        if (updatedNode.type.name !== "image") return false;
+                        if (updatedNode.attrs.src !== node.attrs.src) return false;
+                        wrapper.style.width = updatedNode.attrs.width || "";
+                        return true;
+                    },
+                };
+            };
+        },
+    });
+
     window.ordoWysiwyg = {
         init: async (elementId, initialHtml, dotnetRef) => {
             const host = document.getElementById(elementId);
@@ -74,6 +218,8 @@
             }
 
             const M = await loadModules();
+            const FontSize = buildFontSize(M);
+            const ResizableImage = buildResizableImage(M);
 
             const editor = new M.Editor({
                 element: host,
@@ -82,7 +228,7 @@
                     M.StarterKit.configure({ heading: { levels: [1, 2, 3, 4] } }),
                     M.Underline,
                     M.Link.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),
-                    M.Image.configure({ inline: false, allowBase64: true }),
+                    ResizableImage.configure({ inline: false, allowBase64: true }),
                     M.Table.configure({ resizable: true }),
                     M.TableRow,
                     M.TableCell,
@@ -93,6 +239,8 @@
                     M.TextStyle,
                     M.Color,
                     M.Highlight.configure({ multicolor: true }),
+                    M.FontFamily,
+                    FontSize,
                 ],
                 editorProps: {
                     attributes: {
