@@ -44,11 +44,12 @@
                   Sizing="InputSizing.Auto"
                   Placeholder="Summary for this log" />
         
-    <MarkdownEditor @bind-Value="@_content"
-                    Label="Contents"
-                    Placeholder="The log contents (markdown supported)"
-                    SourceType="MediaSourceType.WikiPage"
-                    SourceId="@_pageId"/>
+    <RichContentEditor @bind-Value="@_content"
+                       @bind-Format="@_format"
+                       Label="Contents"
+                       Placeholder="The log contents"
+                       SourceType="MediaSourceType.WikiPage"
+                       SourceId="@_pageId"/>
 
     <RelatedItemsEditor @bind-Value="_related"
                         SelfKind="RelatedItemKind.Log"/>

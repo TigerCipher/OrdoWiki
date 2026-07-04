@@ -79,6 +79,7 @@ public partial class CharacterEdit
                 Name = _character.Name,
                 Summary = _character.Summary,
                 MarkdownBody = _character.MarkdownBody,
+                ContentFormat = _character.ContentFormat,
                 Slug = _character.Slug,
                 Tags = _tagNames,
             });

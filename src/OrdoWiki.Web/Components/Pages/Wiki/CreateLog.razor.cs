@@ -14,6 +14,7 @@ public partial class CreateLog
     private string _slug = string.Empty;
     private string _summary = string.Empty;
     private string _content = string.Empty;
+    private ContentFormat _format = ContentFormat.Html;
     private RelatedItemsDto _related = new();
 
     [Inject]
@@ -50,6 +51,7 @@ public partial class CreateLog
             Id = _pageId,
             Title = _title,
             MarkdownBody = _content,
+            ContentFormat = _format,
             Summary = summary,
             Slug = slug
         });

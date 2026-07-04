@@ -47,11 +47,13 @@
 
         <TagPicker Label="Tags" Value="_tagNames" ValueChanged="OnTagsChanged"/>
 
-        <MarkdownEditor @bind-Value="_body"
-                        Label="Description"
-                        Placeholder="What happened? (markdown supported)"
-                        SourceType="MediaSourceType.TimelineEvent"
-                        SourceId="@Id"/>
+        <RichContentEditor @bind-Value="_body"
+                           Format="@_format"
+                           ShowFormatToggle="false"
+                           Label="Description"
+                           Placeholder="What happened?"
+                           SourceType="MediaSourceType.TimelineEvent"
+                           SourceId="@Id"/>
 
         <RelatedItemsEditor @bind-Value="_related"
                             SelfKind="RelatedItemKind.TimelineEvent"

@@ -10,6 +10,7 @@ public partial class TimelineEdit
     private string _title = string.Empty;
     private string _summary = string.Empty;
     private string _body = string.Empty;
+    private ContentFormat _format = ContentFormat.Markdown;
     private string _displayOverride = string.Empty;
     private int _year;
     private int? _month;
@@ -53,6 +54,7 @@ public partial class TimelineEdit
         _title = ev.Title;
         _summary = ev.Summary ?? string.Empty;
         _body = ev.MarkdownBody ?? string.Empty;
+        _format = ev.ContentFormat;
         _displayOverride = ev.DisplayOverride ?? string.Empty;
         _year = ev.MandoYear;
         _month = ev.MandoMonth;
@@ -79,6 +81,7 @@ public partial class TimelineEdit
             Title = _title,
             Summary = _summary,
             MarkdownBody = _body,
+            ContentFormat = _format,
             MandoYear = _year,
             MandoMonth = _month,
             MandoDay = _day,

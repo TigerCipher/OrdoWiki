@@ -12,7 +12,8 @@ using Models.Requests;
 public class PageService(
     ApplicationDbContext context,
     IUserService userService,
-    ITagService tagService) : IPageService
+    ITagService tagService,
+    IContentRenderer contentRenderer) : IPageService
 {
     public async Task<ApiResponse<WikiPageDto>> GetPageByIdAsync(Guid id)
     {
@@ -84,7 +85,8 @@ public class PageService(
             {
                 Id = Guid.NewGuid(),
                 PageId = page.Id,
-                MarkdownBody = request.MarkdownBody,
+                MarkdownBody = SanitizeBody(request.MarkdownBody, request.ContentFormat),
+                ContentFormat = request.ContentFormat,
                 EditSummary = request.EditSummary,
                 EditedAt = createdAt,
                 EditedById = user.Id
@@ -130,15 +132,16 @@ public class PageService(
             {
                 Id = Guid.NewGuid(),
                 PageId = page.Id,
-                MarkdownBody = request.MarkdownBody,
+                MarkdownBody = SanitizeBody(request.MarkdownBody, request.ContentFormat),
+                ContentFormat = request.ContentFormat,
                 EditSummary = request.EditSummary,
                 EditedAt = DateTime.UtcNow,
                 EditedById = user.Id
             };
-        
+
             context.PageRevisions.Add(revision);
             page.CurrentRevisionId = revision.Id;
-        
+
             page.Title = request.Title.Trim();
             page.Summary = request.Summary?.Trim() ?? null;
 
@@ -213,6 +216,7 @@ public class PageService(
             Id = revision.Id,
             PageId = revision.PageId,
             MarkdownBody = revision.MarkdownBody,
+            ContentFormat = revision.ContentFormat,
             EditSummary = revision.EditSummary,
             EditedAt = DateTime.SpecifyKind(revision.EditedAt, DateTimeKind.Utc),
             EditedById = revision.EditedById,
@@ -250,6 +254,7 @@ public class PageService(
             Id = Guid.NewGuid(),
             PageId = page.Id,
             MarkdownBody = source.MarkdownBody,
+            ContentFormat = source.ContentFormat,
             EditSummary = summary,
             EditedAt = now,
             EditedById = user.Id,
@@ -301,6 +306,12 @@ public class PageService(
 
         return userService.GetHighestRolesAsync(ids);
     }
+
+    // WYSIWYG output goes through a second sanitizer pass on the server so we
+    // never store what the browser hands us verbatim. Markdown is stored raw —
+    // it's sanitized at render time.
+    private string SanitizeBody(string body, ContentFormat format) =>
+        format == ContentFormat.Html ? contentRenderer.SanitizeHtml(body) : body;
 
     private async Task<string> EnsureUniqueSlugAsync(string baseSlug)
     {

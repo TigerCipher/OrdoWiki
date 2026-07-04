@@ -82,11 +82,12 @@
                       Sizing="InputSizing.Auto"
                       Placeholder="One-line tagline (optional)"/>
 
-        <MarkdownEditor @bind-Value="@_body"
-                        Label="Backstory"
-                        Placeholder="Tell us about this character (markdown supported)"
-                        SourceType="MediaSourceType.Character"
-                        SourceId="@_characterId"/>
+        <RichContentEditor @bind-Value="@_body"
+                           @bind-Format="@_format"
+                           Label="Backstory"
+                           Placeholder="Tell us about this character"
+                           SourceType="MediaSourceType.Character"
+                           SourceId="@_characterId"/>
 
         <RelatedItemsEditor @bind-Value="_related"
                             SelfKind="RelatedItemKind.Character"/>

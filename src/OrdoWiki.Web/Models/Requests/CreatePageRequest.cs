@@ -1,5 +1,7 @@
 ﻿namespace OrdoWiki.Web.Models.Requests;
 
+using Data.Entities;
+
 public class CreatePageRequest
 {
     // Optional client-supplied ID so images uploaded during the create flow can be
@@ -8,6 +10,7 @@ public class CreatePageRequest
     public required string Title { get; set; }
     public string? Summary { get; set; }
     public required string MarkdownBody { get; set; }
+    public ContentFormat ContentFormat { get; set; } = ContentFormat.Markdown;
     public string? EditSummary { get; set; }
     public string? Slug { get; set; }
 }
@@ -17,6 +20,7 @@ public class EditPageRequest
     public required string Title { get; set; }
     public string? Summary { get; set; }
     public required string MarkdownBody { get; set; }
+    public ContentFormat ContentFormat { get; set; } = ContentFormat.Markdown;
     public string? EditSummary { get; set; }
     public string? Slug { get; set; }
     public required Guid PageId { get; set; }

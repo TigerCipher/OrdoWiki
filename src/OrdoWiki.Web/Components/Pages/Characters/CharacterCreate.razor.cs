@@ -15,6 +15,7 @@ public partial class CharacterCreate
     private string _slug = string.Empty;
     private string _summary = string.Empty;
     private string _body = string.Empty;
+    private ContentFormat _format = ContentFormat.Html;
     private bool _loading = true;
     private bool _canCreate;
     private bool _saving;
@@ -82,6 +83,7 @@ public partial class CharacterCreate
                 Name = _name,
                 Summary = string.IsNullOrWhiteSpace(_summary) ? null : _summary,
                 MarkdownBody = _body,
+                ContentFormat = _format,
                 Slug = string.IsNullOrWhiteSpace(_slug) ? null : _slug,
                 OwnerId = _canAssignOwner ? _owner?.Id : null,
             });

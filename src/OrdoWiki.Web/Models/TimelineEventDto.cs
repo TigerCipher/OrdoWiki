@@ -1,11 +1,14 @@
 namespace OrdoWiki.Web.Models;
 
+using Data.Entities;
+
 public class TimelineEventDto
 {
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Summary { get; set; }
     public string? MarkdownBody { get; set; }
+    public ContentFormat ContentFormat { get; set; } = ContentFormat.Markdown;
     public long EpochDayNumber { get; set; }
 
     public int MandoYear { get; set; }

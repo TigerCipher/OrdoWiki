@@ -10,6 +10,7 @@ public class PageRevisionConfiguration : IEntityTypeConfiguration<PageRevision>
     {
         builder.HasKey(r => r.Id);
         builder.Property(r => r.MarkdownBody).IsRequired();
+        builder.Property(r => r.ContentFormat).HasDefaultValue(ContentFormat.Markdown);
         builder.Property(r => r.EditSummary).HasMaxLength(500);
 
         builder.Property(r => r.SearchVector)

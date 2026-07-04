@@ -9,6 +9,7 @@ public class Character
     public string Name { get; set; } = string.Empty;
     public string? Summary { get; set; }
     public string MarkdownBody { get; set; } = string.Empty;
+    public ContentFormat ContentFormat { get; set; } = ContentFormat.Markdown;
 
     public string OwnerId { get; set; } = string.Empty;
     public ApplicationUser Owner { get; set; } = null!;

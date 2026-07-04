@@ -1,0 +1,37 @@
+@using OrdoWiki.Data.Entities
+
+<div class="RichContentEditor y-stack gap-2">
+    @if (ShowFormatToggle)
+    {
+        <div class="format-toggle x-stack gap-2 align-center">
+            <MudText Typo="Typo.caption" Color="Color.Tertiary">Editor</MudText>
+            <MudToggleGroup T="ContentFormat"
+                            Value="Format"
+                            ValueChanged="OnFormatChangedAsync"
+                            SelectionMode="SelectionMode.SingleSelection"
+                            Color="Color.Primary"
+                            Size="Size.Small">
+                <MudToggleItem Value="ContentFormat.Html" Text="Advanced"/>
+                <MudToggleItem Value="ContentFormat.Markdown" Text="Markdown"/>
+            </MudToggleGroup>
+        </div>
+    }
+
+    @if (Format == ContentFormat.Html)
+    {
+        <WysiwygEditor Value="@Value"
+                       ValueChanged="OnValueChangedAsync"
+                       Label="@Label"
+                       SourceType="@SourceType"
+                       SourceId="@SourceId"/>
+    }
+    else
+    {
+        <MarkdownEditor Value="@Value"
+                        ValueChanged="OnValueChangedAsync"
+                        Label="@Label"
+                        Placeholder="@Placeholder"
+                        SourceType="@SourceType"
+                        SourceId="@SourceId"/>
+    }
+</div>

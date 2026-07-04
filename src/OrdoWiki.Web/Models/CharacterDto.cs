@@ -1,5 +1,7 @@
 namespace OrdoWiki.Web.Models;
 
+using Data.Entities;
+
 public class CharacterDto
 {
     public Guid Id { get; set; }
@@ -7,6 +9,7 @@ public class CharacterDto
     public string Name { get; set; } = string.Empty;
     public string? Summary { get; set; }
     public string MarkdownBody { get; set; } = string.Empty;
+    public ContentFormat ContentFormat { get; set; } = ContentFormat.Markdown;
 
     public string OwnerId { get; set; } = string.Empty;
     public UserDto? Owner { get; set; }

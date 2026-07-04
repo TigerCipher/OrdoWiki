@@ -21,7 +21,7 @@ public partial class LogRevisionViewer
     private IPageService PageService { get; set; } = null!;
 
     [Inject]
-    private IMarkdownService Markdown { get; set; } = null!;
+    private IContentRenderer Content { get; set; } = null!;
 
     [Inject]
     private NavigationManager Navigation { get; set; } = null!;
@@ -57,7 +57,7 @@ public partial class LogRevisionViewer
             return;
         }
 
-        _renderedHtml = Markdown.Render(_revision.MarkdownBody);
+        _renderedHtml = Content.Render(_revision.ContentFormat, _revision.MarkdownBody);
         _isCurrent = _page.CurrentRevisionId == _revision.Id;
         _loading = false;
     }

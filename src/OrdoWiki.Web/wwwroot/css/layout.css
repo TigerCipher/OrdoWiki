@@ -164,3 +164,34 @@
 .NavSearch .mud-input-slot.mud-input-root-outlined.mud-input-root-adorned-start {
     padding-inline-start: 8px;
 }
+
+/* TipTap task list markup — <li><label><input/></label><div><p>text</p></div></li>.
+   Default block layout stacks the checkbox above the text; flexing the row keeps
+   them on one line. Same rules apply in the editor and the viewer, so we hit both
+   with the `.markdown-body` scope (the editor gets that class in wysiwyg.js). */
+.markdown-body ul[data-type="taskList"] {
+    list-style: none;
+    padding-inline-start: 0;
+}
+
+.markdown-body ul[data-type="taskList"] li {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.markdown-body ul[data-type="taskList"] li > label {
+    display: inline-flex;
+    align-items: center;
+    user-select: none;
+    margin-top: 2px;
+}
+
+.markdown-body ul[data-type="taskList"] li > div {
+    flex: 1;
+    min-width: 0;
+}
+
+.markdown-body ul[data-type="taskList"] li > div > p {
+    margin: 0;
+}

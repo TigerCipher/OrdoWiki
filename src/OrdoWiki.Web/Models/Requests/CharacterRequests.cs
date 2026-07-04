@@ -1,5 +1,7 @@
 namespace OrdoWiki.Web.Models.Requests;
 
+using Data.Entities;
+
 public class CreateCharacterRequest
 {
     // Optional client-supplied ID so images uploaded during the create flow can be
@@ -8,6 +10,7 @@ public class CreateCharacterRequest
     public required string Name { get; set; }
     public string? Summary { get; set; }
     public required string MarkdownBody { get; set; }
+    public ContentFormat ContentFormat { get; set; } = ContentFormat.Markdown;
     public string? Slug { get; set; }
     public IReadOnlyList<string>? Tags { get; set; }
 
@@ -22,6 +25,7 @@ public class EditCharacterRequest
     public required string Name { get; set; }
     public string? Summary { get; set; }
     public required string MarkdownBody { get; set; }
+    public ContentFormat ContentFormat { get; set; } = ContentFormat.Markdown;
     public string? Slug { get; set; }
     public IReadOnlyList<string>? Tags { get; set; }
 }

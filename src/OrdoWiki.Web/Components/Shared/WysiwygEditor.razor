@@ -1,0 +1,14 @@
+<div class="WysiwygEditor y-stack gap-2">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <MudText Typo="Typo.caption" Color="Color.Tertiary">@Label</MudText>
+    }
+
+    <WysiwygToolbar EditorId="@_editorId"
+                    SourceType="@SourceType"
+                    SourceId="@SourceId"/>
+
+    <MudPaper Outlined="true" Class="editor-shell">
+        <div id="@_editorId" class="editor-host"></div>
+    </MudPaper>
+</div>

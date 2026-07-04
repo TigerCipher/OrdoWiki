@@ -1,0 +1,91 @@
+.WysiwygToolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md, 4px);
+    background-color: var(--color-surface);
+    border: 1px solid var(--mud-palette-lines-default);
+    align-items: flex-end;
+}
+
+.WysiwygToolbar .tb-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.WysiwygToolbar .tb-group + .tb-group {
+    border-inline-start: 1px solid var(--mud-palette-lines-default);
+    padding-inline-start: var(--space-3);
+}
+
+.WysiwygToolbar .tb-label {
+    font-size: 0.7rem;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-inline-start: 4px;
+}
+
+.WysiwygToolbar .tb-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.WysiwygToolbar .swatch-picker {
+    position: relative;
+    display: inline-flex;
+}
+
+.WysiwygToolbar .swatch-popup {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 1200;
+    background-color: var(--color-surface);
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.WysiwygToolbar .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 24px);
+    gap: 4px;
+}
+
+.WysiwygToolbar .swatch {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+    background-clip: padding-box;
+}
+
+.WysiwygToolbar .swatch:hover {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 1px;
+}
+
+.WysiwygToolbar .swatch-clear {
+    background-color: transparent;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 3px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+}
+
+.WysiwygToolbar .swatch-clear:hover {
+    background-color: var(--mud-palette-action-default-hover);
+    color: var(--color-text);
+}

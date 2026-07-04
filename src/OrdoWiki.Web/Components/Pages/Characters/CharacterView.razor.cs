@@ -22,7 +22,7 @@ public partial class CharacterView
     private IRelatedItemsService RelatedItemsService { get; set; } = null!;
 
     [Inject]
-    private IMarkdownService Markdown { get; set; } = null!;
+    private IContentRenderer Content { get; set; } = null!;
 
     [Inject]
     private NavigationManager Navigation { get; set; } = null!;
@@ -42,7 +42,7 @@ public partial class CharacterView
         }
 
         _character = response;
-        _renderedHtml = Markdown.Render(_character.MarkdownBody);
+        _renderedHtml = Content.Render(_character.ContentFormat, _character.MarkdownBody);
         _related = await RelatedItemsService.GetForAsync(RelatedItemKind.Character, _character.Id);
 
         ApiResponse<bool> editCheck = await CharacterService.CanEditCharacterAsync(_character.Id);

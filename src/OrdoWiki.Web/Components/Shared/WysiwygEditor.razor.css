@@ -1,0 +1,25 @@
+.WysiwygEditor .editor-shell {
+    padding: 0;
+    overflow: hidden;
+}
+
+.WysiwygEditor .editor-host {
+    min-height: 320px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: var(--space-4);
+    background-color: var(--color-surface);
+}
+
+.WysiwygEditor ::deep .tiptap-editor {
+    outline: none;
+    min-height: 280px;
+}
+
+.WysiwygEditor ::deep .tiptap-editor p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: var(--color-muted);
+    pointer-events: none;
+    height: 0;
+}

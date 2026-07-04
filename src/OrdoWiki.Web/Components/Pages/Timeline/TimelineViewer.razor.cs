@@ -22,7 +22,7 @@ public partial class TimelineViewer
     private IRelatedItemsService RelatedItemsService { get; set; } = null!;
 
     [Inject]
-    private IMarkdownService Markdown { get; set; } = null!;
+    private IContentRenderer Content { get; set; } = null!;
 
     [Inject]
     private NavigationManager Navigation { get; set; } = null!;
@@ -43,7 +43,7 @@ public partial class TimelineViewer
         }
 
         _event = response;
-        _renderedHtml = Markdown.Render(_event.MarkdownBody);
+        _renderedHtml = Content.Render(_event.ContentFormat, _event.MarkdownBody);
         _showEditedRow = _event.UpdatedAt - _event.CreatedAt > TimeSpan.FromSeconds(5);
         _related = await RelatedItemsService.GetForAsync(RelatedItemKind.TimelineEvent, Id);
         _loading = false;

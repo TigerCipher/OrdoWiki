@@ -17,7 +17,8 @@ public class TimelineService(
     ITagService tagService,
     IRelatedItemsService relatedItemsService,
     AuthenticationStateProvider authState,
-    IAuthorizationService authorization) : ITimelineService
+    IAuthorizationService authorization,
+    IContentRenderer contentRenderer) : ITimelineService
 {
     public async Task<ApiResponse<PagedResult<TimelineEventDto>>> GetEventsAsync(TimelineEventFilter filter)
     {
@@ -191,7 +192,8 @@ public class TimelineService(
             Id = request.Id == Guid.Empty ? Guid.NewGuid() : request.Id,
             Title = request.Title.Trim(),
             Summary = string.IsNullOrWhiteSpace(request.Summary) ? null : request.Summary!.Trim(),
-            MarkdownBody = string.IsNullOrWhiteSpace(request.MarkdownBody) ? null : request.MarkdownBody,
+            MarkdownBody = SanitizeBody(request.MarkdownBody, request.ContentFormat),
+            ContentFormat = request.ContentFormat,
             MandoYear = request.MandoYear,
             MandoMonth = request.MandoMonth,
             MandoDay = request.MandoDay,
@@ -227,7 +229,8 @@ public class TimelineService(
 
         ev.Title = request.Title.Trim();
         ev.Summary = string.IsNullOrWhiteSpace(request.Summary) ? null : request.Summary!.Trim();
-        ev.MarkdownBody = string.IsNullOrWhiteSpace(request.MarkdownBody) ? null : request.MarkdownBody;
+        ev.MarkdownBody = SanitizeBody(request.MarkdownBody, request.ContentFormat);
+        ev.ContentFormat = request.ContentFormat;
         ev.MandoYear = request.MandoYear;
         ev.MandoMonth = request.MandoMonth;
         ev.MandoDay = request.MandoDay;
@@ -256,6 +259,12 @@ public class TimelineService(
         context.TimelineEvents.Remove(ev);
         await context.SaveChangesAsync();
         return Ok(true);
+    }
+
+    private string? SanitizeBody(string? body, ContentFormat format)
+    {
+        if (string.IsNullOrWhiteSpace(body)) return null;
+        return format == ContentFormat.Html ? contentRenderer.SanitizeHtml(body) : body;
     }
 
     private static ApiResponse<bool> ValidateDate(int? month, int? day)

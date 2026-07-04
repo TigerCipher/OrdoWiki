@@ -50,11 +50,13 @@
 
         <TagPicker Label="Tags" Value="_tagNames" ValueChanged="OnTagsChanged"/>
 
-        <MarkdownEditor @bind-Value="@_markdownBody"
-                        Label="Contents"
-                        Placeholder="The log contents (markdown supported)"
-                        SourceType="MediaSourceType.WikiPage"
-                        SourceId="@_page.Id"/>
+        <RichContentEditor @bind-Value="@_markdownBody"
+                           Format="@_format"
+                           ShowFormatToggle="false"
+                           Label="Contents"
+                           Placeholder="The log contents"
+                           SourceType="MediaSourceType.WikiPage"
+                           SourceId="@_page.Id"/>
 
         <RelatedItemsEditor @bind-Value="_related"
                             SelfKind="RelatedItemKind.Log"

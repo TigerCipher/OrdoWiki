@@ -52,11 +52,13 @@
 
         <TagPicker Label="Tags" Value="_tagNames" ValueChanged="OnTagsChanged"/>
 
-        <MarkdownEditor @bind-Value="@_character.MarkdownBody"
-                        Label="Backstory"
-                        Placeholder="Tell us about this character (markdown supported)"
-                        SourceType="MediaSourceType.Character"
-                        SourceId="@_character.Id"/>
+        <RichContentEditor @bind-Value="@_character.MarkdownBody"
+                           Format="@_character.ContentFormat"
+                           ShowFormatToggle="false"
+                           Label="Backstory"
+                           Placeholder="Tell us about this character"
+                           SourceType="MediaSourceType.Character"
+                           SourceId="@_character.Id"/>
 
         <RelatedItemsEditor @bind-Value="_related"
                             SelfKind="RelatedItemKind.Character"

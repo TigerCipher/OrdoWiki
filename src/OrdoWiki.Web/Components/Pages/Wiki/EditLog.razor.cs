@@ -14,6 +14,7 @@ public partial class EditLog
 
     private string _editSummary = string.Empty;
     private string _markdownBody = string.Empty;
+    private ContentFormat _format = ContentFormat.Markdown;
     private IReadOnlyList<string> _tagNames = [];
     private RelatedItemsDto _related = new();
 
@@ -46,6 +47,7 @@ public partial class EditLog
         _page = response;
         _revision = _page.CurrentRevision ?? new PageRevisionDto();
         _markdownBody = _revision.MarkdownBody;
+        _format = _revision.ContentFormat;
         _originalTitle = _page.Title;
         _tagNames = _page.Tags.Select(t => t.Name).ToList();
         _related = await RelatedItemsService.GetForAsync(RelatedItemKind.Log, _page.Id);
@@ -61,6 +63,7 @@ public partial class EditLog
             PageId = _page.Id,
             Title = _page.Title,
             MarkdownBody = _markdownBody,
+            ContentFormat = _format,
             EditSummary = _editSummary,
             Slug = _page.Slug,
             Summary = _page.Summary,

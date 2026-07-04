@@ -33,7 +33,7 @@ public partial class LogViewer
     private ISnackbar Snackbar { get; set; } = null!;
 
     [Inject]
-    private IMarkdownService Markdown { get; set; } = null!;
+    private IContentRenderer Content { get; set; } = null!;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -48,7 +48,7 @@ public partial class LogViewer
 
         _page = response;
         _revision = _page.CurrentRevision ?? new PageRevisionDto();
-        _renderedHtml = Markdown.Render(_revision.MarkdownBody);
+        _renderedHtml = Content.Render(_revision.ContentFormat, _revision.MarkdownBody);
 
         // Created+initial-revision are written within milliseconds of each other; only
         // show the "last edited" row when the page has been edited after creation.

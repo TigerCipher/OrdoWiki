@@ -1,0 +1,118 @@
+@using OrdoWiki.Data.Entities
+
+<div class="WysiwygToolbar">
+    <div class="tb-group">
+        <div class="tb-label">History</div>
+        <div class="tb-row">
+            <MudIconButton Icon="@Icons.Material.Filled.Undo" Size="Size.Small" OnClick="@(() => Exec("undo"))" title="Undo (Ctrl+Z)"/>
+            <MudIconButton Icon="@Icons.Material.Filled.Redo" Size="Size.Small" OnClick="@(() => Exec("redo"))" title="Redo (Ctrl+Y)"/>
+        </div>
+    </div>
+
+    <div class="tb-group">
+        <div class="tb-label">Text</div>
+        <div class="tb-row">
+            <MudIconButton Icon="@Icons.Material.Filled.FormatBold" Size="Size.Small" OnClick="@(() => Exec("toggleBold"))" title="Bold (Ctrl+B)"/>
+            <MudIconButton Icon="@Icons.Material.Filled.FormatItalic" Size="Size.Small" OnClick="@(() => Exec("toggleItalic"))" title="Italic (Ctrl+I)"/>
+            <MudIconButton Icon="@Icons.Material.Filled.FormatUnderlined" Size="Size.Small" OnClick="@(() => Exec("toggleUnderline"))" title="Underline (Ctrl+U)"/>
+            <MudIconButton Icon="@Icons.Material.Filled.StrikethroughS" Size="Size.Small" OnClick="@(() => Exec("toggleStrike"))" title="Strikethrough"/>
+
+            <div class="swatch-picker">
+                <MudIconButton Icon="@Icons.Material.Filled.FormatColorText"
+                               Size="Size.Small"
+                               OnClick="@ToggleTextColor"
+                               title="Text color"/>
+                @if (_textColorOpen)
+                {
+                    <div class="swatch-popup" @onclick:stopPropagation>
+                        <div class="swatch-grid">
+                            @foreach (string color in TextColors)
+                            {
+                                string c = color;
+                                <button type="button"
+                                        class="swatch"
+                                        style="@($"background-color: {c}")"
+                                        @onclick="@(() => ApplyTextColor(c))"
+                                        title="@c"></button>
+                            }
+                        </div>
+                        <button type="button"
+                                class="swatch-clear"
+                                @onclick="@ClearTextColor">
+                            Clear color
+                        </button>
+                    </div>
+                }
+            </div>
+
+            <div class="swatch-picker">
+                <MudIconButton Icon="@Icons.Material.Filled.FormatColorFill"
+                               Size="Size.Small"
+                               OnClick="@ToggleHighlight"
+                               title="Highlight color"/>
+                @if (_highlightOpen)
+                {
+                    <div class="swatch-popup" @onclick:stopPropagation>
+                        <div class="swatch-grid">
+                            @foreach (string color in HighlightColors)
+                            {
+                                string c = color;
+                                <button type="button"
+                                        class="swatch"
+                                        style="@($"background-color: {c}")"
+                                        @onclick="@(() => ApplyHighlight(c))"
+                                        title="@c"></button>
+                            }
+                        </div>
+                        <button type="button"
+                                class="swatch-clear"
+                                @onclick="@ClearHighlight">
+                            Clear highlight
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="tb-group">
+        <div class="tb-label">Paragraph</div>
+        <div class="tb-row">
+            <MudMenu Icon="@Icons.Material.Filled.Title"
+                     Size="Size.Small"
+                     Dense="true"
+                     AnchorOrigin="Origin.BottomLeft"
+                     TransformOrigin="Origin.TopLeft">
+                <MudMenuItem OnClick="@(() => Exec("setParagraph"))">Normal text</MudMenuItem>
+                <MudMenuItem OnClick="@(() => ExecWithArg("toggleHeading", new { level = 1 }))">Heading 1</MudMenuItem>
+                <MudMenuItem OnClick="@(() => ExecWithArg("toggleHeading", new { level = 2 }))">Heading 2</MudMenuItem>
+                <MudMenuItem OnClick="@(() => ExecWithArg("toggleHeading", new { level = 3 }))">Heading 3</MudMenuItem>
+                <MudMenuItem OnClick="@(() => ExecWithArg("toggleHeading", new { level = 4 }))">Heading 4</MudMenuItem>
+            </MudMenu>
+            <MudIconButton Icon="@Icons.Material.Filled.FormatListBulleted" Size="Size.Small" OnClick="@(() => Exec("toggleBulletList"))" title="Bulleted list"/>
+            <MudIconButton Icon="@Icons.Material.Filled.FormatListNumbered" Size="Size.Small" OnClick="@(() => Exec("toggleOrderedList"))" title="Numbered list"/>
+            <MudIconButton Icon="@Icons.Material.Filled.CheckBox" Size="Size.Small" OnClick="@(() => Exec("toggleTaskList"))" title="Task list"/>
+            <MudIconButton Icon="@Icons.Material.Filled.FormatQuote" Size="Size.Small" OnClick="@(() => Exec("toggleBlockquote"))" title="Blockquote"/>
+            <MudIconButton Icon="@Icons.Material.Filled.Code" Size="Size.Small" OnClick="@(() => Exec("toggleCodeBlock"))" title="Code block"/>
+            <MudIconButton Icon="@Icons.Material.Filled.HorizontalRule" Size="Size.Small" OnClick="@(() => Exec("setHorizontalRule"))" title="Horizontal rule"/>
+        </div>
+    </div>
+
+    <div class="tb-group">
+        <div class="tb-label">Align</div>
+        <div class="tb-row">
+            <MudIconButton Icon="@Icons.Material.Filled.FormatAlignLeft" Size="Size.Small" OnClick="@(() => Exec("setTextAlign", "left"))" title="Align left"/>
+            <MudIconButton Icon="@Icons.Material.Filled.FormatAlignCenter" Size="Size.Small" OnClick="@(() => Exec("setTextAlign", "center"))" title="Align center"/>
+            <MudIconButton Icon="@Icons.Material.Filled.FormatAlignRight" Size="Size.Small" OnClick="@(() => Exec("setTextAlign", "right"))" title="Align right"/>
+        </div>
+    </div>
+
+    <div class="tb-group">
+        <div class="tb-label">Insert</div>
+        <div class="tb-row">
+            <MudIconButton Icon="@Icons.Material.Filled.Link" Size="Size.Small" OnClick="@InsertLinkAsync" title="Insert link"/>
+            <MudIconButton Icon="@Icons.Material.Filled.TableChart" Size="Size.Small" OnClick="@(() => ExecWithArg("insertTable", new { rows = 3, cols = 3, withHeaderRow = true }))" title="Insert 3x3 table"/>
+            <MudIconButton Icon="@Icons.Material.Filled.Image" Size="Size.Small" OnClick="@InsertImageAsync" title="Insert image"/>
+        </div>
+    </div>
+</div>

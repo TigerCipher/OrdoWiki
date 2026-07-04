@@ -27,6 +27,7 @@ public static class ServiceRegistration
         services.AddScoped<ITimeZoneService, TimeZoneService>();
         services.AddScoped<ThemeState>();
         services.AddSingleton<IMarkdownService, MarkdownService>();
+        services.AddSingleton<IContentRenderer, ContentRenderer>();
         
         return services;
     }

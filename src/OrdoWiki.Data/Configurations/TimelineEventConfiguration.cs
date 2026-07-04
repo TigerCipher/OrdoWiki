@@ -12,6 +12,7 @@ public class TimelineEventConfiguration : IEntityTypeConfiguration<TimelineEvent
         builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Summary).HasMaxLength(500);
         builder.Property(x => x.DisplayOverride).HasMaxLength(120);
+        builder.Property(x => x.ContentFormat).HasDefaultValue(ContentFormat.Markdown);
         builder.Property(x => x.CreatedById).IsRequired();
 
         builder.HasIndex(x => x.EpochDayNumber);

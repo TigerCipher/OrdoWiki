@@ -13,7 +13,8 @@ public class CharacterService(
     IUserService userService,
     IMediaService mediaService,
     ITagService tagService,
-    IRelatedItemsService relatedItemsService) : ICharacterService
+    IRelatedItemsService relatedItemsService,
+    IContentRenderer contentRenderer) : ICharacterService
 {
     public async Task<ApiResponse<CharacterDto>> GetCharacterByIdAsync(Guid id)
     {
@@ -152,7 +153,8 @@ public class CharacterService(
                 Slug = slug,
                 Name = request.Name.Trim(),
                 Summary = request.Summary?.Trim(),
-                MarkdownBody = request.MarkdownBody ?? string.Empty,
+                MarkdownBody = SanitizeBody(request.MarkdownBody ?? string.Empty, request.ContentFormat),
+                ContentFormat = request.ContentFormat,
                 OwnerId = ownerId,
                 CreatedAt = now,
                 UpdatedAt = now,
@@ -185,7 +187,8 @@ public class CharacterService(
 
             character.Name = request.Name.Trim();
             character.Summary = request.Summary?.Trim();
-            character.MarkdownBody = request.MarkdownBody ?? string.Empty;
+            character.MarkdownBody = SanitizeBody(request.MarkdownBody ?? string.Empty, request.ContentFormat);
+            character.ContentFormat = request.ContentFormat;
             character.UpdatedAt = DateTime.UtcNow;
 
             if (!string.IsNullOrWhiteSpace(request.Slug))
@@ -434,6 +437,9 @@ public class CharacterService(
     private static bool CanAssignOwnership(string? role) =>
         string.Equals(role, Roles.Admin, StringComparison.OrdinalIgnoreCase) ||
         string.Equals(role, Roles.Designer, StringComparison.OrdinalIgnoreCase);
+
+    private string SanitizeBody(string body, ContentFormat format) =>
+        format == ContentFormat.Html ? contentRenderer.SanitizeHtml(body) : body;
 
     private async Task<string> EnsureUniqueSlugAsync(string baseSlug)
     {

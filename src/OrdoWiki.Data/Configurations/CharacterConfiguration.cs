@@ -13,6 +13,7 @@ public class CharacterConfiguration : IEntityTypeConfiguration<Character>
         builder.HasIndex(x => x.Slug).IsUnique();
         builder.Property(x => x.Name).HasMaxLength(120).IsRequired();
         builder.Property(x => x.Summary).HasMaxLength(500);
+        builder.Property(x => x.ContentFormat).HasDefaultValue(ContentFormat.Markdown);
         builder.Property(x => x.OwnerId).IsRequired();
 
         builder.HasIndex(x => x.OwnerId);
