@@ -52,17 +52,93 @@
     // Word-on-Windows paste is full of `mso-*` inline styles and `<o:p>` tags.
     // Strip the worst offenders before ProseMirror parses — the server-side
     // sanitizer catches the rest on save, but this keeps the editor view clean.
+    //
+    // Chrome's clipboard for intra-editor copies from contentEditable pads the
+    // selection with stray `<br>`s (and sometimes empty `<p></p>` wrappers).
+    // ProseMirror then wraps those in paragraphs, producing phantom blank
+    // lines before and after the pasted content. Trim both.
+    //
+    // Google Docs blank lines are the shape `<p><br></p>` (a paragraph whose
+    // only child is a `<br>`); those are preserved so multi-line paste keeps
+    // its intended spacing.
+    const isBlankLineParagraph = (p) =>
+        p.textContent.trim() === "" && p.querySelector("br");
+
     const cleanPasteHtml = (html) => {
-        return html
+        let cleaned = html
             .replace(/<!--[\s\S]*?-->/g, "")
             .replace(/<o:p[^>]*>[\s\S]*?<\/o:p>/gi, "")
             .replace(/<\/?xml[^>]*>/gi, "")
             .replace(/style="[^"]*mso-[^"]*"/gi, (m) => {
-                const cleaned = m.replace(/[^;"]*mso-[^;"]*;?/gi, "").replace(/style="\s*"/, "");
-                return cleaned || "";
+                const c = m.replace(/[^;"]*mso-[^;"]*;?/gi, "").replace(/style="\s*"/, "");
+                return c || "";
             })
             .replace(/class="?Mso[^"\s>]*"?/gi, "");
+
+        try {
+            const doc = new DOMParser().parseFromString(cleaned, "text/html");
+            const body = doc.body;
+
+            // Chrome's clipboard for ProseMirror's own copies looks like:
+            //   <html>\n<body>\n<!--StartFragment--><p data-pm-slice="1 1 []">is my</p>\n
+            // The literal newlines between <body>, comments, and content survive
+            // as text nodes in the parsed DOM. ProseMirror's DOMParser then wraps
+            // each whitespace-only text node in its own paragraph — one blank
+            // line before the paste, one after. Strip them at block containers
+            // where whitespace is never meaningful. (Never inside <p>, <li>,
+            // etc., where whitespace between inline nodes carries semantics.)
+            const blockContainers = new Set([
+                "BODY", "DIV", "ARTICLE", "SECTION", "MAIN", "HEADER", "FOOTER",
+                "NAV", "ASIDE", "FIGURE", "UL", "OL", "TABLE", "THEAD", "TBODY",
+                "TFOOT", "TR",
+            ]);
+            const stripBlockWhitespace = (parent) => {
+                if (blockContainers.has(parent.nodeName)) {
+                    Array.from(parent.childNodes).forEach((n) => {
+                        if (n.nodeType === Node.TEXT_NODE && n.textContent.trim() === "") {
+                            parent.removeChild(n);
+                        }
+                    });
+                }
+                Array.from(parent.children).forEach(stripBlockWhitespace);
+            };
+            stripBlockWhitespace(body);
+
+            // Top-level <br>s (outside any paragraph) get wrapped by ProseMirror
+            // into their own paragraphs = blank lines. Drop them at the paste
+            // boundary.
+            while (body.firstChild && body.firstChild.nodeName === "BR") body.removeChild(body.firstChild);
+            while (body.lastChild && body.lastChild.nodeName === "BR") body.removeChild(body.lastChild);
+
+            body.querySelectorAll("p").forEach((p) => {
+                if (isBlankLineParagraph(p)) return;
+                while (p.firstChild && p.firstChild.nodeName === "BR") p.removeChild(p.firstChild);
+                while (p.lastChild && p.lastChild.nodeName === "BR") p.removeChild(p.lastChild);
+            });
+
+            // Any paragraph left with no text and no <br>/<img>/<hr> was a
+            // pure wrapper artifact — drop it.
+            body.querySelectorAll("p").forEach((p) => {
+                const hasText = p.textContent.trim().length > 0;
+                const hasVisibleChild = p.querySelector("br, img, hr");
+                if (!hasText && !hasVisibleChild) p.remove();
+            });
+
+            cleaned = body.innerHTML;
+        } catch {
+            // DOMParser failed — paste as-is; the server-side sanitizer still runs on save.
+        }
+
+        return cleaned;
     };
+
+    // TipTap's HTML serializer emits `<p></p>` for empty paragraphs. In the
+    // editor contentEditable inserts a phantom `<br>` to give them cursor-height,
+    // so blank lines look right; in the viewer the same `<p></p>` collapses to
+    // zero height and the spacing disappears. Inject a `<br>` before sending the
+    // HTML to the server so the viewer renders authored blank lines the same way.
+    const emptyParagraphRegex = /<p([^>]*)>\s*<\/p>/g;
+    const normalizeOutput = (html) => html.replace(emptyParagraphRegex, "<p$1><br></p>");
 
     // TipTap doesn't ship a first-party font-size extension. FontFamily's source is
     // the template we're copying: an Extension (not a Mark) that adds a fontSize
@@ -244,10 +320,45 @@
                         class: "tiptap-editor markdown-body",
                     },
                     transformPastedHTML: cleanPasteHtml,
+                    // HTML-level cleanup can't reach ProseMirror's parsed slice —
+                    // whatever wrapper Chrome uses for intra-editor copies still
+                    // reconstructs boundary empty paragraphs after parse. This
+                    // trims empty paragraphs from the start/end of the slice
+                    // before it's inserted. Middle empties (Google Docs blank
+                    // lines, which contain a HardBreak so content.size > 0) are
+                    // untouched.
+                    transformPasted: (slice) => {
+                        const nodes = [];
+                        slice.content.forEach((n) => nodes.push(n));
+
+                        let trimmedStart = 0;
+                        while (nodes.length && nodes[0].type.name === "paragraph" && nodes[0].content.size === 0) {
+                            nodes.shift();
+                            trimmedStart++;
+                        }
+                        let trimmedEnd = 0;
+                        while (nodes.length && nodes[nodes.length - 1].type.name === "paragraph" && nodes[nodes.length - 1].content.size === 0) {
+                            nodes.pop();
+                            trimmedEnd++;
+                        }
+
+                        if (trimmedStart === 0 && trimmedEnd === 0) return slice;
+
+                        const Fragment = slice.content.constructor;
+                        const Slice = slice.constructor;
+                        if (nodes.length === 0) return new Slice(Fragment.from([]), 0, 0);
+
+                        // Preserve original openStart/openEnd — they describe how
+                        // deep the slice is "open" for merging. Removing empty
+                        // block-level nodes at the boundary doesn't change how the
+                        // remaining nodes should merge inline, so keeping the
+                        // values is safe.
+                        return new Slice(Fragment.from(nodes), slice.openStart, slice.openEnd);
+                    },
                 },
                 onUpdate: ({ editor }) => {
                     if (!dotnetRef) return;
-                    const html = editor.getHTML();
+                    const html = normalizeOutput(editor.getHTML());
                     dotnetRef.invokeMethodAsync("OnContentChangedAsync", html).catch(() => {});
                 },
             });
@@ -257,7 +368,7 @@
 
         getContent: (elementId) => {
             const editor = editors.get(elementId);
-            return editor ? editor.getHTML() : "";
+            return editor ? normalizeOutput(editor.getHTML()) : "";
         },
 
         setContent: (elementId, html) => {
