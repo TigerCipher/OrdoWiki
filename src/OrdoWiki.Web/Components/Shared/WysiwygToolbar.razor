@@ -48,34 +48,6 @@
             </MudMenu>
 
             <div class="swatch-picker">
-                <MudIconButton Icon="@Icons.Material.Filled.FormatColorText"
-                               Size="Size.Small"
-                               OnClick="@ToggleTextColor"
-                               title="Text color"/>
-                @if (_textColorOpen)
-                {
-                    <div class="swatch-popup" @onclick:stopPropagation>
-                        <div class="swatch-grid">
-                            @foreach (string color in TextColors)
-                            {
-                                string c = color;
-                                <button type="button"
-                                        class="swatch"
-                                        style="@($"background-color: {c}")"
-                                        @onclick="@(() => ApplyTextColor(c))"
-                                        title="@c"></button>
-                            }
-                        </div>
-                        <button type="button"
-                                class="swatch-clear"
-                                @onclick="@ClearTextColor">
-                            Clear color
-                        </button>
-                    </div>
-                }
-            </div>
-
-            <div class="swatch-picker">
                 <MudIconButton Icon="@Icons.Material.Filled.FormatColorFill"
                                Size="Size.Small"
                                OnClick="@ToggleHighlight"

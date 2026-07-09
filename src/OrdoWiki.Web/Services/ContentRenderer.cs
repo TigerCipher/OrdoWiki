@@ -98,7 +98,6 @@ public partial class ContentRenderer : IContentRenderer
         // Restrict style properties to visual formatting we accept from paste. Word
         // sometimes tags every span with mso-* props; those get dropped silently.
         s.AllowedCssProperties.Add("text-align");
-        s.AllowedCssProperties.Add("color");
         s.AllowedCssProperties.Add("background-color");
         s.AllowedCssProperties.Add("font-weight");
         s.AllowedCssProperties.Add("font-style");

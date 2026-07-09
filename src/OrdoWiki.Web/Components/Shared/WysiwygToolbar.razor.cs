@@ -8,15 +8,6 @@ using MudBlazor;
 
 public partial class WysiwygToolbar
 {
-    // Google-Docs-ish palette. A dozen picks covers most of what a wiki author
-    // reaches for; a full picker is out of scope for a swatch UX.
-    private static readonly string[] TextColors =
-    [
-        "#000000", "#5f6368", "#c0392b", "#e67e22",
-        "#f1c40f", "#27ae60", "#16a085", "#2980b9",
-        "#8e44ad", "#c2185b", "#795548", "#ffffff",
-    ];
-
     private static readonly string[] HighlightColors =
     [
         "#fff59d", "#ffcc80", "#ef9a9a", "#f48fb1",
@@ -45,7 +36,6 @@ public partial class WysiwygToolbar
         ("Huge", "1.75em"),
     ];
 
-    private bool _textColorOpen;
     private bool _highlightOpen;
 
     [Parameter, EditorRequired]
@@ -78,28 +68,9 @@ public partial class WysiwygToolbar
         await JsRuntime.InvokeVoidAsync("ordoWysiwyg.exec", EditorId, command, arg);
     }
 
-    private void ToggleTextColor()
-    {
-        _textColorOpen = !_textColorOpen;
-        _highlightOpen = false;
-    }
-
     private void ToggleHighlight()
     {
         _highlightOpen = !_highlightOpen;
-        _textColorOpen = false;
-    }
-
-    private async Task ApplyTextColor(string color)
-    {
-        _textColorOpen = false;
-        await Exec("setColor", color);
-    }
-
-    private async Task ClearTextColor()
-    {
-        _textColorOpen = false;
-        await Exec("unsetColor");
     }
 
     private async Task ApplyHighlight(string color)

@@ -26,10 +26,9 @@
             import(cdn("@tiptap/extension-text-align")),
             import(cdn("@tiptap/extension-underline")),
             import(cdn("@tiptap/extension-text-style")),
-            import(cdn("@tiptap/extension-color")),
             import(cdn("@tiptap/extension-highlight")),
             import(cdn("@tiptap/extension-font-family")),
-        ]).then(([core, starter, link, image, table, row, cell, header, taskList, taskItem, textAlign, underline, textStyle, color, highlight, fontFamily]) => ({
+        ]).then(([core, starter, link, image, table, row, cell, header, taskList, taskItem, textAlign, underline, textStyle, highlight, fontFamily]) => ({
             Editor: core.Editor,
             Extension: core.Extension,
             StarterKit: starter.default ?? starter.StarterKit,
@@ -44,7 +43,6 @@
             TextAlign: textAlign.default ?? textAlign.TextAlign,
             Underline: underline.default ?? underline.Underline,
             TextStyle: textStyle.default ?? textStyle.TextStyle,
-            Color: color.default ?? color.Color,
             Highlight: highlight.default ?? highlight.Highlight,
             FontFamily: fontFamily.default ?? fontFamily.FontFamily,
         }));
@@ -237,7 +235,6 @@
                     M.TaskItem.configure({ nested: true }),
                     M.TextAlign.configure({ types: ["heading", "paragraph"] }),
                     M.TextStyle,
-                    M.Color,
                     M.Highlight.configure({ multicolor: true }),
                     M.FontFamily,
                     FontSize,

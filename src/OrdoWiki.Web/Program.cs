@@ -127,6 +127,12 @@ else
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+// UseAuthentication has to run before the forced-password-change middleware
+// (and before UseAntiforgery) so HttpContext.User is populated from the auth
+// cookie. Without it the middleware's IsAuthenticated check is always false,
+// and users with a temp password never get redirected to /Account/Manage/ChangePassword.
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
 app.UseMiddleware<RequirePasswordChangeMiddleware>();
 
