@@ -124,7 +124,13 @@ else
     app.UseHsts();
 }
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+// Only re-execute for GETs. UseStatusCodePagesWithReExecute otherwise rewrites
+// ANY empty-body 4xx/5xx (e.g. antiforgery 400s from POST /Account/PasswordLogin)
+// to render /not-found — dev tools still shows the real status, but the browser
+// paints "Page not found" and the actual failure gets misdiagnosed.
+app.UseWhen(
+    ctx => HttpMethods.IsGet(ctx.Request.Method),
+    branch => branch.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
 app.UseHttpsRedirection();
 
 // UseAuthentication has to run before the forced-password-change middleware
